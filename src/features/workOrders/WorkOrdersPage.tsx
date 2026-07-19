@@ -1,5 +1,4 @@
 import RefreshIcon from '@mui/icons-material/Refresh'
-import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 import IconButton from '@mui/material/IconButton'
@@ -13,6 +12,8 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
 import { DateTime } from 'luxon'
+import { useEffect } from 'react'
+import { useToasters } from '../../app/toasters/useToasters'
 import { useWorkOrdersQuery } from './queries'
 import { WorkOrderStatusChip } from './WorkOrderStatusChip'
 
@@ -24,12 +25,19 @@ function formatDate(value: string | null): string {
 }
 
 export function WorkOrdersPage() {
+  const toasters = useToasters()
   const { data: workOrders, isPending, isError, error, refetch, isFetching } = useWorkOrdersQuery()
 
+  useEffect(() => {
+    if (isError) {
+      toasters.error((error as Error).message)
+    }
+  }, [isError, error, toasters])
+
   return (
-    <Stack spacing={2}>
+    <Stack spacing={3}>
       <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography variant="h5" component="h1">
+        <Typography variant="h2" component="h1">
           Work orders
         </Typography>
         <IconButton onClick={() => refetch()} disabled={isFetching} aria-label="Refresh">
@@ -43,10 +51,8 @@ export function WorkOrdersPage() {
         </Box>
       )}
 
-      {isError && <Alert severity="error">{(error as Error).message}</Alert>}
-
       {workOrders && (
-        <TableContainer component={Paper} variant="outlined">
+        <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: '12px' }}>
           <Table>
             <TableHead>
               <TableRow>
@@ -62,7 +68,9 @@ export function WorkOrdersPage() {
               {workOrders.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={6} align="center">
-                    No work orders yet.
+                    <Typography variant="body2" sx={{ color: 'text.secondary', py: 2 }}>
+                      No work orders yet.
+                    </Typography>
                   </TableCell>
                 </TableRow>
               )}

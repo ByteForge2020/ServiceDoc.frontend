@@ -9,8 +9,7 @@ export interface AuthState {
   accessToken: string | null
   refreshToken: string | null
   user: AuthUser | null
-  status: 'idle' | 'loading' | 'failed'
-  error: string | null
+  status: 'idle' | 'loading'
 }
 
 const storedAccessToken = tokenStorage.getAccessToken()
@@ -20,7 +19,6 @@ const initialState: AuthState = {
   refreshToken: tokenStorage.getRefreshToken(),
   user: storedAccessToken ? buildUserFromToken(storedAccessToken) : null,
   status: 'idle',
-  error: null,
 }
 
 function applyTokens(state: AuthState, tokens: TokenResponse): void {
@@ -70,7 +68,6 @@ const authSlice = createSlice({
   reducers: {
     logout(state) {
       state.status = 'idle'
-      state.error = null
       clearSession(state)
     },
   },
@@ -78,15 +75,13 @@ const authSlice = createSlice({
     builder
       .addCase(login.pending, (state) => {
         state.status = 'loading'
-        state.error = null
       })
       .addCase(login.fulfilled, (state, action: PayloadAction<TokenResponse>) => {
         state.status = 'idle'
         applyTokens(state, action.payload)
       })
-      .addCase(login.rejected, (state, action) => {
-        state.status = 'failed'
-        state.error = action.payload ?? 'Login failed.'
+      .addCase(login.rejected, (state) => {
+        state.status = 'idle'
       })
       .addCase(refreshAccessToken.fulfilled, (state, action: PayloadAction<TokenResponse>) => {
         applyTokens(state, action.payload)

@@ -17,11 +17,11 @@ export function AppLayout() {
     <>
       <AppBar position="static" color="default" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          <Typography variant="h4" component="div" sx={{ flexGrow: 1 }}>
             ServiceDoc
           </Typography>
           {user && (
-            <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }}>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mr: 2 }}>
               {user.username}
             </Typography>
           )}

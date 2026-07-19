@@ -3,7 +3,7 @@ import type { WorkOrderStatus } from './types'
 
 const STATUS_COLOR: Record<WorkOrderStatus, ChipProps['color']> = {
   Draft: 'default',
-  Open: 'info',
+  Open: 'primary',
   InProgress: 'warning',
   Completed: 'success',
   Cancelled: 'error',

@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
-import Alert from '@mui/material/Alert'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Container from '@mui/material/Container'
@@ -8,15 +7,17 @@ import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import { useToasters } from '../../app/toasters/useToasters'
 import { useAppDispatch, useAppSelector } from '../../app/hooks'
 import { login } from './authSlice'
 
 export function LoginPage() {
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
   const location = useLocation()
+  const toasters = useToasters()
   const accessToken = useAppSelector((state) => state.auth.accessToken)
   const status = useAppSelector((state) => state.auth.status)
-  const error = useAppSelector((state) => state.auth.error)
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -29,6 +30,12 @@ export function LoginPage() {
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
     dispatch(login({ email, password }))
+      .unwrap()
+      .then(() => {
+        toasters.success('Signed in successfully.')
+        navigate((location.state as { from?: string } | null)?.from ?? '/orders', { replace: true })
+      })
+      .catch((message: string) => toasters.error(message))
   }
 
   return (
@@ -40,13 +47,11 @@ export function LoginPage() {
       }}
     >
       <Container maxWidth="xs">
-        <Paper variant="outlined" sx={{ p: 4 }}>
+        <Paper variant="outlined" sx={{ p: 4, borderRadius: '12px' }}>
           <Stack spacing={3} component="form" onSubmit={handleSubmit}>
-            <Typography variant="h5" component="h1" sx={{ textAlign: 'center' }}>
+            <Typography variant="h3" component="h1" sx={{ textAlign: 'center' }}>
               ServiceDoc
             </Typography>
-
-            {error && <Alert severity="error">{error}</Alert>}
 
             <TextField
               label="Email"
