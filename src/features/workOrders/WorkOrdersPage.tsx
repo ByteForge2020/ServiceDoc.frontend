@@ -12,8 +12,6 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
 import { DateTime } from 'luxon'
-import { useEffect } from 'react'
-import { useToasters } from '../../app/toasters/useToasters'
 import { useWorkOrdersQuery } from './queries'
 import { WorkOrderStatusChip } from './WorkOrderStatusChip'
 
@@ -25,14 +23,7 @@ function formatDate(value: string | null): string {
 }
 
 export function WorkOrdersPage() {
-  const toasters = useToasters()
-  const { data: workOrders, isPending, isError, error, refetch, isFetching } = useWorkOrdersQuery()
-
-  useEffect(() => {
-    if (isError) {
-      toasters.error((error as Error).message)
-    }
-  }, [isError, error, toasters])
+  const { data: workOrders, isPending, refetch, isFetching } = useWorkOrdersQuery()
 
   return (
     <Stack spacing={3}>

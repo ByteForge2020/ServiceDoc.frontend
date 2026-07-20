@@ -1,7 +1,8 @@
 import Alert from '@mui/material/Alert'
 import Snackbar from '@mui/material/Snackbar'
-import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { ToasterContext, type ToastSeverity } from './ToasterContext'
+import { setToasterInstance } from './toasterInstance'
 
 interface Toast {
   key: number
@@ -57,6 +58,11 @@ export function ToasterProvider({ children }: { children: ReactNode }) {
     }),
     [enqueue],
   )
+
+  useEffect(() => {
+    setToasterInstance(value)
+    return () => setToasterInstance(null)
+  }, [value])
 
   return (
     <ToasterContext.Provider value={value}>

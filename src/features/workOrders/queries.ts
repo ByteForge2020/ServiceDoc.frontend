@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { workOrdersApi } from '../../api/workOrdersApi'
+import { workOrdersApi } from "../../api/workOrdersApi"
 
 export const workOrderKeys = {
   all: ['workOrders'] as const,
