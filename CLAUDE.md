@@ -3,8 +3,8 @@
 The single source of truth for all colors, typography, and component styles is `theme.ts` (MUI theme, light mode, slate/grey-blue palette with blue accent). Claude Code must not hardcode hex values in components — always reference theme tokens instead.
 
 ## Rules for Claude Code
-1. Never hardcode hex colors in components. Always use theme tokens: `theme.palette.background.default`, `theme.palette.text.secondary`, `theme.palette.divider`, etc. — via `useTheme()` or the `sx` prop.
-2. If a new color/shade is needed, add it to `theme.ts` first (as a new palette token or component override), then reference it — do not inline a one-off hex value in a component.
+1. All styles must come from theme.ts only — colors, spacing, radii, and typography. Never hardcode hex colors, or arbitrary px values. Always use theme tokens: `theme.palette.background.default`, `theme.palette.text.secondary`, `theme.palette.divider`, etc. — via `useTheme()` or the `sx` prop.
+2. If a new color/shade/token is needed, add it to `theme.ts` first (as a new palette token or component override), then reference it — do not inline a one-off value in a component.
 3. Do not use gradients unless explicitly specified.
 4. All interactive elements must have states: default, hover, active/focus, disabled — defined via MUI's built-in state handling or explicit `styleOverrides` in `theme.ts`.
 5. Component-level style overrides (buttons, inputs, tables, cards, app bar, etc.) belong in `theme.ts` under `components`, not scattered across individual component files.

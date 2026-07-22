@@ -19,6 +19,8 @@ const blue = {
 
 const secondaryButtonHover = '#e9edf3'
 
+export const drawerWidth = 240
+
 export const theme = createTheme({
   palette: {
     mode: 'light',
@@ -173,6 +175,47 @@ export const theme = createTheme({
         },
         root: {
           borderBottom: `1px solid ${slate[200]}`,
+        },
+      },
+    },
+    MuiDrawer: {
+      styleOverrides: {
+        paper: {
+          backgroundColor: '#ffffff',
+          borderRight: `1px solid ${slate[200]}`,
+          backgroundImage: 'none',
+        },
+      },
+    },
+    MuiListItemButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          margin: '4px 8px',
+          width: 'auto',
+          color: slate[500],
+          '&:hover': {
+            backgroundColor: slate[50],
+            color: slate[900],
+          },
+          '&.Mui-selected': {
+            backgroundColor: alpha(blue[500], 0.1),
+            color: blue[600],
+            '&:hover': {
+              backgroundColor: alpha(blue[500], 0.15),
+            },
+          },
+          '&.Mui-disabled': {
+            opacity: 0.5,
+          },
+        },
+      },
+    },
+    MuiListItemIcon: {
+      styleOverrides: {
+        root: {
+          minWidth: 32,
+          color: 'inherit',
         },
       },
     },
