@@ -1,5 +1,7 @@
+import AddIcon from '@mui/icons-material/Add'
 import RefreshIcon from '@mui/icons-material/Refresh'
 import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
 import IconButton from '@mui/material/IconButton'
 import Paper from '@mui/material/Paper'
@@ -12,6 +14,7 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
 import { DateTime } from 'luxon'
+import { useNavigate } from 'react-router-dom'
 import { useWorkOrdersQuery } from './queries'
 import { WorkOrderStatusChip } from './WorkOrderStatusChip'
 
@@ -23,6 +26,7 @@ function formatDate(value: string | null): string {
 }
 
 export function WorkOrdersPage() {
+  const navigate = useNavigate()
   const { data: workOrders, isPending, refetch, isFetching } = useWorkOrdersQuery()
 
   return (
@@ -31,9 +35,14 @@ export function WorkOrdersPage() {
         <Typography variant="h2" component="h1">
           Work orders
         </Typography>
-        <IconButton onClick={() => refetch()} disabled={isFetching} aria-label="Refresh">
-          <RefreshIcon />
-        </IconButton>
+        <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+          <IconButton onClick={() => refetch()} disabled={isFetching} aria-label="Refresh">
+            <RefreshIcon />
+          </IconButton>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/orders/new')}>
+            New work order
+          </Button>
+        </Stack>
       </Stack>
 
       {isPending && (
@@ -47,6 +56,7 @@ export function WorkOrdersPage() {
           <Table>
             <TableHead>
               <TableRow>
+                <TableCell>Order #</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell>Customer</TableCell>
                 <TableCell>Vehicle</TableCell>
@@ -58,7 +68,7 @@ export function WorkOrdersPage() {
             <TableBody>
               {workOrders.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} align="center">
+                  <TableCell colSpan={7} align="center">
                     <Typography variant="body2" sx={{ color: 'text.secondary', py: 2 }}>
                       No work orders yet.
                     </Typography>
@@ -66,12 +76,18 @@ export function WorkOrdersPage() {
                 </TableRow>
               )}
               {workOrders.map((workOrder) => (
-                <TableRow key={workOrder.id} hover>
+                <TableRow
+                  key={workOrder.id}
+                  hover
+                  onClick={() => navigate(`/orders/${workOrder.id}`)}
+                  sx={{ cursor: 'pointer' }}
+                >
+                  <TableCell>{workOrder.orderNumber}</TableCell>
                   <TableCell>
                     <WorkOrderStatusChip status={workOrder.status} />
                   </TableCell>
-                  <TableCell>{workOrder.customerId}</TableCell>
-                  <TableCell>{workOrder.vehicleId}</TableCell>
+                  <TableCell>{workOrder.customerName ?? '—'}</TableCell>
+                  <TableCell>{workOrder.vehicleDescription ?? '—'}</TableCell>
                   <TableCell>{workOrder.notes ?? '—'}</TableCell>
                   <TableCell>{formatDate(workOrder.openedAt)}</TableCell>
                   <TableCell>{formatDate(workOrder.closedAt)}</TableCell>

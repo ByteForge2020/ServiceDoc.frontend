@@ -219,5 +219,32 @@ export const theme = createTheme({
         },
       },
     },
+    MuiTabs: {
+      styleOverrides: {
+        root: {
+          borderBottom: `1px solid ${slate[200]}`,
+          minHeight: 44,
+        },
+        indicator: {
+          backgroundColor: blue[500],
+        },
+      },
+    },
+    MuiTab: {
+      styleOverrides: {
+        root: {
+          minHeight: 44,
+          textTransform: 'none',
+          fontWeight: 600,
+          color: slate[500],
+          '&.Mui-selected': {
+            color: blue[600],
+          },
+          '&.Mui-disabled': {
+            color: slate[400],
+          },
+        },
+      },
+    },
   },
 })
