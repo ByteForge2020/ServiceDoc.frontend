@@ -4,6 +4,7 @@ import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import { useTranslation } from 'react-i18next'
 import { useSearchCustomersQuery } from '../../customers/queries'
 import type { CustomerSearchResult } from '../../customers/types'
 import { highlightMatch } from './highlightMatch'
@@ -23,6 +24,7 @@ interface CustomerInformationCardProps {
 }
 
 export function CustomerInformationCard({ value, onChange }: CustomerInformationCardProps) {
+  const { t } = useTranslation()
   const [searchInput, setSearchInput] = useState('')
   const debouncedSearch = useDebouncedValue(searchInput, 300)
   const { data: results, isFetching } = useSearchCustomersQuery(debouncedSearch)
@@ -46,7 +48,7 @@ export function CustomerInformationCard({ value, onChange }: CustomerInformation
     <Paper variant="outlined" sx={{ p: 4, borderRadius: '12px' }}>
       <Stack spacing={3}>
         <Typography variant="h4" component="h2">
-          Customer Information
+          {t('customerInformation.title')}
         </Typography>
 
         <Autocomplete<CustomerSearchResult, false, false, false>
@@ -60,7 +62,9 @@ export function CustomerInformationCard({ value, onChange }: CustomerInformation
           isOptionEqualToValue={(option, val) =>
             option.customerId === val.customerId && option.vehicleId === val.vehicleId
           }
-          noOptionsText={debouncedSearch.trim().length < 2 ? 'Keep typing to search…' : 'No customers found'}
+          noOptionsText={
+            debouncedSearch.trim().length < 2 ? t('customerInformation.keepTyping') : t('customerInformation.noCustomersFound')
+          }
           renderOption={(props, option) => (
             <li {...props} key={`${option.customerId}-${option.vehicleId ?? 'none'}`}>
               <Typography variant="body1">
@@ -75,19 +79,23 @@ export function CustomerInformationCard({ value, onChange }: CustomerInformation
             </li>
           )}
           renderInput={(params) => (
-            <TextField {...params} label="Search customer by name, mobile, plates or VIN" placeholder="Start typing…" />
+            <TextField
+              {...params}
+              label={t('customerInformation.searchLabel')}
+              placeholder={t('customerInformation.searchPlaceholder')}
+            />
           )}
         />
 
         <Stack direction="row" spacing={2}>
           <TextField
-            label="Name"
+            label={t('customerInformation.name')}
             value={value.firstName}
             onChange={(event) => onChange({ ...value, firstName: event.target.value })}
             fullWidth
           />
           <TextField
-            label="Last name"
+            label={t('customerInformation.lastName')}
             value={value.lastName}
             onChange={(event) => onChange({ ...value, lastName: event.target.value })}
             fullWidth
@@ -95,14 +103,14 @@ export function CustomerInformationCard({ value, onChange }: CustomerInformation
         </Stack>
 
         <TextField
-          label="Email"
+          label={t('customerInformation.email')}
           value={value.email}
           onChange={(event) => onChange({ ...value, email: event.target.value })}
           fullWidth
         />
 
         <TextField
-          label="Mobile"
+          label={t('customerInformation.mobile')}
           value={value.phone}
           onChange={(event) => onChange({ ...value, phone: event.target.value })}
           fullWidth

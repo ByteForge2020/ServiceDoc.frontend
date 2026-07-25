@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import Box from '@mui/material/Box'
@@ -17,6 +18,7 @@ import {
 } from './workOrderForm'
 
 export function EditWorkOrderPage() {
+  const { t } = useTranslation()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const toasters = useToasters()
@@ -63,16 +65,16 @@ export function EditWorkOrderPage() {
       },
       {
         onSuccess: () => {
-          toasters.success('Work order updated.')
+          toasters.success(t('workOrderForm.updateSuccess'))
           navigate('/orders', { replace: true })
         },
         onError: (error) => {
           if (error instanceof AxiosError && error.response?.status === 409) {
             setOrderNumberConflict(true)
-            toasters.error('An order with this number already exists.')
+            toasters.error(t('workOrderForm.orderNumberConflict'))
             return
           }
-          toasters.error(extractErrorMessage(error, 'Failed to update work order.'))
+          toasters.error(extractErrorMessage(error, t('workOrderForm.updateError')))
         },
       },
     )
@@ -88,7 +90,7 @@ export function EditWorkOrderPage() {
 
   return (
     <WorkOrderFormLayout
-      title="Edit work order"
+      title={t('workOrderForm.editTitle')}
       onBack={() => navigate('/orders')}
       onCancel={() => navigate('/orders')}
       customer={customer}
@@ -105,7 +107,7 @@ export function EditWorkOrderPage() {
       onNotesChange={setNotes}
       onSubmit={handleSubmit}
       saving={mutation.isPending}
-      saveLabel="Save changes"
+      saveLabel={t('workOrderForm.saveLabel')}
       canSave={canSave}
     />
   )

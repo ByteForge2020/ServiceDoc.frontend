@@ -6,13 +6,16 @@ import IconButton from '@mui/material/IconButton'
 import Toolbar from '@mui/material/Toolbar'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
+import { useTranslation } from 'react-i18next'
 import { Outlet } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../app/hooks'
 import { logout } from '../../features/auth/authSlice'
+import { LanguageSwitcher } from './LanguageSwitcher'
 import { Sidebar } from './Sidebar'
 import {drawerWidth} from "../../theme.ts";
 
 export function AppLayout() {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const user = useAppSelector((state) => state.auth.user)
 
@@ -26,15 +29,18 @@ export function AppLayout() {
       >
         <Toolbar>
           <Typography variant="h4" component="div" sx={{ flexGrow: 1 }}>
-            ServiceDoc
+            {t('common.appName')}
           </Typography>
           {user && (
             <Typography variant="body2" sx={{ color: 'text.secondary', mr: 2 }}>
               {user.username}
             </Typography>
           )}
-          <Tooltip title="Sign out">
-            <IconButton onClick={() => dispatch(logout())} aria-label="Sign out">
+          <Box sx={{ mr: 2 }}>
+            <LanguageSwitcher />
+          </Box>
+          <Tooltip title={t('common.signOut')}>
+            <IconButton onClick={() => dispatch(logout())} aria-label={t('common.signOut')}>
               <LogoutIcon />
             </IconButton>
           </Tooltip>

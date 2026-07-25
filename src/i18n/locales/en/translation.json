@@ -1,0 +1,96 @@
+{
+  "common": {
+    "appName": "ServiceDoc",
+    "cancel": "Cancel",
+    "back": "Back",
+    "signOut": "Sign out",
+    "createOption": "Create \"{{name}}\""
+  },
+  "nav": {
+    "workOrders": "Work orders",
+    "jobs": "Jobs",
+    "settings": "Settings"
+  },
+  "auth": {
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "signIn": "Sign in",
+    "signedInSuccess": "Signed in successfully.",
+    "invalidCredentials": "Invalid email or password.",
+    "sessionExpired": "Session expired.",
+    "noRefreshToken": "No refresh token available."
+  },
+  "workOrders": {
+    "title": "Work orders",
+    "newWorkOrder": "New work order",
+    "refreshAria": "Refresh",
+    "noWorkOrders": "No work orders yet.",
+    "table": {
+      "orderNumber": "Order #",
+      "status": "Status",
+      "customer": "Customer",
+      "vehicle": "Vehicle",
+      "notes": "Notes",
+      "opened": "Opened",
+      "closed": "Closed"
+    },
+    "status": {
+      "draft": "Draft",
+      "open": "Open",
+      "inProgress": "In progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    }
+  },
+  "workOrderForm": {
+    "newTitle": "New work order",
+    "editTitle": "Edit work order",
+    "backAria": "Back to work orders",
+    "generalInformation": "General Information",
+    "estimate": "Estimate",
+    "createLabel": "Create work order",
+    "saveLabel": "Save changes",
+    "createSuccess": "Work order created.",
+    "createError": "Failed to create work order.",
+    "updateSuccess": "Work order updated.",
+    "updateError": "Failed to update work order.",
+    "orderNumberConflict": "An order with this number already exists."
+  },
+  "customerInformation": {
+    "title": "Customer Information",
+    "searchLabel": "Search customer by name, mobile, plates or VIN",
+    "searchPlaceholder": "Start typing…",
+    "keepTyping": "Keep typing to search…",
+    "noCustomersFound": "No customers found",
+    "name": "Name",
+    "lastName": "Last name",
+    "email": "Email",
+    "mobile": "Mobile"
+  },
+  "vehicleInformation": {
+    "title": "Vehicle Information",
+    "searchVehicle": "Search a vehicle",
+    "startTyping": "Start typing…",
+    "selectCustomerFirst": "Select a customer first",
+    "brand": "Brand",
+    "selectBrand": "Select a brand",
+    "model": "Model",
+    "selectModel": "Select a model",
+    "year": "Year",
+    "selectYear": "Select a year",
+    "plates": "Plates",
+    "vin": "VIN",
+    "mileage": "Mileage",
+    "createBrandError": "Failed to create brand.",
+    "createModelError": "Failed to create model."
+  },
+  "orderInformation": {
+    "title": "Order Information",
+    "orderNumber": "Order number",
+    "orderNumberInUse": "This order number is already in use.",
+    "notes": "Notes"
+  },
+  "errors": {
+    "somethingWentWrong": "Something went wrong."
+  }
+}

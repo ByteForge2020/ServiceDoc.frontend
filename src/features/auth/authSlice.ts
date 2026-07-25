@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import { authApi } from '../../api/authApi'
 import { extractErrorMessage } from '../../api/errorMessage'
+import i18n from '../../i18n'
 import { buildUserFromToken } from './decodeUser'
 import { tokenStorage } from './tokenStorage'
 import type { AuthUser, LoginRequest, TokenResponse } from './types'
@@ -41,7 +42,7 @@ export const login = createAsyncThunk<TokenResponse, LoginRequest, { rejectValue
     try {
       return await authApi.login(credentials)
     } catch (error) {
-      return rejectWithValue(extractErrorMessage(error, 'Invalid email or password.'))
+      return rejectWithValue(extractErrorMessage(error, i18n.t('auth.invalidCredentials')))
     }
   },
 )
@@ -53,12 +54,12 @@ export const refreshAccessToken = createAsyncThunk<
 >('auth/refresh', async (_, { getState, rejectWithValue }) => {
   const { refreshToken } = getState().auth
   if (!refreshToken) {
-    return rejectWithValue('No refresh token available.')
+    return rejectWithValue(i18n.t('auth.noRefreshToken'))
   }
   try {
     return await authApi.refresh(refreshToken)
   } catch (error) {
-    return rejectWithValue(extractErrorMessage(error, 'Session expired.'))
+    return rejectWithValue(extractErrorMessage(error, i18n.t('auth.sessionExpired')))
   }
 })
 

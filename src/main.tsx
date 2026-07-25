@@ -13,13 +13,14 @@ import { store } from './app/store'
 import { getToasterInstance } from './app/toasters/toasterInstance'
 import { ToasterProvider } from './app/toasters/ToasterProvider'
 import './index.css'
+import i18n from './i18n'
 import { theme } from './theme'
 
 function notifyError(error: unknown, meta: Record<string, unknown> | undefined) {
   if (meta?.skipErrorToast) {
     return
   }
-  const message = error instanceof Error ? error.message : 'Something went wrong.'
+  const message = error instanceof Error ? error.message : i18n.t('errors.somethingWentWrong')
   getToasterInstance()?.error(message)
 }
 

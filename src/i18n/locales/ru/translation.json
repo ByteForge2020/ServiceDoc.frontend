@@ -1,0 +1,96 @@
+{
+  "common": {
+    "appName": "ServiceDoc",
+    "cancel": "Отмена",
+    "back": "Назад",
+    "signOut": "Выйти",
+    "createOption": "Создать «{{name}}»"
+  },
+  "nav": {
+    "workOrders": "Заказ-наряды",
+    "jobs": "Работы",
+    "settings": "Настройки"
+  },
+  "auth": {
+    "emailLabel": "Email",
+    "passwordLabel": "Пароль",
+    "signIn": "Войти",
+    "signedInSuccess": "Вход выполнен успешно.",
+    "invalidCredentials": "Неверный email или пароль.",
+    "sessionExpired": "Сессия истекла.",
+    "noRefreshToken": "Токен обновления недоступен."
+  },
+  "workOrders": {
+    "title": "Заказ-наряды",
+    "newWorkOrder": "Новый заказ-наряд",
+    "refreshAria": "Обновить",
+    "noWorkOrders": "Заказ-нарядов пока нет.",
+    "table": {
+      "orderNumber": "№ заказа",
+      "status": "Статус",
+      "customer": "Клиент",
+      "vehicle": "Автомобиль",
+      "notes": "Примечания",
+      "opened": "Открыт",
+      "closed": "Закрыт"
+    },
+    "status": {
+      "draft": "Черновик",
+      "open": "Открыт",
+      "inProgress": "В работе",
+      "completed": "Завершён",
+      "cancelled": "Отменён"
+    }
+  },
+  "workOrderForm": {
+    "newTitle": "Новый заказ-наряд",
+    "editTitle": "Редактирование заказ-наряда",
+    "backAria": "Назад к заказ-нарядам",
+    "generalInformation": "Общая информация",
+    "estimate": "Смета",
+    "createLabel": "Создать заказ-наряд",
+    "saveLabel": "Сохранить изменения",
+    "createSuccess": "Заказ-наряд создан.",
+    "createError": "Не удалось создать заказ-наряд.",
+    "updateSuccess": "Заказ-наряд обновлён.",
+    "updateError": "Не удалось обновить заказ-наряд.",
+    "orderNumberConflict": "Заказ-наряд с таким номером уже существует."
+  },
+  "customerInformation": {
+    "title": "Информация о клиенте",
+    "searchLabel": "Поиск клиента по имени, телефону, номеру или VIN",
+    "searchPlaceholder": "Начните вводить…",
+    "keepTyping": "Продолжайте вводить для поиска…",
+    "noCustomersFound": "Клиенты не найдены",
+    "name": "Имя",
+    "lastName": "Фамилия",
+    "email": "Email",
+    "mobile": "Мобильный телефон"
+  },
+  "vehicleInformation": {
+    "title": "Информация об автомобиле",
+    "searchVehicle": "Поиск автомобиля",
+    "startTyping": "Начните вводить…",
+    "selectCustomerFirst": "Сначала выберите клиента",
+    "brand": "Марка",
+    "selectBrand": "Выберите марку",
+    "model": "Модель",
+    "selectModel": "Выберите модель",
+    "year": "Год",
+    "selectYear": "Выберите год",
+    "plates": "Госномер",
+    "vin": "VIN",
+    "mileage": "Пробег",
+    "createBrandError": "Не удалось создать марку.",
+    "createModelError": "Не удалось создать модель."
+  },
+  "orderInformation": {
+    "title": "Информация о заказе",
+    "orderNumber": "Номер заказа",
+    "orderNumberInUse": "Этот номер заказа уже используется.",
+    "notes": "Примечания"
+  },
+  "errors": {
+    "somethingWentWrong": "Что-то пошло не так."
+  }
+}

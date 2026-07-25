@@ -7,11 +7,13 @@ import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import { useTranslation } from 'react-i18next'
 import { useToasters } from '../../app/toasters/useToasters'
 import { useAppDispatch, useAppSelector } from '../../app/hooks'
 import { login } from './authSlice'
 
 export function LoginPage() {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const location = useLocation()
@@ -32,7 +34,7 @@ export function LoginPage() {
     dispatch(login({ email, password }))
       .unwrap()
       .then(() => {
-        toasters.success('Signed in successfully.')
+        toasters.success(t('auth.signedInSuccess'))
         navigate((location.state as { from?: string } | null)?.from ?? '/orders', { replace: true })
       })
       .catch((message: string) => toasters.error(message))
@@ -50,11 +52,11 @@ export function LoginPage() {
         <Paper variant="outlined" sx={{ p: 4, borderRadius: '12px' }}>
           <Stack spacing={3} component="form" onSubmit={handleSubmit}>
             <Typography variant="h3" component="h1" sx={{ textAlign: 'center' }}>
-              ServiceDoc
+              {t('common.appName')}
             </Typography>
 
             <TextField
-              label="Email"
+              label={t('auth.emailLabel')}
               type="email"
               autoComplete="username"
               value={email}
@@ -64,7 +66,7 @@ export function LoginPage() {
             />
 
             <TextField
-              label="Password"
+              label={t('auth.passwordLabel')}
               type="password"
               autoComplete="current-password"
               value={password}
@@ -74,7 +76,7 @@ export function LoginPage() {
             />
 
             <Button type="submit" variant="contained" size="large" loading={status === 'loading'}>
-              Sign in
+              {t('auth.signIn')}
             </Button>
           </Stack>
         </Paper>

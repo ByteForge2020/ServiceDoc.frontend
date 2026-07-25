@@ -14,6 +14,7 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
 import { DateTime } from 'luxon'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { useWorkOrdersQuery } from './queries'
 import { WorkOrderStatusChip } from './WorkOrderStatusChip'
@@ -26,6 +27,7 @@ function formatDate(value: string | null): string {
 }
 
 export function WorkOrdersPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { data: workOrders, isPending, refetch, isFetching } = useWorkOrdersQuery()
 
@@ -33,14 +35,14 @@ export function WorkOrdersPage() {
     <Stack spacing={3}>
       <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
         <Typography variant="h2" component="h1">
-          Work orders
+          {t('workOrders.title')}
         </Typography>
         <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-          <IconButton onClick={() => refetch()} disabled={isFetching} aria-label="Refresh">
+          <IconButton onClick={() => refetch()} disabled={isFetching} aria-label={t('workOrders.refreshAria')}>
             <RefreshIcon />
           </IconButton>
           <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/orders/new')}>
-            New work order
+            {t('workOrders.newWorkOrder')}
           </Button>
         </Stack>
       </Stack>
@@ -56,13 +58,13 @@ export function WorkOrdersPage() {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Order #</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Customer</TableCell>
-                <TableCell>Vehicle</TableCell>
-                <TableCell>Notes</TableCell>
-                <TableCell>Opened</TableCell>
-                <TableCell>Closed</TableCell>
+                <TableCell>{t('workOrders.table.orderNumber')}</TableCell>
+                <TableCell>{t('workOrders.table.status')}</TableCell>
+                <TableCell>{t('workOrders.table.customer')}</TableCell>
+                <TableCell>{t('workOrders.table.vehicle')}</TableCell>
+                <TableCell>{t('workOrders.table.notes')}</TableCell>
+                <TableCell>{t('workOrders.table.opened')}</TableCell>
+                <TableCell>{t('workOrders.table.closed')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -70,7 +72,7 @@ export function WorkOrdersPage() {
                 <TableRow>
                   <TableCell colSpan={7} align="center">
                     <Typography variant="body2" sx={{ color: 'text.secondary', py: 2 }}>
-                      No work orders yet.
+                      {t('workOrders.noWorkOrders')}
                     </Typography>
                   </TableCell>
                 </TableRow>

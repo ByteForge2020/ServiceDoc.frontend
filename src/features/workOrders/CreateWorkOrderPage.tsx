@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { extractErrorMessage } from '../../api/errorMessage'
@@ -8,6 +9,7 @@ import { useCreateWorkOrderMutation } from './queries'
 import { EMPTY_CUSTOMER, EMPTY_VEHICLE, buildCustomerPayload, buildVehiclePayload } from './workOrderForm'
 
 export function CreateWorkOrderPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const toasters = useToasters()
   const mutation = useCreateWorkOrderMutation()
@@ -38,16 +40,16 @@ export function CreateWorkOrderPage() {
       },
       {
         onSuccess: () => {
-          toasters.success('Work order created.')
+          toasters.success(t('workOrderForm.createSuccess'))
           navigate('/orders', { replace: true })
         },
         onError: (error) => {
           if (error instanceof AxiosError && error.response?.status === 409) {
             setOrderNumberConflict(true)
-            toasters.error('An order with this number already exists.')
+            toasters.error(t('workOrderForm.orderNumberConflict'))
             return
           }
-          toasters.error(extractErrorMessage(error, 'Failed to create work order.'))
+          toasters.error(extractErrorMessage(error, t('workOrderForm.createError')))
         },
       },
     )
@@ -55,7 +57,7 @@ export function CreateWorkOrderPage() {
 
   return (
     <WorkOrderFormLayout
-      title="New work order"
+      title={t('workOrderForm.newTitle')}
       onBack={() => navigate('/orders')}
       onCancel={() => navigate('/orders')}
       customer={customer}
@@ -72,7 +74,7 @@ export function CreateWorkOrderPage() {
       onNotesChange={setNotes}
       onSubmit={handleSubmit}
       saving={mutation.isPending}
-      saveLabel="Create work order"
+      saveLabel={t('workOrderForm.createLabel')}
       canSave={canSave}
     />
   )

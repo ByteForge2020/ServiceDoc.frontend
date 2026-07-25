@@ -7,6 +7,7 @@ import Select from '@mui/material/Select'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import { useTranslation } from 'react-i18next'
 import { extractErrorMessage } from '../../../api/errorMessage'
 import { useToasters } from '../../../app/toasters/useToasters'
 import { useBrandsQuery, useCreateBrandMutation } from '../../brands/queries'
@@ -37,6 +38,7 @@ const CURRENT_YEAR = new Date().getFullYear()
 const YEARS = Array.from({ length: CURRENT_YEAR + 1 - 1950 + 1 }, (_, i) => CURRENT_YEAR + 1 - i)
 
 export function VehicleInformationCard({ value, onChange, customerId }: VehicleInformationCardProps) {
+  const { t } = useTranslation()
   const toasters = useToasters()
   const { data: vehicles } = useCustomerVehiclesQuery(customerId)
   const { data: brands, isLoading: brandsLoading } = useBrandsQuery()
@@ -78,7 +80,7 @@ export function VehicleInformationCard({ value, onChange, customerId }: VehicleI
         onChange({ ...value, brandId: brand.id, brandName: brand.name, modelId: null, modelName: '' })
       },
       onError: (error) => {
-        toasters.error(extractErrorMessage(error, 'Failed to create brand.'))
+        toasters.error(extractErrorMessage(error, t('vehicleInformation.createBrandError')))
       },
     })
   }
@@ -99,7 +101,7 @@ export function VehicleInformationCard({ value, onChange, customerId }: VehicleI
           onChange({ ...value, modelId: model.id, modelName: model.name })
         },
         onError: (error) => {
-          toasters.error(extractErrorMessage(error, 'Failed to create model.'))
+          toasters.error(extractErrorMessage(error, t('vehicleInformation.createModelError')))
         },
       },
     )
@@ -109,7 +111,7 @@ export function VehicleInformationCard({ value, onChange, customerId }: VehicleI
     <Paper variant="outlined" sx={{ p: 4, borderRadius: '12px' }}>
       <Stack spacing={3}>
         <Typography variant="h4" component="h2">
-          Vehicle Information
+          {t('vehicleInformation.title')}
         </Typography>
 
         <Autocomplete<Vehicle, false, false, false>
@@ -123,15 +125,15 @@ export function VehicleInformationCard({ value, onChange, customerId }: VehicleI
           renderInput={(params) => (
             <TextField
               {...params}
-              label="Search a vehicle"
-              placeholder={customerId ? 'Start typing…' : 'Select a customer first'}
+              label={t('vehicleInformation.searchVehicle')}
+              placeholder={customerId ? t('vehicleInformation.startTyping') : t('vehicleInformation.selectCustomerFirst')}
             />
           )}
         />
 
         <CreatableAutocomplete
-          label="Brand"
-          placeholder="Select a brand"
+          label={t('vehicleInformation.brand')}
+          placeholder={t('vehicleInformation.selectBrand')}
           value={value.brandId ? { id: value.brandId, label: value.brandName } : null}
           options={(brands ?? []).map((brand) => ({ id: brand.id, label: brand.name }))}
           loading={brandsLoading}
@@ -141,8 +143,8 @@ export function VehicleInformationCard({ value, onChange, customerId }: VehicleI
         />
 
         <CreatableAutocomplete
-          label="Model"
-          placeholder="Select a model"
+          label={t('vehicleInformation.model')}
+          placeholder={t('vehicleInformation.selectModel')}
           value={value.modelId ? { id: value.modelId, label: value.modelName } : null}
           options={(models ?? []).map((model) => ({ id: model.id, label: model.name }))}
           loading={modelsLoading}
@@ -153,17 +155,17 @@ export function VehicleInformationCard({ value, onChange, customerId }: VehicleI
         />
 
         <FormControl fullWidth>
-          <InputLabel id="vehicle-year-label">Year</InputLabel>
+          <InputLabel id="vehicle-year-label">{t('vehicleInformation.year')}</InputLabel>
           <Select<number | ''>
             labelId="vehicle-year-label"
-            label="Year"
+            label={t('vehicleInformation.year')}
             value={value.year ?? ''}
             onChange={(event) =>
               onChange({ ...value, year: event.target.value === '' ? null : Number(event.target.value) })
             }
           >
             <MenuItem value="">
-              <em>Select a year</em>
+              <em>{t('vehicleInformation.selectYear')}</em>
             </MenuItem>
             {YEARS.map((year) => (
               <MenuItem key={year} value={year}>
@@ -174,21 +176,21 @@ export function VehicleInformationCard({ value, onChange, customerId }: VehicleI
         </FormControl>
 
         <TextField
-          label="Plates"
+          label={t('vehicleInformation.plates')}
           value={value.licensePlate}
           onChange={(event) => onChange({ ...value, licensePlate: event.target.value })}
           fullWidth
         />
 
         <TextField
-          label="VIN"
+          label={t('vehicleInformation.vin')}
           value={value.vin}
           onChange={(event) => onChange({ ...value, vin: event.target.value })}
           fullWidth
         />
 
         <TextField
-          label="Mileage"
+          label={t('vehicleInformation.mileage')}
           value={value.mileage}
           onChange={(event) => onChange({ ...value, mileage: event.target.value.replace(/[^0-9]/g, '') })}
           fullWidth

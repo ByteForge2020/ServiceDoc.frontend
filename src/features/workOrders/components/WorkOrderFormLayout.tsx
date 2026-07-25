@@ -8,6 +8,7 @@ import Stack from '@mui/material/Stack'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
 import Typography from '@mui/material/Typography'
+import { useTranslation } from 'react-i18next'
 import { CustomerInformationCard, type CustomerFormState } from './CustomerInformationCard'
 import { OrderInformationCard } from './OrderInformationCard'
 import { VehicleInformationCard, type VehicleFormState } from './VehicleInformationCard'
@@ -49,12 +50,13 @@ export function WorkOrderFormLayout({
   saveLabel,
   canSave,
 }: WorkOrderFormLayoutProps) {
+  const { t } = useTranslation()
   const [tab, setTab] = useState(0)
 
   return (
     <Stack spacing={3}>
       <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-        <IconButton onClick={onBack} aria-label="Back to work orders">
+        <IconButton onClick={onBack} aria-label={t('workOrderForm.backAria')}>
           <ArrowBackIcon />
         </IconButton>
         <Typography variant="h2" component="h1">
@@ -65,8 +67,8 @@ export function WorkOrderFormLayout({
       <Box component="form" onSubmit={onSubmit} noValidate>
         <Stack spacing={3}>
           <Tabs value={tab} onChange={(_event, newValue: number) => setTab(newValue)}>
-            <Tab label="General Information" value={0} />
-            <Tab label="Estimate" value={1} disabled />
+            <Tab label={t('workOrderForm.generalInformation')} value={0} />
+            <Tab label={t('workOrderForm.estimate')} value={1} disabled />
           </Tabs>
 
           {tab === 0 && (
@@ -85,7 +87,7 @@ export function WorkOrderFormLayout({
 
           <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
             <Button variant="text" onClick={onCancel} disabled={saving}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" variant="contained" loading={saving} disabled={!canSave}>
               {saveLabel}

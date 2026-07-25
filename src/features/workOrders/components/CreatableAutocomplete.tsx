@@ -4,6 +4,7 @@ import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete'
 import CircularProgress from '@mui/material/CircularProgress'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
+import { useTranslation } from 'react-i18next'
 
 export interface CreatableOption {
   id: string
@@ -43,6 +44,7 @@ export function CreatableAutocomplete({
   onChange,
   onCreate,
 }: CreatableAutocompleteProps) {
+  const { t } = useTranslation()
   const [inputValue, setInputValue] = useState('')
 
   return (
@@ -80,7 +82,7 @@ export function CreatableAutocomplete({
           <li {...props} key={CREATE_OPTION_ID}>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', color: 'primary.main' }}>
               <AddIcon fontSize="small" />
-              <span>Create &quot;{option.label}&quot;</span>
+              <span>{t('common.createOption', { name: option.label })}</span>
             </Stack>
           </li>
         ) : (

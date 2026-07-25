@@ -7,18 +7,20 @@ import ListItemButton from '@mui/material/ListItemButton'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import Toolbar from '@mui/material/Toolbar'
+import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { drawerWidth } from '../../theme'
 
-const navItems = [
-  { label: 'Work orders', path: '/orders', icon: <AssignmentIcon />, disabled: false },
-  { label: 'Jobs', path: '/jobs', icon: <WorkIcon />, disabled: true },
-  { label: 'Settings', path: '/settings', icon: <SettingsIcon />, disabled: true },
-]
-
 export function Sidebar() {
+  const { t } = useTranslation()
   const location = useLocation()
   const navigate = useNavigate()
+
+  const navItems = [
+    { label: t('nav.workOrders'), path: '/orders', icon: <AssignmentIcon />, disabled: false },
+    { label: t('nav.jobs'), path: '/jobs', icon: <WorkIcon />, disabled: true },
+    { label: t('nav.settings'), path: '/settings', icon: <SettingsIcon />, disabled: true },
+  ]
 
   return (
     <Drawer
