@@ -11,7 +11,12 @@ import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { drawerWidth } from '../../theme'
 
-export function Sidebar() {
+interface SidebarProps {
+  open: boolean
+  onClose: () => void
+}
+
+export function Sidebar({ open, onClose }: SidebarProps) {
   const { t } = useTranslation()
   const location = useLocation()
   const navigate = useNavigate()
@@ -24,7 +29,10 @@ export function Sidebar() {
 
   return (
     <Drawer
-      variant="permanent"
+      variant="temporary"
+      open={open}
+      onClose={onClose}
+      ModalProps={{ keepMounted: true }}
       sx={{
         width: drawerWidth,
         flexShrink: 0,
@@ -38,7 +46,10 @@ export function Sidebar() {
             key={item.path}
             disabled={item.disabled}
             selected={location.pathname === item.path}
-            onClick={() => navigate(item.path)}
+            onClick={() => {
+              navigate(item.path)
+              onClose()
+            }}
           >
             <ListItemIcon>{item.icon}</ListItemIcon>
             <ListItemText primary={item.label} slotProps={{ primary: { variant: 'body1' } }} />

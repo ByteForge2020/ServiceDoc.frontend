@@ -4,6 +4,7 @@
     "cancel": "Отмена",
     "back": "Назад",
     "signOut": "Выйти",
+    "openMenu": "Открыть меню",
     "createOption": "Создать «{{name}}»"
   },
   "nav": {
