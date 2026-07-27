@@ -1,7 +1,7 @@
 import { apiClient } from './apiClient'
 import type { Brand } from '../features/brands/types'
 
-const BASE_PATH = '/api/general/brands'
+const BASE_PATH = '/api/v1/general/brands'
 
 export const brandsApi = {
   getAll() {

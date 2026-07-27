@@ -1,7 +1,7 @@
 import { apiClient } from './apiClient'
 import type { CustomerSearchResult } from '../features/customers/types'
 
-const BASE_PATH = '/api/general/customers'
+const BASE_PATH = '/api/v1/general/customers'
 
 export const customersApi = {
   search(query: string) {

@@ -5,11 +5,11 @@ import Button from '@mui/material/Button'
 import Container from '@mui/material/Container'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
-import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
 import { useToasters } from '../../app/toasters/useToasters'
 import { useAppDispatch, useAppSelector } from '../../app/hooks'
+import { FormTextField } from '../../components/form/FormTextField'
 import { login } from './authSlice'
 
 export function LoginPage() {
@@ -55,24 +55,24 @@ export function LoginPage() {
               {t('common.appName')}
             </Typography>
 
-            <TextField
+            <FormTextField
               label={t('auth.emailLabel')}
+              placeholder={t('auth.emailPlaceholder')}
               type="email"
               autoComplete="username"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               required
-              fullWidth
             />
 
-            <TextField
+            <FormTextField
               label={t('auth.passwordLabel')}
+              placeholder={t('auth.passwordPlaceholder')}
               type="password"
               autoComplete="current-password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
-              fullWidth
             />
 
             <Button type="submit" variant="contained" size="large" loading={status === 'loading'}>

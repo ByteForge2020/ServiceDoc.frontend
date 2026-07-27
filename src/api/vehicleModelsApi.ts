@@ -1,7 +1,7 @@
 import { apiClient } from './apiClient'
 import type { VehicleModel } from '../features/vehicleModels/types'
 
-const BASE_PATH = '/api/general/vehiclemodels'
+const BASE_PATH = '/api/v1/general/vehiclemodels'
 
 export const vehicleModelsApi = {
   getByBrand(brandId: string) {

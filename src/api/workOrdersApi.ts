@@ -1,7 +1,7 @@
 import { apiClient } from './apiClient'
 import type { CreateWorkOrderRequest, UpdateWorkOrderRequest, WorkOrder } from '../features/workOrders/types'
 
-const BASE_PATH = '/api/general/workorders'
+const BASE_PATH = '/api/v1/general/workorders'
 
 export const workOrdersApi = {
   getAll() {

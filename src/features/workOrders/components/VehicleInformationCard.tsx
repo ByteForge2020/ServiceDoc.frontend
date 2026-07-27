@@ -1,20 +1,16 @@
 import Autocomplete from '@mui/material/Autocomplete'
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
-import MenuItem from '@mui/material/MenuItem'
-import Paper from '@mui/material/Paper'
-import Select from '@mui/material/Select'
 import Stack from '@mui/material/Stack'
-import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
 import { extractErrorMessage } from '../../../api/errorMessage'
 import { useToasters } from '../../../app/toasters/useToasters'
+import { FormCreatableAutocomplete, type CreatableOption } from '../../../components/form/FormCreatableAutocomplete'
+import { FormSelect } from '../../../components/form/FormSelect'
+import { FormTextField } from '../../../components/form/FormTextField'
 import { useBrandsQuery, useCreateBrandMutation } from '../../brands/queries'
 import { useCustomerVehiclesQuery } from '../../vehicles/queries'
 import type { Vehicle } from '../../vehicles/types'
 import { useCreateVehicleModelMutation, useModelsByBrandQuery } from '../../vehicleModels/queries'
-import { CreatableAutocomplete, type CreatableOption } from './CreatableAutocomplete'
 
 export interface VehicleFormState {
   vehicleId: string | null
@@ -108,94 +104,81 @@ export function VehicleInformationCard({ value, onChange, customerId }: VehicleI
   }
 
   return (
-    <Paper variant="outlined" sx={{ p: 4, borderRadius: '12px' }}>
-      <Stack spacing={3}>
-        <Typography variant="h4" component="h2">
-          {t('vehicleInformation.title')}
-        </Typography>
+    <Stack spacing={3}>
+      <Typography variant="h4" component="h2">
+        {t('vehicleInformation.title')}
+      </Typography>
 
-        <Autocomplete<Vehicle, false, false, false>
-          options={vehicles ?? []}
-          disabled={!customerId}
-          onChange={(_event, newValue) => handleSelectVehicle(newValue)}
-          getOptionLabel={(option) =>
-            [option.brandName, option.modelName, option.licensePlate].filter(Boolean).join(' ')
-          }
-          isOptionEqualToValue={(option, val) => option.id === val.id}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label={t('vehicleInformation.searchVehicle')}
-              placeholder={customerId ? t('vehicleInformation.startTyping') : t('vehicleInformation.selectCustomerFirst')}
-            />
-          )}
-        />
+      <Autocomplete<Vehicle, false, false, false>
+        options={vehicles ?? []}
+        disabled={!customerId}
+        onChange={(_event, newValue) => handleSelectVehicle(newValue)}
+        getOptionLabel={(option) =>
+          [option.brandName, option.modelName, option.licensePlate].filter(Boolean).join(' ')
+        }
+        isOptionEqualToValue={(option, val) => option.id === val.id}
+        fullWidth
+        sx={{ flex: 1, minWidth: 0 }}
+        renderInput={(params) => (
+          <FormTextField
+            {...params}
+            label={t('vehicleInformation.searchVehicle')}
+            placeholder={customerId ? t('vehicleInformation.startTyping') : t('vehicleInformation.selectCustomerFirst')}
+          />
+        )}
+      />
 
-        <CreatableAutocomplete
-          label={t('vehicleInformation.brand')}
-          placeholder={t('vehicleInformation.selectBrand')}
-          value={value.brandId ? { id: value.brandId, label: value.brandName } : null}
-          options={(brands ?? []).map((brand) => ({ id: brand.id, label: brand.name }))}
-          loading={brandsLoading}
-          creating={createBrandMutation.isPending}
-          onChange={handleBrandChange}
-          onCreate={handleCreateBrand}
-        />
+      <FormCreatableAutocomplete
+        label={t('vehicleInformation.brand')}
+        placeholder={t('vehicleInformation.selectBrand')}
+        value={value.brandId ? { id: value.brandId, label: value.brandName } : null}
+        options={(brands ?? []).map((brand) => ({ id: brand.id, label: brand.name }))}
+        loading={brandsLoading}
+        creating={createBrandMutation.isPending}
+        onChange={handleBrandChange}
+        onCreate={handleCreateBrand}
+      />
 
-        <CreatableAutocomplete
-          label={t('vehicleInformation.model')}
-          placeholder={t('vehicleInformation.selectModel')}
-          value={value.modelId ? { id: value.modelId, label: value.modelName } : null}
-          options={(models ?? []).map((model) => ({ id: model.id, label: model.name }))}
-          loading={modelsLoading}
-          creating={createModelMutation.isPending}
-          disabled={!value.brandId}
-          onChange={handleModelChange}
-          onCreate={handleCreateModel}
-        />
+      <FormCreatableAutocomplete
+        label={t('vehicleInformation.model')}
+        placeholder={t('vehicleInformation.selectModel')}
+        value={value.modelId ? { id: value.modelId, label: value.modelName } : null}
+        options={(models ?? []).map((model) => ({ id: model.id, label: model.name }))}
+        loading={modelsLoading}
+        creating={createModelMutation.isPending}
+        disabled={!value.brandId}
+        onChange={handleModelChange}
+        onCreate={handleCreateModel}
+      />
 
-        <FormControl fullWidth>
-          <InputLabel id="vehicle-year-label">{t('vehicleInformation.year')}</InputLabel>
-          <Select<number | ''>
-            labelId="vehicle-year-label"
-            label={t('vehicleInformation.year')}
-            value={value.year ?? ''}
-            onChange={(event) =>
-              onChange({ ...value, year: event.target.value === '' ? null : Number(event.target.value) })
-            }
-          >
-            <MenuItem value="">
-              <em>{t('vehicleInformation.selectYear')}</em>
-            </MenuItem>
-            {YEARS.map((year) => (
-              <MenuItem key={year} value={year}>
-                {year}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+      <FormSelect<number>
+        label={t('vehicleInformation.year')}
+        placeholder={t('vehicleInformation.selectYear')}
+        value={value.year ?? ''}
+        onChange={(year) => onChange({ ...value, year: year === '' ? null : Number(year) })}
+        options={YEARS.map((year) => ({ value: year, label: String(year) }))}
+      />
 
-        <TextField
-          label={t('vehicleInformation.plates')}
-          value={value.licensePlate}
-          onChange={(event) => onChange({ ...value, licensePlate: event.target.value })}
-          fullWidth
-        />
+      <FormTextField
+        label={t('vehicleInformation.plates')}
+        placeholder={t('vehicleInformation.platesPlaceholder')}
+        value={value.licensePlate}
+        onChange={(event) => onChange({ ...value, licensePlate: event.target.value })}
+      />
 
-        <TextField
-          label={t('vehicleInformation.vin')}
-          value={value.vin}
-          onChange={(event) => onChange({ ...value, vin: event.target.value })}
-          fullWidth
-        />
+      <FormTextField
+        label={t('vehicleInformation.vin')}
+        placeholder={t('vehicleInformation.vinPlaceholder')}
+        value={value.vin}
+        onChange={(event) => onChange({ ...value, vin: event.target.value })}
+      />
 
-        <TextField
-          label={t('vehicleInformation.mileage')}
-          value={value.mileage}
-          onChange={(event) => onChange({ ...value, mileage: event.target.value.replace(/[^0-9]/g, '') })}
-          fullWidth
-        />
-      </Stack>
-    </Paper>
+      <FormTextField
+        label={t('vehicleInformation.mileage')}
+        placeholder={t('vehicleInformation.mileagePlaceholder')}
+        value={value.mileage}
+        onChange={(event) => onChange({ ...value, mileage: event.target.value.replace(/[^0-9]/g, '') })}
+      />
+    </Stack>
   )
 }

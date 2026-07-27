@@ -3,8 +3,8 @@ import AddIcon from '@mui/icons-material/Add'
 import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete'
 import CircularProgress from '@mui/material/CircularProgress'
 import Stack from '@mui/material/Stack'
-import TextField from '@mui/material/TextField'
 import { useTranslation } from 'react-i18next'
+import { FormTextField } from './FormTextField'
 
 export interface CreatableOption {
   id: string
@@ -21,7 +21,7 @@ const CREATE_OPTION_ID = '__create__'
 
 const filter = createFilterOptions<Option>()
 
-interface CreatableAutocompleteProps {
+interface FormCreatableAutocompleteProps {
   label: string
   placeholder?: string
   value: CreatableOption | null
@@ -33,7 +33,7 @@ interface CreatableAutocompleteProps {
   onCreate: (name: string) => void
 }
 
-export function CreatableAutocomplete({
+export function FormCreatableAutocomplete({
   label,
   placeholder,
   value,
@@ -43,7 +43,7 @@ export function CreatableAutocomplete({
   disabled,
   onChange,
   onCreate,
-}: CreatableAutocompleteProps) {
+}: FormCreatableAutocompleteProps) {
   const { t } = useTranslation()
   const [inputValue, setInputValue] = useState('')
 
@@ -93,8 +93,10 @@ export function CreatableAutocomplete({
       }
       disabled={disabled}
       loading={loading || creating}
+      fullWidth
+      sx={{ flex: 1, minWidth: 0 }}
       renderInput={(params) => (
-        <TextField
+        <FormTextField
           {...params}
           label={label}
           placeholder={placeholder}

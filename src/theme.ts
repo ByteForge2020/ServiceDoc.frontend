@@ -140,6 +140,18 @@ export const theme = createTheme({
         },
       },
     },
+    MuiAutocomplete: {
+      styleOverrides: {
+        inputRoot: {
+          paddingTop: 0,
+          paddingBottom: 0,
+          '& .MuiAutocomplete-input': {
+            paddingTop: '10px',
+            paddingBottom: '10px',
+          },
+        },
+      },
+    },
     MuiInputLabel: {
       styleOverrides: {
         root: {

@@ -14,7 +14,9 @@
   },
   "auth": {
     "emailLabel": "Email",
+    "emailPlaceholder": "Enter email",
     "passwordLabel": "Password",
+    "passwordPlaceholder": "Enter password",
     "signIn": "Sign in",
     "signedInSuccess": "Signed in successfully.",
     "invalidCredentials": "Invalid email or password.",
@@ -64,9 +66,13 @@
     "keepTyping": "Keep typing to search…",
     "noCustomersFound": "No customers found",
     "name": "Name",
+    "namePlaceholder": "Enter name",
     "lastName": "Last name",
+    "lastNamePlaceholder": "Enter last name",
     "email": "Email",
-    "mobile": "Mobile"
+    "emailPlaceholder": "Enter email",
+    "mobile": "Mobile",
+    "mobilePlaceholder": "Enter mobile"
   },
   "vehicleInformation": {
     "title": "Vehicle Information",
@@ -80,16 +86,21 @@
     "year": "Year",
     "selectYear": "Select a year",
     "plates": "Plates",
+    "platesPlaceholder": "Enter plates",
     "vin": "VIN",
+    "vinPlaceholder": "Enter VIN",
     "mileage": "Mileage",
+    "mileagePlaceholder": "Enter mileage",
     "createBrandError": "Failed to create brand.",
     "createModelError": "Failed to create model."
   },
   "orderInformation": {
     "title": "Order Information",
     "orderNumber": "Order number",
+    "orderNumberPlaceholder": "Enter order number",
     "orderNumberInUse": "This order number is already in use.",
-    "notes": "Notes"
+    "notes": "Notes",
+    "notesPlaceholder": "Enter notes"
   },
   "errors": {
     "somethingWentWrong": "Something went wrong."

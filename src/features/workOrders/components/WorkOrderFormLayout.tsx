@@ -4,6 +4,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
+import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
@@ -72,17 +73,26 @@ export function WorkOrderFormLayout({
           </Tabs>
 
           {tab === 0 && (
-            <Stack spacing={3} sx={{ maxWidth: 720 }}>
-              <CustomerInformationCard value={customer} onChange={onCustomerChange} />
-              <VehicleInformationCard value={vehicle} onChange={onVehicleChange} customerId={customer.customerId} />
-              <OrderInformationCard
-                orderNumber={orderNumber}
-                onOrderNumberChange={onOrderNumberChange}
-                orderNumberError={orderNumberError}
-                notes={notes}
-                onNotesChange={onNotesChange}
-              />
-            </Stack>
+            <Paper variant="outlined" sx={{ p: 4, borderRadius: '12px' }}>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
+                  alignItems: 'start',
+                  gap: 4,
+                }}
+              >
+                <CustomerInformationCard value={customer} onChange={onCustomerChange} />
+                <VehicleInformationCard value={vehicle} onChange={onVehicleChange} customerId={customer.customerId} />
+                <OrderInformationCard
+                  orderNumber={orderNumber}
+                  onOrderNumberChange={onOrderNumberChange}
+                  orderNumberError={orderNumberError}
+                  notes={notes}
+                  onNotesChange={onNotesChange}
+                />
+              </Box>
+            </Paper>
           )}
 
           <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>

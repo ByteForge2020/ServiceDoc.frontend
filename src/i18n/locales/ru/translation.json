@@ -14,7 +14,9 @@
   },
   "auth": {
     "emailLabel": "Email",
+    "emailPlaceholder": "Введите email",
     "passwordLabel": "Пароль",
+    "passwordPlaceholder": "Введите пароль",
     "signIn": "Войти",
     "signedInSuccess": "Вход выполнен успешно.",
     "invalidCredentials": "Неверный email или пароль.",
@@ -64,9 +66,13 @@
     "keepTyping": "Продолжайте вводить для поиска…",
     "noCustomersFound": "Клиенты не найдены",
     "name": "Имя",
+    "namePlaceholder": "Введите имя",
     "lastName": "Фамилия",
+    "lastNamePlaceholder": "Введите фамилию",
     "email": "Email",
-    "mobile": "Мобильный телефон"
+    "emailPlaceholder": "Введите email",
+    "mobile": "Мобильный телефон",
+    "mobilePlaceholder": "Введите номер телефона"
   },
   "vehicleInformation": {
     "title": "Информация об автомобиле",
@@ -80,16 +86,21 @@
     "year": "Год",
     "selectYear": "Выберите год",
     "plates": "Госномер",
+    "platesPlaceholder": "Введите госномер",
     "vin": "VIN",
+    "vinPlaceholder": "Введите VIN",
     "mileage": "Пробег",
+    "mileagePlaceholder": "Введите пробег",
     "createBrandError": "Не удалось создать марку.",
     "createModelError": "Не удалось создать модель."
   },
   "orderInformation": {
     "title": "Информация о заказе",
     "orderNumber": "Номер заказа",
+    "orderNumberPlaceholder": "Введите номер заказа",
     "orderNumberInUse": "Этот номер заказа уже используется.",
-    "notes": "Примечания"
+    "notes": "Примечания",
+    "notesPlaceholder": "Введите примечания"
   },
   "errors": {
     "somethingWentWrong": "Что-то пошло не так."

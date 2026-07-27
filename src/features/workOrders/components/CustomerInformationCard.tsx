@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import Autocomplete from '@mui/material/Autocomplete'
-import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
-import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
+import { FormTextField } from '../../../components/form/FormTextField'
 import { useSearchCustomersQuery } from '../../customers/queries'
 import type { CustomerSearchResult } from '../../customers/types'
 import { highlightMatch } from './highlightMatch'
@@ -45,77 +44,76 @@ export function CustomerInformationCard({ value, onChange }: CustomerInformation
   }
 
   return (
-    <Paper variant="outlined" sx={{ p: 4, borderRadius: '12px' }}>
-      <Stack spacing={3}>
-        <Typography variant="h4" component="h2">
-          {t('customerInformation.title')}
-        </Typography>
+    <Stack spacing={3}>
+      <Typography variant="h4" component="h2">
+        {t('customerInformation.title')}
+      </Typography>
 
-        <Autocomplete<CustomerSearchResult, false, false, false>
-          options={results ?? []}
-          filterOptions={(options) => options}
-          loading={isFetching}
-          inputValue={searchInput}
-          onInputChange={(_event, newValue) => setSearchInput(newValue)}
-          onChange={(_event, newValue) => handleSelect(newValue)}
-          getOptionLabel={(option) => `${option.firstName} ${option.lastName}`}
-          isOptionEqualToValue={(option, val) =>
-            option.customerId === val.customerId && option.vehicleId === val.vehicleId
-          }
-          noOptionsText={
-            debouncedSearch.trim().length < 2 ? t('customerInformation.keepTyping') : t('customerInformation.noCustomersFound')
-          }
-          renderOption={(props, option) => (
-            <li {...props} key={`${option.customerId}-${option.vehicleId ?? 'none'}`}>
-              <Typography variant="body1">
-                {highlightMatch(`${option.firstName} ${option.lastName}`, debouncedSearch)}
-                {' / '}
-                {highlightMatch(option.phone ?? '—', debouncedSearch)}
-                {' / '}
-                {highlightMatch(option.licensePlate ?? '—', debouncedSearch)}
-                {' / '}
-                {highlightMatch(option.vin ?? '—', debouncedSearch)}
-              </Typography>
-            </li>
-          )}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label={t('customerInformation.searchLabel')}
-              placeholder={t('customerInformation.searchPlaceholder')}
-            />
-          )}
-        />
-
-        <Stack direction="row" spacing={2}>
-          <TextField
-            label={t('customerInformation.name')}
-            value={value.firstName}
-            onChange={(event) => onChange({ ...value, firstName: event.target.value })}
-            fullWidth
+      <Autocomplete<CustomerSearchResult, false, false, false>
+        options={results ?? []}
+        filterOptions={(options) => options}
+        loading={isFetching}
+        inputValue={searchInput}
+        onInputChange={(_event, newValue) => setSearchInput(newValue)}
+        onChange={(_event, newValue) => handleSelect(newValue)}
+        getOptionLabel={(option) => `${option.firstName} ${option.lastName}`}
+        isOptionEqualToValue={(option, val) =>
+          option.customerId === val.customerId && option.vehicleId === val.vehicleId
+        }
+        noOptionsText={
+          debouncedSearch.trim().length < 2 ? t('customerInformation.keepTyping') : t('customerInformation.noCustomersFound')
+        }
+        fullWidth
+        sx={{ flex: 1, minWidth: 0 }}
+        renderOption={(props, option) => (
+          <li {...props} key={`${option.customerId}-${option.vehicleId ?? 'none'}`}>
+            <Typography variant="body1">
+              {highlightMatch(`${option.firstName} ${option.lastName}`, debouncedSearch)}
+              {' / '}
+              {highlightMatch(option.phone ?? '—', debouncedSearch)}
+              {' / '}
+              {highlightMatch(option.licensePlate ?? '—', debouncedSearch)}
+              {' / '}
+              {highlightMatch(option.vin ?? '—', debouncedSearch)}
+            </Typography>
+          </li>
+        )}
+        renderInput={(params) => (
+          <FormTextField
+            {...params}
+            label={t('customerInformation.searchLabel')}
+            placeholder={t('customerInformation.searchPlaceholder')}
           />
-          <TextField
-            label={t('customerInformation.lastName')}
-            value={value.lastName}
-            onChange={(event) => onChange({ ...value, lastName: event.target.value })}
-            fullWidth
-          />
-        </Stack>
+        )}
+      />
 
-        <TextField
-          label={t('customerInformation.email')}
-          value={value.email}
-          onChange={(event) => onChange({ ...value, email: event.target.value })}
-          fullWidth
-        />
+      <FormTextField
+        label={t('customerInformation.name')}
+        placeholder={t('customerInformation.namePlaceholder')}
+        value={value.firstName}
+        onChange={(event) => onChange({ ...value, firstName: event.target.value })}
+      />
 
-        <TextField
-          label={t('customerInformation.mobile')}
-          value={value.phone}
-          onChange={(event) => onChange({ ...value, phone: event.target.value })}
-          fullWidth
-        />
-      </Stack>
-    </Paper>
+      <FormTextField
+        label={t('customerInformation.lastName')}
+        placeholder={t('customerInformation.lastNamePlaceholder')}
+        value={value.lastName}
+        onChange={(event) => onChange({ ...value, lastName: event.target.value })}
+      />
+
+      <FormTextField
+        label={t('customerInformation.email')}
+        placeholder={t('customerInformation.emailPlaceholder')}
+        value={value.email}
+        onChange={(event) => onChange({ ...value, email: event.target.value })}
+      />
+
+      <FormTextField
+        label={t('customerInformation.mobile')}
+        placeholder={t('customerInformation.mobilePlaceholder')}
+        value={value.phone}
+        onChange={(event) => onChange({ ...value, phone: event.target.value })}
+      />
+    </Stack>
   )
 }
