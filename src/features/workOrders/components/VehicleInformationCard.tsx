@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import Autocomplete from '@mui/material/Autocomplete'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
@@ -7,6 +8,7 @@ import { useToasters } from '../../../app/toasters/useToasters'
 import { FormCreatableAutocomplete, type CreatableOption } from '../../../components/form/FormCreatableAutocomplete'
 import { FormSelect } from '../../../components/form/FormSelect'
 import { FormTextField } from '../../../components/form/FormTextField'
+import { SelectedEntityField } from '../../../components/form/SelectedEntityField'
 import { useBrandsQuery, useCreateBrandMutation } from '../../brands/queries'
 import { useCustomerVehiclesQuery } from '../../vehicles/queries'
 import type { Vehicle } from '../../vehicles/types'
@@ -36,11 +38,13 @@ const YEARS = Array.from({ length: CURRENT_YEAR + 1 - 1950 + 1 }, (_, i) => CURR
 export function VehicleInformationCard({ value, onChange, customerId }: VehicleInformationCardProps) {
   const { t } = useTranslation()
   const toasters = useToasters()
+  const [isSearching, setIsSearching] = useState(false)
   const { data: vehicles } = useCustomerVehiclesQuery(customerId)
   const { data: brands, isLoading: brandsLoading } = useBrandsQuery()
   const { data: models, isLoading: modelsLoading } = useModelsByBrandQuery(value.brandId)
   const createBrandMutation = useCreateBrandMutation()
   const createModelMutation = useCreateVehicleModelMutation()
+  const showSearch = isSearching || !value.vehicleId
 
   function handleSelectVehicle(vehicle: Vehicle | null) {
     if (!vehicle) {
@@ -58,6 +62,7 @@ export function VehicleInformationCard({ value, onChange, customerId }: VehicleI
       licensePlate: vehicle.licensePlate ?? '',
       mileage: vehicle.mileage != null ? String(vehicle.mileage) : '',
     })
+    setIsSearching(false)
   }
 
   function handleBrandChange(option: CreatableOption | null) {
@@ -109,24 +114,32 @@ export function VehicleInformationCard({ value, onChange, customerId }: VehicleI
         {t('vehicleInformation.title')}
       </Typography>
 
-      <Autocomplete<Vehicle, false, false, false>
-        options={vehicles ?? []}
-        disabled={!customerId}
-        onChange={(_event, newValue) => handleSelectVehicle(newValue)}
-        getOptionLabel={(option) =>
-          [option.brandName, option.modelName, option.licensePlate].filter(Boolean).join(' ')
-        }
-        isOptionEqualToValue={(option, val) => option.id === val.id}
-        fullWidth
-        sx={{ flex: 1, minWidth: 0 }}
-        renderInput={(params) => (
-          <FormTextField
-            {...params}
-            label={t('vehicleInformation.searchVehicle')}
-            placeholder={customerId ? t('vehicleInformation.startTyping') : t('vehicleInformation.selectCustomerFirst')}
-          />
-        )}
-      />
+      {showSearch ? (
+        <Autocomplete<Vehicle, false, false, false>
+          options={vehicles ?? []}
+          disabled={!customerId}
+          onChange={(_event, newValue) => handleSelectVehicle(newValue)}
+          getOptionLabel={(option) =>
+            [option.brandName, option.modelName, option.licensePlate].filter(Boolean).join(' ')
+          }
+          isOptionEqualToValue={(option, val) => option.id === val.id}
+          fullWidth
+          sx={{ flex: 1, minWidth: 0 }}
+          renderInput={(params) => (
+            <FormTextField
+              {...params}
+              label={t('vehicleInformation.searchVehicle')}
+              placeholder={customerId ? t('vehicleInformation.startTyping') : t('vehicleInformation.selectCustomerFirst')}
+            />
+          )}
+        />
+      ) : (
+        <SelectedEntityField
+          label={t('vehicleInformation.searchVehicle')}
+          displayText={[value.brandName, value.modelName, value.licensePlate].filter(Boolean).join(' ')}
+          onChange={() => setIsSearching(true)}
+        />
+      )}
 
       <FormCreatableAutocomplete
         label={t('vehicleInformation.brand')}

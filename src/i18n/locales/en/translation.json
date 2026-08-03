@@ -2,6 +2,7 @@
   "common": {
     "appName": "ServiceDoc",
     "cancel": "Cancel",
+    "change": "Change",
     "back": "Back",
     "signOut": "Sign out",
     "openMenu": "Open menu",

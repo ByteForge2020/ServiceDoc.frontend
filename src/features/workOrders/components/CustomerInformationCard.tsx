@@ -4,6 +4,7 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
 import { FormTextField } from '../../../components/form/FormTextField'
+import { SelectedEntityField } from '../../../components/form/SelectedEntityField'
 import { useSearchCustomersQuery } from '../../customers/queries'
 import type { CustomerSearchResult } from '../../customers/types'
 import { highlightMatch } from './highlightMatch'
@@ -25,8 +26,10 @@ interface CustomerInformationCardProps {
 export function CustomerInformationCard({ value, onChange }: CustomerInformationCardProps) {
   const { t } = useTranslation()
   const [searchInput, setSearchInput] = useState('')
+  const [isSearching, setIsSearching] = useState(false)
   const debouncedSearch = useDebouncedValue(searchInput, 300)
   const { data: results, isFetching } = useSearchCustomersQuery(debouncedSearch)
+  const showSearch = isSearching || !value.customerId
 
   function handleSelect(result: CustomerSearchResult | null) {
     if (!result) {
@@ -41,6 +44,7 @@ export function CustomerInformationCard({ value, onChange }: CustomerInformation
       phone: result.phone ?? '',
     })
     setSearchInput('')
+    setIsSearching(false)
   }
 
   return (
@@ -49,43 +53,51 @@ export function CustomerInformationCard({ value, onChange }: CustomerInformation
         {t('customerInformation.title')}
       </Typography>
 
-      <Autocomplete<CustomerSearchResult, false, false, false>
-        options={results ?? []}
-        filterOptions={(options) => options}
-        loading={isFetching}
-        inputValue={searchInput}
-        onInputChange={(_event, newValue) => setSearchInput(newValue)}
-        onChange={(_event, newValue) => handleSelect(newValue)}
-        getOptionLabel={(option) => `${option.firstName} ${option.lastName}`}
-        isOptionEqualToValue={(option, val) =>
-          option.customerId === val.customerId && option.vehicleId === val.vehicleId
-        }
-        noOptionsText={
-          debouncedSearch.trim().length < 2 ? t('customerInformation.keepTyping') : t('customerInformation.noCustomersFound')
-        }
-        fullWidth
-        sx={{ flex: 1, minWidth: 0 }}
-        renderOption={(props, option) => (
-          <li {...props} key={`${option.customerId}-${option.vehicleId ?? 'none'}`}>
-            <Typography variant="body1">
-              {highlightMatch(`${option.firstName} ${option.lastName}`, debouncedSearch)}
-              {' / '}
-              {highlightMatch(option.phone ?? '—', debouncedSearch)}
-              {' / '}
-              {highlightMatch(option.licensePlate ?? '—', debouncedSearch)}
-              {' / '}
-              {highlightMatch(option.vin ?? '—', debouncedSearch)}
-            </Typography>
-          </li>
-        )}
-        renderInput={(params) => (
-          <FormTextField
-            {...params}
-            label={t('customerInformation.searchLabel')}
-            placeholder={t('customerInformation.searchPlaceholder')}
-          />
-        )}
-      />
+      {showSearch ? (
+        <Autocomplete<CustomerSearchResult, false, false, false>
+          options={results ?? []}
+          filterOptions={(options) => options}
+          loading={isFetching}
+          inputValue={searchInput}
+          onInputChange={(_event, newValue) => setSearchInput(newValue)}
+          onChange={(_event, newValue) => handleSelect(newValue)}
+          getOptionLabel={(option) => `${option.firstName} ${option.lastName}`}
+          isOptionEqualToValue={(option, val) =>
+            option.customerId === val.customerId && option.vehicleId === val.vehicleId
+          }
+          noOptionsText={
+            debouncedSearch.trim().length < 2 ? t('customerInformation.keepTyping') : t('customerInformation.noCustomersFound')
+          }
+          fullWidth
+          sx={{ flex: 1, minWidth: 0 }}
+          renderOption={(props, option) => (
+            <li {...props} key={`${option.customerId}-${option.vehicleId ?? 'none'}`}>
+              <Typography variant="body1">
+                {highlightMatch(`${option.firstName} ${option.lastName}`, debouncedSearch)}
+                {' / '}
+                {highlightMatch(option.phone ?? '—', debouncedSearch)}
+                {' / '}
+                {highlightMatch(option.licensePlate ?? '—', debouncedSearch)}
+                {' / '}
+                {highlightMatch(option.vin ?? '—', debouncedSearch)}
+              </Typography>
+            </li>
+          )}
+          renderInput={(params) => (
+            <FormTextField
+              {...params}
+              label={t('customerInformation.searchLabel')}
+              placeholder={t('customerInformation.searchPlaceholder')}
+            />
+          )}
+        />
+      ) : (
+        <SelectedEntityField
+          label={t('customerInformation.searchLabel')}
+          displayText={`${value.firstName} ${value.lastName}`.trim()}
+          onChange={() => setIsSearching(true)}
+        />
+      )}
 
       <FormTextField
         label={t('customerInformation.name')}
