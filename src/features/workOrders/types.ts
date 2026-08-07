@@ -21,11 +21,46 @@ export interface VehiclePayload {
   mileage: number | null
 }
 
+export type EstimateStatus = 'Draft' | 'Approved' | 'Rejected'
+
+export interface EstimateItemPayload {
+  subItem: boolean
+  name: string
+  partNumber: string | null
+  partQty: number | null
+  availQty: number | null
+  partCostU: number | null
+  partPriceU: number | null
+  hours: number | null
+  priceHr: number | null
+  discount: number | null
+  total: number | null
+}
+
+export interface EstimateItem extends EstimateItemPayload {
+  id: string
+  sortOrder: number
+}
+
+export interface Estimate {
+  id: string
+  status: EstimateStatus
+  sortOrder: number
+  items: EstimateItem[]
+}
+
+export interface EstimatePayload {
+  id: string | null
+  status: EstimateStatus
+  items: EstimateItemPayload[]
+}
+
 export interface CreateWorkOrderRequest {
   orderNumber: string
   notes: string | null
   customer: CustomerPayload | null
   vehicle: VehiclePayload | null
+  estimates: EstimatePayload[]
 }
 
 export interface UpdateWorkOrderRequest {
@@ -35,6 +70,7 @@ export interface UpdateWorkOrderRequest {
   closedAt: string | null
   customer: CustomerPayload | null
   vehicle: VehiclePayload | null
+  estimates: EstimatePayload[]
 }
 
 export interface WorkOrder {
@@ -52,4 +88,5 @@ export interface WorkOrder {
   openedAt: string
   closedAt: string | null
   createdAt: string
+  estimates: Estimate[]
 }

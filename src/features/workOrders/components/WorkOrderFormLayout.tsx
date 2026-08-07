@@ -10,7 +10,9 @@ import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
 import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
+import type { EstimateFormState } from '../workOrderForm'
 import { CustomerInformationCard, type CustomerFormState } from './CustomerInformationCard'
+import { EstimateTab } from './estimate/EstimateTab'
 import { OrderInformationCard } from './OrderInformationCard'
 import { VehicleInformationCard, type VehicleFormState } from './VehicleInformationCard'
 
@@ -26,6 +28,8 @@ interface WorkOrderFormLayoutProps {
   orderNumberError: boolean
   notes: string
   onNotesChange: (value: string) => void
+  estimates: EstimateFormState[]
+  onEstimatesChange: (value: EstimateFormState[]) => void
   onSubmit: (event: FormEvent) => void
   onCancel: () => void
   saving: boolean
@@ -45,6 +49,8 @@ export function WorkOrderFormLayout({
   orderNumberError,
   notes,
   onNotesChange,
+  estimates,
+  onEstimatesChange,
   onSubmit,
   onCancel,
   saving,
@@ -69,7 +75,7 @@ export function WorkOrderFormLayout({
         <Stack spacing={3}>
           <Tabs value={tab} onChange={(_event, newValue: number) => setTab(newValue)}>
             <Tab label={t('workOrderForm.generalInformation')} value={0} />
-            <Tab label={t('workOrderForm.estimate')} value={1} disabled />
+            <Tab label={t('workOrderForm.estimate')} value={1} />
           </Tabs>
 
           {tab === 0 && (
@@ -92,6 +98,12 @@ export function WorkOrderFormLayout({
                   onNotesChange={onNotesChange}
                 />
               </Box>
+            </Paper>
+          )}
+
+          {tab === 1 && (
+            <Paper variant="outlined" sx={{ p: 4, borderRadius: '12px' }}>
+              <EstimateTab estimates={estimates} onEstimatesChange={onEstimatesChange} />
             </Paper>
           )}
 

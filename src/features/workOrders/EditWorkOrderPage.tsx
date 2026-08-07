@@ -12,9 +12,12 @@ import {
   EMPTY_CUSTOMER,
   EMPTY_VEHICLE,
   buildCustomerPayload,
+  buildEstimatesPayload,
   buildVehiclePayload,
   customerToFormState,
+  estimatesToFormState,
   vehicleToFormState,
+  type EstimateFormState,
 } from './workOrderForm'
 
 export function EditWorkOrderPage() {
@@ -30,6 +33,7 @@ export function EditWorkOrderPage() {
   const [notes, setNotes] = useState('')
   const [customer, setCustomer] = useState(EMPTY_CUSTOMER)
   const [vehicle, setVehicle] = useState(EMPTY_VEHICLE)
+  const [estimates, setEstimates] = useState<EstimateFormState[]>([])
   const [initializedId, setInitializedId] = useState<string | undefined>(undefined)
   const initialized = initializedId === workOrder?.id
 
@@ -41,6 +45,7 @@ export function EditWorkOrderPage() {
     setNotes(workOrder.notes ?? '')
     setCustomer(customerToFormState(workOrder.customer))
     setVehicle(vehicleToFormState(workOrder.vehicle))
+    setEstimates(estimatesToFormState(workOrder.estimates))
   }
 
   const canSave = orderNumber.trim().length > 0 && !mutation.isPending
@@ -62,6 +67,7 @@ export function EditWorkOrderPage() {
         closedAt: workOrder.closedAt,
         customer: buildCustomerPayload(customer),
         vehicle: buildVehiclePayload(vehicle),
+        estimates: buildEstimatesPayload(estimates),
       },
       {
         onSuccess: () => {
@@ -105,6 +111,8 @@ export function EditWorkOrderPage() {
       orderNumberError={orderNumberConflict}
       notes={notes}
       onNotesChange={setNotes}
+      estimates={estimates}
+      onEstimatesChange={setEstimates}
       onSubmit={handleSubmit}
       saving={mutation.isPending}
       saveLabel={t('workOrderForm.saveLabel')}

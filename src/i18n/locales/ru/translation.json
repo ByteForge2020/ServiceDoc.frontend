@@ -103,6 +103,38 @@
     "notes": "Примечания",
     "notesPlaceholder": "Введите примечания"
   },
+  "estimate": {
+    "status": "Статус",
+    "statuses": {
+      "Draft": "Черновик",
+      "Approved": "Утверждена",
+      "Rejected": "Отклонена"
+    },
+    "addItem": "Добавить позицию",
+    "addSubItem": "Добавить подпозицию",
+    "searchPlaceholder": "Начните вводить…",
+    "keepTyping": "Продолжайте вводить для поиска…",
+    "noResults": "Ничего не найдено",
+    "name": "Наименование",
+    "subItemNamePlaceholder": "Введите наименование",
+    "part": "Запчасть",
+    "partNumber": "№ детали",
+    "qty": "Кол-во",
+    "availQty": "В наличии",
+    "cost": "Себестоимость",
+    "price": "Цена",
+    "labor": "Работа",
+    "hours": "Часы",
+    "priceHr": "Цена/ч",
+    "discount": "Скидка",
+    "total": "Итого",
+    "removeAria": "Удалить позицию",
+    "createItemError": "Не удалось создать позицию."
+  },
+  "estimateMasterList": {
+    "defaults": {
+    }
+  },
   "errors": {
     "somethingWentWrong": "Что-то пошло не так."
   }

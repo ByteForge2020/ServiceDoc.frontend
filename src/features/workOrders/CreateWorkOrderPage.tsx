@@ -6,7 +6,14 @@ import { extractErrorMessage } from '../../api/errorMessage'
 import { useToasters } from '../../app/toasters/useToasters'
 import { WorkOrderFormLayout } from './components/WorkOrderFormLayout'
 import { useCreateWorkOrderMutation } from './queries'
-import { EMPTY_CUSTOMER, EMPTY_VEHICLE, buildCustomerPayload, buildVehiclePayload } from './workOrderForm'
+import {
+  EMPTY_CUSTOMER,
+  EMPTY_VEHICLE,
+  buildCustomerPayload,
+  buildEstimatesPayload,
+  buildVehiclePayload,
+  type EstimateFormState,
+} from './workOrderForm'
 
 export function CreateWorkOrderPage() {
   const { t } = useTranslation()
@@ -19,6 +26,7 @@ export function CreateWorkOrderPage() {
   const [notes, setNotes] = useState('')
   const [customer, setCustomer] = useState(EMPTY_CUSTOMER)
   const [vehicle, setVehicle] = useState(EMPTY_VEHICLE)
+  const [estimates, setEstimates] = useState<EstimateFormState[]>([])
 
   const canSave = orderNumber.trim().length > 0 && !mutation.isPending
 
@@ -37,6 +45,7 @@ export function CreateWorkOrderPage() {
         notes: notes.trim() ? notes.trim() : null,
         customer: buildCustomerPayload(customer),
         vehicle: buildVehiclePayload(vehicle),
+        estimates: buildEstimatesPayload(estimates),
       },
       {
         onSuccess: () => {
@@ -72,6 +81,8 @@ export function CreateWorkOrderPage() {
       orderNumberError={orderNumberConflict}
       notes={notes}
       onNotesChange={setNotes}
+      estimates={estimates}
+      onEstimatesChange={setEstimates}
       onSubmit={handleSubmit}
       saving={mutation.isPending}
       saveLabel={t('workOrderForm.createLabel')}

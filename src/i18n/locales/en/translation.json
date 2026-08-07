@@ -103,6 +103,37 @@
     "notes": "Notes",
     "notesPlaceholder": "Enter notes"
   },
+  "estimate": {
+    "status": "Status",
+    "statuses": {
+      "Draft": "Draft",
+      "Approved": "Approved",
+      "Rejected": "Rejected"
+    },
+    "addItem": "Add item",
+    "addSubItem": "Add sub-item",
+    "searchPlaceholder": "Start typing…",
+    "keepTyping": "Keep typing to search…",
+    "noResults": "No items found",
+    "name": "Name",
+    "subItemNamePlaceholder": "Enter name",
+    "part": "Part",
+    "partNumber": "Part #",
+    "qty": "Qty",
+    "availQty": "Avail",
+    "cost": "Cost",
+    "price": "Price",
+    "labor": "Labor",
+    "hours": "Hours",
+    "priceHr": "$/Hr",
+    "discount": "Discount",
+    "total": "Total",
+    "removeAria": "Remove item",
+    "createItemError": "Failed to create item."
+  },
+  "estimateMasterList": {
+    "defaults": {}
+  },
   "errors": {
     "somethingWentWrong": "Something went wrong."
   }
