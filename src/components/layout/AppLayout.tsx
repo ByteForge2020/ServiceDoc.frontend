@@ -59,7 +59,7 @@ export function AppLayout() {
       <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
       <Box component="main" sx={{ flexGrow: 1, width: '100%' }}>
         <Toolbar />
-        <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Container maxWidth={false} sx={{ py: 4, width: '90%' }}>
           <Outlet />
         </Container>
       </Box>

@@ -105,11 +105,6 @@
   },
   "estimate": {
     "status": "Status",
-    "statuses": {
-      "Draft": "Draft",
-      "Approved": "Approved",
-      "Rejected": "Rejected"
-    },
     "addItem": "Add item",
     "addSubItem": "Add sub-item",
     "searchPlaceholder": "Start typing…",
@@ -129,7 +124,9 @@
     "discount": "Discount",
     "total": "Total",
     "removeAria": "Remove item",
-    "createItemError": "Failed to create item."
+    "createItemError": "Failed to create item.",
+    "approveAria": "Approve",
+    "rejectAria": "Reject"
   },
   "estimateMasterList": {
     "defaults": {}

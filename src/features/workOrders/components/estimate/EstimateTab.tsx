@@ -1,11 +1,11 @@
 import { Fragment } from 'react'
 import AddIcon from '@mui/icons-material/Add'
+import CancelIcon from '@mui/icons-material/Cancel'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import DeleteOutlineIcon from '@mui/icons-material/Delete'
 import Box from '@mui/material/Box'
 import IconButton from '@mui/material/IconButton'
-import MenuItem from '@mui/material/MenuItem'
 import Paper from '@mui/material/Paper'
-import Select from '@mui/material/Select'
 import Stack from '@mui/material/Stack'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
@@ -22,11 +22,10 @@ import {
   type EstimateFormState,
   type EstimateItemRow,
 } from '../../workOrderForm'
+import { estimateMasterListLabel } from '../../estimateMasterListLabel'
 import { SearchInputDropdown } from './SearchInputDropdown'
 
 const segmentBorder = { borderLeft: 2, borderLeftColor: 'divider' } as const
-
-const STATUS_OPTIONS: EstimateStatus[] = ['Draft', 'Approved', 'Rejected']
 
 interface EstimateTabProps {
   estimates: EstimateFormState[]
@@ -174,7 +173,7 @@ function EstimateItemRowView({
           size="small"
           variant="outlined"
           fullWidth
-          value={row.name}
+          value={estimateMasterListLabel(row.name, t)}
           onChange={(event) => onChange({ name: event.target.value })}
           placeholder={row.subItem ? t('estimate.subItemNamePlaceholder') : undefined}
           slotProps={{ htmlInput: { 'aria-label': t('estimate.name') } }}
@@ -183,18 +182,24 @@ function EstimateItemRowView({
       <TableCell>
         {/* Status belongs to the estimate, so only its root row shows it. */}
         {status && onStatusChange && (
-          <Select<EstimateStatus>
-            size="small"
-            value={status}
-            onChange={(event) => onStatusChange(event.target.value as EstimateStatus)}
-            inputProps={{ 'aria-label': t('estimate.status') }}
-          >
-            {STATUS_OPTIONS.map((option) => (
-              <MenuItem key={option} value={option}>
-                {t(`estimate.statuses.${option}`)}
-              </MenuItem>
-            ))}
-          </Select>
+          <Stack direction="row" spacing={0}>
+            <IconButton
+              size="small"
+              onClick={() => onStatusChange(status === 'Approved' ? 'Draft' : 'Approved')}
+              color={status === 'Approved' ? 'success' : 'default'}
+              aria-label={t('estimate.approveAria')}
+            >
+              <CheckCircleIcon fontSize="small" />
+            </IconButton>
+            <IconButton
+              size="small"
+              onClick={() => onStatusChange(status === 'Rejected' ? 'Draft' : 'Rejected')}
+              color={status === 'Rejected' ? 'error' : 'default'}
+              aria-label={t('estimate.rejectAria')}
+            >
+              <CancelIcon fontSize="small" />
+            </IconButton>
+          </Stack>
         )}
       </TableCell>
       <TableCell sx={segmentBorder}>

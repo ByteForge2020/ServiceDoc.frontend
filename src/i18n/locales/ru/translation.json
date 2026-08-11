@@ -105,11 +105,6 @@
   },
   "estimate": {
     "status": "Статус",
-    "statuses": {
-      "Draft": "Черновик",
-      "Approved": "Утверждена",
-      "Rejected": "Отклонена"
-    },
     "addItem": "Добавить позицию",
     "addSubItem": "Добавить подпозицию",
     "searchPlaceholder": "Начните вводить…",
@@ -129,7 +124,9 @@
     "discount": "Скидка",
     "total": "Итого",
     "removeAria": "Удалить позицию",
-    "createItemError": "Не удалось создать позицию."
+    "createItemError": "Не удалось создать позицию.",
+    "approveAria": "Утвердить",
+    "rejectAria": "Отклонить"
   },
   "estimateMasterList": {
     "defaults": {
