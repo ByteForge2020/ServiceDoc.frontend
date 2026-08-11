@@ -132,6 +132,43 @@
     "defaults": {
     }
   },
+  "teamMembers": {
+    "tabLabel": "Сотрудники",
+    "title": "Сотрудники",
+    "newTeamMember": "Новый сотрудник",
+    "refreshAria": "Обновить",
+    "noTeamMembers": "Сотрудников пока нет.",
+    "table": {
+      "name": "Имя",
+      "email": "Email",
+      "role": "Роль"
+    }
+  },
+  "teamMemberForm": {
+    "newTitle": "Новый сотрудник",
+    "editTitle": "Редактирование сотрудника",
+    "backAria": "Назад к сотрудникам",
+    "firstName": "Имя",
+    "lastName": "Фамилия",
+    "email": "Email",
+    "role": "Роль",
+    "selectRole": "Выберите роль",
+    "password": "Пароль",
+    "passwordHelperCreate": "Минимум 8 символов",
+    "passwordHelperEdit": "Оставьте пустым, чтобы не менять пароль",
+    "createLabel": "Создать",
+    "saveLabel": "Сохранить",
+    "createSuccess": "Сотрудник создан.",
+    "createError": "Не удалось создать сотрудника.",
+    "updateSuccess": "Сотрудник обновлён.",
+    "updateError": "Не удалось обновить сотрудника.",
+    "emailConflict": "Пользователь с таким email уже существует.",
+    "roles": {
+      "administrator": "Администратор",
+      "technician": "Техник",
+      "owner": "Владелец"
+    }
+  },
   "errors": {
     "somethingWentWrong": "Что-то пошло не так."
   }

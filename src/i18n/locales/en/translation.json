@@ -131,6 +131,43 @@
   "estimateMasterList": {
     "defaults": {}
   },
+  "teamMembers": {
+    "tabLabel": "Team Members",
+    "title": "Team Members",
+    "newTeamMember": "New team member",
+    "refreshAria": "Refresh",
+    "noTeamMembers": "No team members yet.",
+    "table": {
+      "name": "Name",
+      "email": "Email",
+      "role": "Role"
+    }
+  },
+  "teamMemberForm": {
+    "newTitle": "New team member",
+    "editTitle": "Edit team member",
+    "backAria": "Back to team members",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "email": "Email",
+    "role": "Role",
+    "selectRole": "Select a role",
+    "password": "Password",
+    "passwordHelperCreate": "At least 8 characters",
+    "passwordHelperEdit": "Leave blank to keep the current password",
+    "createLabel": "Create",
+    "saveLabel": "Save",
+    "createSuccess": "Team member created.",
+    "createError": "Failed to create team member.",
+    "updateSuccess": "Team member updated.",
+    "updateError": "Failed to update team member.",
+    "emailConflict": "A user with this email already exists.",
+    "roles": {
+      "administrator": "Administrator",
+      "technician": "Technician",
+      "owner": "Owner"
+    }
+  },
   "errors": {
     "somethingWentWrong": "Something went wrong."
   }
