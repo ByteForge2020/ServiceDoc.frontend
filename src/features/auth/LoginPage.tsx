@@ -11,6 +11,9 @@ import { useToasters } from '../../app/toasters/useToasters'
 import { useAppDispatch, useAppSelector } from '../../app/hooks'
 import { FormTextField } from '../../components/form/FormTextField'
 import { login } from './authSlice'
+import { resolveSubdomain } from './subdomain'
+
+const subdomainName = resolveSubdomain()
 
 export function LoginPage() {
   const { t } = useTranslation()
@@ -31,7 +34,12 @@ export function LoginPage() {
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
-    dispatch(login({ email, password }))
+
+    if (!subdomainName) {
+      return
+    }
+
+    dispatch(login({ email, password, subdomainName }))
       .unwrap()
       .then(() => {
         toasters.success(t('auth.signedInSuccess'))
@@ -75,7 +83,13 @@ export function LoginPage() {
               required
             />
 
-            <Button type="submit" variant="contained" size="large" loading={status === 'loading'}>
+            <Button
+              type="submit"
+              variant="contained"
+              size="large"
+              loading={status === 'loading'}
+              disabled={!subdomainName}
+            >
               {t('auth.signIn')}
             </Button>
           </Stack>
