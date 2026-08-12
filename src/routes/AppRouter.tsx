@@ -7,6 +7,7 @@ import { EditTeamMemberPage } from '../features/settings/teamMembers/EditTeamMem
 import { CreateWorkOrderPage } from '../features/workOrders/CreateWorkOrderPage'
 import { EditWorkOrderPage } from '../features/workOrders/EditWorkOrderPage'
 import { WorkOrdersPage } from '../features/workOrders/WorkOrdersPage'
+import { JobsPage } from '../features/jobs/JobsPage'
 import { ProtectedRoute } from './ProtectedRoute'
 
 export function AppRouter() {
@@ -19,6 +20,7 @@ export function AppRouter() {
           <Route path="/orders" element={<WorkOrdersPage />} />
           <Route path="/orders/new" element={<CreateWorkOrderPage />} />
           <Route path="/orders/:id" element={<EditWorkOrderPage />} />
+          <Route path="/jobs" element={<JobsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/settings/team-members/new" element={<CreateTeamMemberPage />} />
           <Route path="/settings/team-members/:id" element={<EditTeamMemberPage />} />

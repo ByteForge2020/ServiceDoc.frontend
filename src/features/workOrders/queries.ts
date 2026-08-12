@@ -5,6 +5,8 @@ import type { UpdateWorkOrderRequest } from './types'
 export const workOrderKeys = {
   all: ['workOrders'] as const,
   detail: (id: string) => ['workOrders', id] as const,
+  recent: (take: number) => ['workOrders', 'recent', take] as const,
+  search: (query: string) => ['workOrders', 'search', query] as const,
 }
 
 export function useWorkOrdersQuery() {
@@ -30,6 +32,24 @@ export function useCreateWorkOrderMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: workOrderKeys.all })
     },
+  })
+}
+
+export function useRecentWorkOrdersQuery(take = 6) {
+  return useQuery({
+    queryKey: workOrderKeys.recent(take),
+    queryFn: () => workOrdersApi.getRecent(take),
+    staleTime: 30_000,
+  })
+}
+
+export function useWorkOrdersSearchQuery(query: string) {
+  const trimmed = query.trim()
+  return useQuery({
+    queryKey: workOrderKeys.search(trimmed),
+    queryFn: () => workOrdersApi.search(trimmed),
+    enabled: trimmed.length >= 1,
+    staleTime: 10_000,
   })
 }
 

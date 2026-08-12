@@ -90,3 +90,8 @@ export interface WorkOrder {
   createdAt: string
   estimates: Estimate[]
 }
+
+export interface WorkOrderSummary {
+  id: string
+  orderNumber: string
+}

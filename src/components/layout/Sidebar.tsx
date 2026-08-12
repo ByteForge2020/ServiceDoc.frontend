@@ -23,7 +23,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
   const navItems = [
     { label: t('nav.workOrders'), path: '/orders', icon: <AssignmentIcon />, disabled: false },
-    { label: t('nav.jobs'), path: '/jobs', icon: <WorkIcon />, disabled: true },
+    { label: t('nav.jobs'), path: '/jobs', icon: <WorkIcon />, disabled: false },
     { label: t('nav.settings'), path: '/settings', icon: <SettingsIcon />, disabled: false },
   ]
 

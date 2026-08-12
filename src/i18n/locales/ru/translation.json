@@ -169,6 +169,34 @@
       "owner": "Владелец"
     }
   },
+  "jobs": {
+    "title": "Работы",
+    "tabs": {
+      "technicians": "Техники"
+    },
+    "noTechnicians": "Техники не найдены.",
+    "addJobPopup": {
+      "addJobToOrder": "Добавить работу к заказу"
+    },
+    "addJobModal": {
+      "title": "Добавить работу в заказ для {{technician}}",
+      "selectOrder": "Выберите заказ",
+      "searchOrderPlaceholder": "Поиск по номеру заказа",
+      "keepTyping": "Продолжайте вводить для поиска…",
+      "noResults": "Заказы не найдены",
+      "orderLabel": "Заказ №{{orderNumber}}",
+      "changeOrder": "изменить заказ",
+      "startDate": "Дата начала",
+      "startHour": "Время начала",
+      "scheduledDuration": "Плановая длительность",
+      "jobDescription": "Описание работы",
+      "selectOrderFirst": "Сначала выберите заказ",
+      "noEstimateItems": "В этом заказе нет позиций сметы",
+      "save": "Сохранить",
+      "createSuccess": "Работа создана.",
+      "createError": "Не удалось создать работу."
+    }
+  },
   "errors": {
     "somethingWentWrong": "Что-то пошло не так."
   }

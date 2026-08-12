@@ -1,0 +1,9 @@
+export const PX_PER_MINUTE = 3
+export const SLOT_MINUTES = 30
+export const SNAP_MINUTES = 5
+export const ROW_HEIGHT = 64
+export const NAME_COLUMN_WIDTH = 220
+export const HEADER_HEIGHT = 48
+export const MINUTES_PER_DAY = 24 * 60
+export const DAY_WIDTH_PX = MINUTES_PER_DAY * PX_PER_MINUTE
+export const INITIAL_SCROLL_HOUR = 8

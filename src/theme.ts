@@ -1,4 +1,5 @@
 import { createTheme, alpha } from '@mui/material/styles'
+import '@mui/x-date-pickers/themeAugmentation'
 
 // Slate (grey-blue) design system — see DESIGN.md for the source tokens.
 const slate = {
@@ -255,6 +256,32 @@ export const theme = createTheme({
           '&.Mui-disabled': {
             color: slate[400],
           },
+        },
+      },
+    },
+    MuiPickerDay: {
+      styleOverrides: {
+        root: {
+          fontWeight: 500,
+          '&:hover': {
+            backgroundColor: slate[50],
+          },
+          '&.Mui-selected': {
+            backgroundColor: blue[500],
+            '&:hover': {
+              backgroundColor: blue[600],
+            },
+            '&:focus': {
+              backgroundColor: blue[500],
+            },
+          },
+        },
+      },
+    },
+    MuiPickerPopper: {
+      styleOverrides: {
+        paper: {
+          borderRadius: 12,
         },
       },
     },

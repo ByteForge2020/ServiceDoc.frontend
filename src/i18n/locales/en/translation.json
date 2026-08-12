@@ -168,6 +168,34 @@
       "owner": "Owner"
     }
   },
+  "jobs": {
+    "title": "Jobs",
+    "tabs": {
+      "technicians": "Technicians"
+    },
+    "noTechnicians": "No technicians found.",
+    "addJobPopup": {
+      "addJobToOrder": "Add job to Order"
+    },
+    "addJobModal": {
+      "title": "Add job to an Order for {{technician}}",
+      "selectOrder": "Select Order",
+      "searchOrderPlaceholder": "Search for Order number",
+      "keepTyping": "Keep typing to search…",
+      "noResults": "No orders found",
+      "orderLabel": "Order #{{orderNumber}}",
+      "changeOrder": "change order",
+      "startDate": "Start date",
+      "startHour": "Start hour",
+      "scheduledDuration": "Scheduled duration",
+      "jobDescription": "Job description",
+      "selectOrderFirst": "Select an order first",
+      "noEstimateItems": "This order has no estimate items",
+      "save": "Save",
+      "createSuccess": "Job created.",
+      "createError": "Failed to create job."
+    }
+  },
   "errors": {
     "somethingWentWrong": "Something went wrong."
   }

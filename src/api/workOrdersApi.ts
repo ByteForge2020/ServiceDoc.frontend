@@ -1,11 +1,24 @@
 import { apiClient } from './apiClient'
-import type { CreateWorkOrderRequest, UpdateWorkOrderRequest, WorkOrder } from '../features/workOrders/types'
+import type {
+  CreateWorkOrderRequest,
+  UpdateWorkOrderRequest,
+  WorkOrder,
+  WorkOrderSummary,
+} from '../features/workOrders/types'
 
 const BASE_PATH = '/api/v1/general/workorders'
 
 export const workOrdersApi = {
   getAll() {
     return apiClient.get<WorkOrder[]>(BASE_PATH).then((res) => res.data)
+  },
+
+  getRecent(take = 6) {
+    return apiClient.get<WorkOrderSummary[]>(`${BASE_PATH}/recent`, { params: { take } }).then((res) => res.data)
+  },
+
+  search(query: string) {
+    return apiClient.get<WorkOrderSummary[]>(`${BASE_PATH}/search`, { params: { query } }).then((res) => res.data)
   },
 
   getById(id: string) {
