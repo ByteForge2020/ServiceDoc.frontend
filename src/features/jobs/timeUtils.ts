@@ -25,53 +25,6 @@ export function utcIsoToMinutesOfDay(iso: string): number {
   return dt.hour * 60 + dt.minute
 }
 
-const DURATION_PRESET_MINUTES = [15, 30, 45, 60, 75, 90, 105, 120, 150, 180, 210, 240]
-
-export function formatDurationLabel(totalMinutes: number): string {
-  const hours = Math.floor(totalMinutes / 60)
-  const minutes = totalMinutes % 60
-
-  const parts: string[] = []
-  if (hours > 0) {
-    parts.push(`${hours} hr`)
-  }
-  if (minutes > 0 || hours === 0) {
-    parts.push(`${minutes} min`)
-  }
-  return parts.join(' ')
-}
-
-export function durationPresetOptions(): string[] {
-  return DURATION_PRESET_MINUTES.map(formatDurationLabel)
-}
-
-export function parseDurationMinutes(text: string): number | null {
-  const trimmed = text.trim().toLowerCase()
-  if (trimmed.length === 0) {
-    return null
-  }
-
-  if (/^\d+$/.test(trimmed)) {
-    return Number.parseInt(trimmed, 10)
-  }
-
-  const hhmm = trimmed.match(/^(\d+):(\d{1,2})$/)
-  if (hhmm) {
-    return Number.parseInt(hhmm[1], 10) * 60 + Number.parseInt(hhmm[2], 10)
-  }
-
-  const hoursMatch = trimmed.match(/(\d+)\s*h(?:r|rs|our|ours)?/)
-  const minutesMatch = trimmed.match(/(\d+)\s*m(?:in|ins)?/)
-
-  if (!hoursMatch && !minutesMatch) {
-    return null
-  }
-
-  const hours = hoursMatch ? Number.parseInt(hoursMatch[1], 10) : 0
-  const minutes = minutesMatch ? Number.parseInt(minutesMatch[1], 10) : 0
-  return hours * 60 + minutes
-}
-
 export function formatTimeRange(scheduledTimeIso: string, durationMinutes: number): string {
   const start = DateTime.fromISO(scheduledTimeIso, { zone: 'utc' })
   const end = start.plus({ minutes: durationMinutes })

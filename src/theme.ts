@@ -285,5 +285,19 @@ export const theme = createTheme({
         },
       },
     },
+    MuiMenuItem: {
+      styleOverrides: {
+        root: {
+          '&.Mui-selected': {
+            backgroundColor: alpha(blue[500], 0.12),
+            color: blue[600],
+            fontWeight: 600,
+            '&:hover': {
+              backgroundColor: alpha(blue[500], 0.18),
+            },
+          },
+        },
+      },
+    },
   },
 })
