@@ -5,12 +5,12 @@ import '@fontsource/inter/700.css'
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import CssBaseline from '@mui/material/CssBaseline'
 import { ThemeProvider } from '@mui/material/styles'
-import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon'
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Provider } from 'react-redux'
 import App from './App.tsx'
+import { AppLocalizationProvider } from './app/localization/AppLocalizationProvider'
+import { ConfirmProvider } from './app/confirm/ConfirmProvider'
 import { store } from './app/store'
 import { getToasterInstance } from './app/toasters/toasterInstance'
 import { ToasterProvider } from './app/toasters/ToasterProvider'
@@ -47,11 +47,13 @@ createRoot(document.getElementById('root')!).render(
       <QueryClientProvider client={queryClient}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <LocalizationProvider dateAdapter={AdapterLuxon}>
+          <AppLocalizationProvider>
             <ToasterProvider>
-              <App />
+              <ConfirmProvider>
+                <App />
+              </ConfirmProvider>
             </ToasterProvider>
-          </LocalizationProvider>
+          </AppLocalizationProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </Provider>

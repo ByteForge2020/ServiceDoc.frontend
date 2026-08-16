@@ -1,10 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { repairShopsApi } from '../../api/repairShopsApi'
+import { timeZonesApi } from '../../api/timeZonesApi'
 import type { RepairShopPayload } from './types'
 
 export const repairShopKeys = {
   all: ['repairShops'] as const,
   detail: (id: string) => ['repairShops', id] as const,
+}
+
+export function useTimeZonesQuery() {
+  return useQuery({
+    queryKey: ['timeZones'],
+    queryFn: timeZonesApi.getAll,
+  })
 }
 
 export function useRepairShopsQuery() {

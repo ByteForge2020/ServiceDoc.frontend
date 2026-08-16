@@ -6,7 +6,7 @@ import CircularProgress from '@mui/material/CircularProgress'
 import { extractErrorMessage } from '../../api/errorMessage'
 import { useToasters } from '../../../app/toasters/useToasters'
 import { RepairShopFormLayout } from './components/RepairShopFormLayout'
-import { useRepairShopQuery, useUpdateRepairShopMutation } from './queries'
+import { useRepairShopQuery, useTimeZonesQuery, useUpdateRepairShopMutation } from './queries'
 import { EMPTY_REPAIR_SHOP, buildRepairShopPayload, isValidSubdomain, repairShopToFormState } from './repairShopForm'
 
 export function EditRepairShopPage() {
@@ -14,6 +14,7 @@ export function EditRepairShopPage() {
   const navigate = useNavigate()
   const toasters = useToasters()
   const { data: repairShop, isPending: isLoading } = useRepairShopQuery(id)
+  const { data: timeZones } = useTimeZonesQuery()
   const mutation = useUpdateRepairShopMutation(id ?? '')
 
   const [value, setValue] = useState(EMPTY_REPAIR_SHOP)
@@ -26,9 +27,15 @@ export function EditRepairShopPage() {
     setValue(repairShopToFormState(repairShop))
   }
 
+  const timeZoneOptions = (timeZones ?? []).map((tz) => ({ value: tz.id, label: tz.name }))
   const subdomainInvalid = value.subdomainName.trim().length > 0 && !isValidSubdomain(value.subdomainName.trim())
   const subdomainError = subdomainConflict || subdomainInvalid
-  const canSave = value.name.trim().length > 0 && value.subdomainName.trim().length > 0 && !subdomainInvalid && !mutation.isPending
+  const canSave =
+    value.name.trim().length > 0 &&
+    value.subdomainName.trim().length > 0 &&
+    value.timeZoneId.trim().length > 0 &&
+    !subdomainInvalid &&
+    !mutation.isPending
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
@@ -75,6 +82,7 @@ export function EditRepairShopPage() {
       }}
       subdomainError={subdomainError}
       subdomainErrorMessage={subdomainConflict ? 'This subdomain is already taken' : 'Lowercase letters, digits and hyphens only'}
+      timeZoneOptions={timeZoneOptions}
       onSubmit={handleSubmit}
       saving={mutation.isPending}
       saveLabel="Save"

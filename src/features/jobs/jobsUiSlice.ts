@@ -6,7 +6,7 @@ export interface JobsUiState {
 }
 
 const initialState: JobsUiState = {
-  selectedDate: DateTime.utc().toISODate(),
+  selectedDate: DateTime.local().toISODate(),
 }
 
 const jobsUiSlice = createSlice({

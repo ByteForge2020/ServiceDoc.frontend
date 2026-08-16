@@ -6,6 +6,7 @@ export const EMPTY_REPAIR_SHOP: RepairShopFormState = {
   subdomainName: '',
   address: '',
   phone: '',
+  timeZoneId: '',
 }
 
 const SUBDOMAIN_PATTERN = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/
@@ -20,6 +21,7 @@ export function repairShopToFormState(repairShop: RepairShop): RepairShopFormSta
     subdomainName: repairShop.subdomainName,
     address: repairShop.address ?? '',
     phone: repairShop.phone ?? '',
+    timeZoneId: repairShop.timeZoneId,
   }
 }
 
@@ -29,5 +31,6 @@ export function buildRepairShopPayload(value: RepairShopFormState): RepairShopPa
     subdomainName: value.subdomainName.trim().toLowerCase(),
     address: value.address.trim() || null,
     phone: value.phone.trim() || null,
+    timeZoneId: value.timeZoneId,
   }
 }

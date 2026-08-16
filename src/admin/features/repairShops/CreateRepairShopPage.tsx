@@ -4,20 +4,27 @@ import { AxiosError } from 'axios'
 import { extractErrorMessage } from '../../api/errorMessage'
 import { useToasters } from '../../../app/toasters/useToasters'
 import { RepairShopFormLayout } from './components/RepairShopFormLayout'
-import { useCreateRepairShopMutation } from './queries'
+import { useCreateRepairShopMutation, useTimeZonesQuery } from './queries'
 import { EMPTY_REPAIR_SHOP, buildRepairShopPayload, isValidSubdomain } from './repairShopForm'
 
 export function CreateRepairShopPage() {
   const navigate = useNavigate()
   const toasters = useToasters()
   const mutation = useCreateRepairShopMutation()
+  const { data: timeZones } = useTimeZonesQuery()
 
   const [value, setValue] = useState(EMPTY_REPAIR_SHOP)
   const [subdomainConflict, setSubdomainConflict] = useState(false)
 
+  const timeZoneOptions = (timeZones ?? []).map((tz) => ({ value: tz.id, label: tz.name }))
   const subdomainInvalid = value.subdomainName.trim().length > 0 && !isValidSubdomain(value.subdomainName.trim())
   const subdomainError = subdomainConflict || subdomainInvalid
-  const canSave = value.name.trim().length > 0 && value.subdomainName.trim().length > 0 && !subdomainInvalid && !mutation.isPending
+  const canSave =
+    value.name.trim().length > 0 &&
+    value.subdomainName.trim().length > 0 &&
+    value.timeZoneId.trim().length > 0 &&
+    !subdomainInvalid &&
+    !mutation.isPending
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
@@ -56,6 +63,7 @@ export function CreateRepairShopPage() {
       }}
       subdomainError={subdomainError}
       subdomainErrorMessage={subdomainConflict ? 'This subdomain is already taken' : 'Lowercase letters, digits and hyphens only'}
+      timeZoneOptions={timeZoneOptions}
       onSubmit={handleSubmit}
       saving={mutation.isPending}
       saveLabel="Create"

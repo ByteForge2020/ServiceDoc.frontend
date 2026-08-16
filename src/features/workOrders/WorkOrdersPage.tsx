@@ -13,18 +13,10 @@ import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
-import { DateTime } from 'luxon'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
+import { WorkOrderRow } from './components/WorkOrderRow'
 import { useWorkOrdersQuery } from './queries'
-import { WorkOrderStatusChip } from './WorkOrderStatusChip'
-
-function formatDate(value: string | null): string {
-  if (!value) {
-    return '—'
-  }
-  return DateTime.fromISO(value).toLocaleString(DateTime.DATETIME_MED)
-}
 
 export function WorkOrdersPage() {
   const { t } = useTranslation()
@@ -58,6 +50,7 @@ export function WorkOrdersPage() {
           <Table>
             <TableHead>
               <TableRow>
+                <TableCell sx={{ width: 48 }} />
                 <TableCell>{t('workOrders.table.orderNumber')}</TableCell>
                 <TableCell>{t('workOrders.table.status')}</TableCell>
                 <TableCell>{t('workOrders.table.customer')}</TableCell>
@@ -70,7 +63,7 @@ export function WorkOrdersPage() {
             <TableBody>
               {workOrders.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} align="center">
+                  <TableCell colSpan={8} align="center">
                     <Typography variant="body2" sx={{ color: 'text.secondary', py: 2 }}>
                       {t('workOrders.noWorkOrders')}
                     </Typography>
@@ -78,22 +71,7 @@ export function WorkOrdersPage() {
                 </TableRow>
               )}
               {workOrders.map((workOrder) => (
-                <TableRow
-                  key={workOrder.id}
-                  hover
-                  onClick={() => navigate(`/orders/${workOrder.id}`)}
-                  sx={{ cursor: 'pointer' }}
-                >
-                  <TableCell>{workOrder.orderNumber}</TableCell>
-                  <TableCell>
-                    <WorkOrderStatusChip status={workOrder.status} />
-                  </TableCell>
-                  <TableCell>{workOrder.customerName ?? '—'}</TableCell>
-                  <TableCell>{workOrder.vehicleDescription ?? '—'}</TableCell>
-                  <TableCell>{workOrder.notes ?? '—'}</TableCell>
-                  <TableCell>{formatDate(workOrder.openedAt)}</TableCell>
-                  <TableCell>{formatDate(workOrder.closedAt)}</TableCell>
-                </TableRow>
+                <WorkOrderRow key={workOrder.id} workOrder={workOrder} />
               ))}
             </TableBody>
           </Table>

@@ -6,7 +6,9 @@
     "back": "Back",
     "signOut": "Sign out",
     "openMenu": "Open menu",
-    "createOption": "Create \"{{name}}\""
+    "createOption": "Create \"{{name}}\"",
+    "areYouSure": "Are you sure?",
+    "confirm": "Confirm"
   },
   "nav": {
     "workOrders": "Work orders",
@@ -36,7 +38,15 @@
       "vehicle": "Vehicle",
       "notes": "Notes",
       "opened": "Opened",
-      "closed": "Closed"
+      "closed": "Closed",
+      "expandAria": "Show jobs",
+      "collapseAria": "Hide jobs"
+    },
+    "jobsTable": {
+      "description": "Job description",
+      "assigned": "Assigned",
+      "scheduled": "Scheduled",
+      "noDescription": "—"
     },
     "status": {
       "draft": "Draft",
@@ -194,6 +204,19 @@
       "save": "Save",
       "createSuccess": "Job created.",
       "createError": "Failed to create job."
+    },
+    "jobCard": {
+      "menuAria": "Job options",
+      "editJob": "Edit job",
+      "deleteJob": "Delete job",
+      "deleteConfirmMessage": "Are you sure you want to delete job #{{orderNumber}}? This action cannot be undone.",
+      "deleteSuccess": "Job deleted.",
+      "deleteError": "Failed to delete job."
+    },
+    "editJobModal": {
+      "title": "Edit job for {{technician}}",
+      "updateSuccess": "Job updated.",
+      "updateError": "Failed to update job."
     }
   },
   "errors": {

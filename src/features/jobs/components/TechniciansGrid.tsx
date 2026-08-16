@@ -36,6 +36,8 @@ interface TechniciansGridProps {
   technicians: TeamMember[]
   jobs: Job[]
   onAddJob: (params: { technicianId: string; technicianName: string; minutes: number }) => void
+  onEditJob: (job: Job) => void
+  onDeleteJob: (job: Job) => void
 }
 
 function technicianDisplayName(technician: TeamMember): string {
@@ -45,7 +47,7 @@ function technicianDisplayName(technician: TeamMember): string {
 
 const slotTicks = Array.from({ length: MINUTES_PER_DAY / SLOT_MINUTES }, (_, i) => i * SLOT_MINUTES)
 
-export function TechniciansGrid({ technicians, jobs, onAddJob }: TechniciansGridProps) {
+export function TechniciansGrid({ technicians, jobs, onAddJob, onEditJob, onDeleteJob }: TechniciansGridProps) {
   const { t } = useTranslation()
   const scrollRef = useRef<HTMLDivElement>(null)
   const [hover, setHover] = useState<HoverState | null>(null)
@@ -201,7 +203,13 @@ export function TechniciansGrid({ technicians, jobs, onAddJob }: TechniciansGrid
                 onClick={(event) => handleClick(event, technician)}
               >
                 {technicianJobs.map((job) => (
-                  <JobCard key={job.id} job={job} />
+                  <JobCard
+                    key={job.id}
+                    job={job}
+                    onEdit={onEditJob}
+                    onDelete={onDeleteJob}
+                    onHoverStart={() => setHover(null)}
+                  />
                 ))}
 
                 {isHovered && hover && (

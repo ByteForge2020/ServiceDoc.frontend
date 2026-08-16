@@ -6,7 +6,9 @@
     "back": "Назад",
     "signOut": "Выйти",
     "openMenu": "Открыть меню",
-    "createOption": "Создать «{{name}}»"
+    "createOption": "Создать «{{name}}»",
+    "areYouSure": "Вы уверены?",
+    "confirm": "Подтвердить"
   },
   "nav": {
     "workOrders": "Заказ-наряды",
@@ -36,7 +38,15 @@
       "vehicle": "Автомобиль",
       "notes": "Примечания",
       "opened": "Открыт",
-      "closed": "Закрыт"
+      "closed": "Закрыт",
+      "expandAria": "Показать работы",
+      "collapseAria": "Скрыть работы"
+    },
+    "jobsTable": {
+      "description": "Описание работы",
+      "assigned": "Исполнитель",
+      "scheduled": "Запланировано",
+      "noDescription": "—"
     },
     "status": {
       "draft": "Черновик",
@@ -195,6 +205,19 @@
       "save": "Сохранить",
       "createSuccess": "Работа создана.",
       "createError": "Не удалось создать работу."
+    },
+    "jobCard": {
+      "menuAria": "Параметры работы",
+      "editJob": "Редактировать работу",
+      "deleteJob": "Удалить работу",
+      "deleteConfirmMessage": "Вы уверены, что хотите удалить работу №{{orderNumber}}? Это действие нельзя отменить.",
+      "deleteSuccess": "Работа удалена.",
+      "deleteError": "Не удалось удалить работу."
+    },
+    "editJobModal": {
+      "title": "Редактировать работу для {{technician}}",
+      "updateSuccess": "Работа обновлена.",
+      "updateError": "Не удалось обновить работу."
     }
   },
   "errors": {

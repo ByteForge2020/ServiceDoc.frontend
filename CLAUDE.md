@@ -53,7 +53,19 @@ Use these libraries/patterns consistently across the project. Do not introduce a
 - **Client/global state**: `Redux Toolkit` — use `createAsyncThunk` for async actions that mutate global state; use React Query for read-only server state instead of duplicating it in Redux where possible.
 - **Routing**: `React Router` — use `useNavigate`, `useParams`, nested routes; protected routes via a wrapper component.
 - **Notifications**: `useToasters` hook for all success/error/info feedback — do not use inline error text or `alert()`.
-- **Dates**: `Luxon` for date/time handling — do not mix in `moment` or raw `Date` manipulation.
+- **Dates**: `Luxon` for date/time handling — do not mix in `moment` or raw `Date` manipulation. All API/DB datetimes are UTC; when rendering or editing a datetime for the user, convert it to the shop's zone via `useShopTimeZone()` (see below) — never render a raw UTC value or the browser's local zone.
+
+## Shared / Common Components
+
+Before building a new UI primitive (form field, picker, dialog, provider/hook), check whether one already exists and reuse or extend it — never build a feature-local one-off duplicate.
+
+- **Form fields** (`src/components/form/`): `FormTextField`, `FormSelect`, `FormCreatableAutocomplete`, `SelectedEntityField`, `AppDatePicker`, `AppTimeField`. All share the same label-above-field pattern (`Typography` label with a red `*` when `required`, wrapped in `Stack spacing={1}`) and the same outlined-input look from `theme.ts`. Match this pattern exactly when adding a new field component so every form in the app looks consistent.
+- **Confirmation dialogs** (`src/app/confirm/`): `useConfirm()` — `const ok = await confirm({ message, title?, confirmLabel?, cancelLabel?, destructive? })`. One dialog is mounted once at the app root; every "are you sure?" prompt (deletes, discards, etc.) anywhere in the app must go through this hook instead of a new `Dialog` built inline.
+- **Toasts** (`src/app/toasters/`): `useToasters()` — see Notifications above.
+- **Localization** (`src/app/localization/`): `AppLocalizationProvider` wraps MUI X's `LocalizationProvider` and keeps its locale in sync with the active i18next language. Never add a second `LocalizationProvider` in a feature — date/time pickers must go through `AppDatePicker`/`AppTimeField` so they inherit this automatically.
+- **Shop time zone** (`src/app/shop/`): `useShopTimeZone()` — returns the logged-in shop's IANA time zone string (e.g. `"America/New_York"`, defaults to `"UTC"` while loading), backed by a React Query hook (`useShopSettingsQuery`) hitting `GET /api/v1/general/shop`. Use it whenever a component displays or edits a UTC API timestamp: `DateTime.fromISO(isoUtc, { zone: 'utc' }).setZone(zone)` to display, and `.toUTC().toISO()` to convert a shop-local picked value back before sending to the API. See `src/features/jobs/timeUtils.ts` and `src/features/jobs/components/JobCard.tsx`/`JobFormModal.tsx` for the established pattern. Only exception: admin-panel views that span multiple shops (e.g. `src/admin/features/repairShops/RepairShopsPage.tsx`) have no single "current shop" and must not use this hook — it requires the shop-scoped JWT the admin panel doesn't have.
+
+If a genuinely new reusable primitive is needed, add it under `src/components/` (plain components) or `src/app/<name>/` (provider + hook pairs, mirroring `confirm/` and `toasters/`) so every feature can reuse it — do not implement a look-alike inside a `features/*` folder.
 
 ### Conventions checklist for Claude Code
 1. New API calls → `axios` instance + wrapped in a `useQuery`/`useMutation` hook.
@@ -62,3 +74,4 @@ Use these libraries/patterns consistently across the project. Do not introduce a
 4. New icons → pull from `@mui/icons-material` first.
 5. New pages/routes → register via `React Router`, wrap protected ones in the auth guard component.
 6. New colors/styles → add to `theme.ts` first, then reference — never hardcode.
+7. New form field, dialog, or provider/hook → check `src/components/form/` and `src/app/` first; reuse what's there, or add it there if missing — never duplicate inside a `features/*` folder.

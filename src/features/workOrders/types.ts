@@ -73,6 +73,14 @@ export interface UpdateWorkOrderRequest {
   estimates: EstimatePayload[]
 }
 
+export interface JobSummary {
+  id: string
+  estimateItemName: string | null
+  assignedUserName: string
+  scheduledTime: string
+  scheduledDurationMinutes: number
+}
+
 export interface WorkOrder {
   id: string
   repairShopId: string
@@ -89,6 +97,7 @@ export interface WorkOrder {
   closedAt: string | null
   createdAt: string
   estimates: Estimate[]
+  jobs: JobSummary[]
 }
 
 export interface WorkOrderSummary {

@@ -16,17 +16,23 @@ export function offsetXToMinutes(offsetX: number): number {
   return offsetX / PX_PER_MINUTE
 }
 
-export function dateAndMinutesToUtcIso(dateIso: string, minutes: number): string {
-  return DateTime.fromISO(dateIso, { zone: 'utc' }).plus({ minutes }).toISO()!
+export function localDateAndMinutesToUtcIso(dateIso: string, minutes: number, zone: string): string {
+  return DateTime.fromISO(dateIso, { zone }).plus({ minutes }).toUTC().toISO()!
 }
 
-export function utcIsoToMinutesOfDay(iso: string): number {
-  const dt = DateTime.fromISO(iso, { zone: 'utc' })
+export function utcIsoToMinutesOfDay(iso: string, zone: string): number {
+  const dt = DateTime.fromISO(iso, { zone: 'utc' }).setZone(zone)
   return dt.hour * 60 + dt.minute
 }
 
-export function formatTimeRange(scheduledTimeIso: string, durationMinutes: number): string {
-  const start = DateTime.fromISO(scheduledTimeIso, { zone: 'utc' })
+export function formatTimeRange(scheduledTimeIso: string, durationMinutes: number, zone: string): string {
+  const start = DateTime.fromISO(scheduledTimeIso, { zone: 'utc' }).setZone(zone)
   const end = start.plus({ minutes: durationMinutes })
   return `${start.toFormat('HH:mm')} – ${end.toFormat('HH:mm')}`
+}
+
+export function formatScheduledRange(scheduledTimeIso: string, durationMinutes: number, zone: string): string {
+  const start = DateTime.fromISO(scheduledTimeIso, { zone: 'utc' }).setZone(zone)
+  const end = start.plus({ minutes: durationMinutes })
+  return `${start.toFormat('LLL d, HH:mm')} – ${end.toFormat('HH:mm')}`
 }

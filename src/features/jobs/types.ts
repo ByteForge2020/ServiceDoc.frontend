@@ -18,3 +18,10 @@ export interface CreateJobPayload {
   scheduledDurationMinutes: number
   estimateItemId: string | null
 }
+
+export interface UpdateJobPayload {
+  orderId: string
+  scheduledTime: string
+  scheduledDurationMinutes: number
+  estimateItemId: string | null
+}

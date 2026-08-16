@@ -6,6 +6,7 @@ import IconButton from '@mui/material/IconButton'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
+import { FormSelect, type FormSelectOption } from '../../../../components/form/FormSelect'
 import { FormTextField } from '../../../../components/form/FormTextField'
 
 export interface RepairShopFormState {
@@ -13,6 +14,7 @@ export interface RepairShopFormState {
   subdomainName: string
   address: string
   phone: string
+  timeZoneId: string
 }
 
 interface RepairShopFormLayoutProps {
@@ -22,6 +24,7 @@ interface RepairShopFormLayoutProps {
   onChange: (value: RepairShopFormState) => void
   subdomainError: boolean
   subdomainErrorMessage: string
+  timeZoneOptions: FormSelectOption<string>[]
   onSubmit: (event: FormEvent) => void
   onCancel: () => void
   saving: boolean
@@ -36,6 +39,7 @@ export function RepairShopFormLayout({
   onChange,
   subdomainError,
   subdomainErrorMessage,
+  timeZoneOptions,
   onSubmit,
   onCancel,
   saving,
@@ -84,6 +88,15 @@ export function RepairShopFormLayout({
                 label="Phone"
                 value={value.phone}
                 onChange={(event) => onChange({ ...value, phone: event.target.value })}
+              />
+
+              <FormSelect
+                label="Time Zone"
+                placeholder="Select a time zone"
+                value={value.timeZoneId}
+                onChange={(timeZoneId) => onChange({ ...value, timeZoneId })}
+                options={timeZoneOptions}
+                required
               />
             </Stack>
           </Paper>
