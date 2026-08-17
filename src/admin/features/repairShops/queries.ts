@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { languagesApi } from '../../api/languagesApi'
 import { repairShopsApi } from '../../api/repairShopsApi'
 import { timeZonesApi } from '../../api/timeZonesApi'
 import type { RepairShopPayload } from './types'
@@ -12,6 +13,13 @@ export function useTimeZonesQuery() {
   return useQuery({
     queryKey: ['timeZones'],
     queryFn: timeZonesApi.getAll,
+  })
+}
+
+export function useLanguagesQuery() {
+  return useQuery({
+    queryKey: ['languages'],
+    queryFn: languagesApi.getAll,
   })
 }
 

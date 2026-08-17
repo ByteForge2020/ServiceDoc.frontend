@@ -6,6 +6,7 @@ export interface RepairShop {
   phone: string | null
   createdAt: string
   timeZoneId: string
+  languageId: string
 }
 
 export interface RepairShopPayload {
@@ -14,4 +15,5 @@ export interface RepairShopPayload {
   address: string | null
   phone: string | null
   timeZoneId: string
+  languageId: string
 }

@@ -15,6 +15,7 @@ export interface RepairShopFormState {
   address: string
   phone: string
   timeZoneId: string
+  languageId: string
 }
 
 interface RepairShopFormLayoutProps {
@@ -25,6 +26,7 @@ interface RepairShopFormLayoutProps {
   subdomainError: boolean
   subdomainErrorMessage: string
   timeZoneOptions: FormSelectOption<string>[]
+  languageOptions: FormSelectOption<string>[]
   onSubmit: (event: FormEvent) => void
   onCancel: () => void
   saving: boolean
@@ -40,6 +42,7 @@ export function RepairShopFormLayout({
   subdomainError,
   subdomainErrorMessage,
   timeZoneOptions,
+  languageOptions,
   onSubmit,
   onCancel,
   saving,
@@ -96,6 +99,15 @@ export function RepairShopFormLayout({
                 value={value.timeZoneId}
                 onChange={(timeZoneId) => onChange({ ...value, timeZoneId })}
                 options={timeZoneOptions}
+                required
+              />
+
+              <FormSelect
+                label="Language"
+                placeholder="Select a language"
+                value={value.languageId}
+                onChange={(languageId) => onChange({ ...value, languageId })}
+                options={languageOptions}
                 required
               />
             </Stack>
