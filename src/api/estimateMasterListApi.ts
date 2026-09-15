@@ -9,12 +9,8 @@ export interface EstimateMasterListItem {
 }
 
 export const estimateMasterListApi = {
-  getDefaults() {
-    return apiClient.get<EstimateMasterListItem[]>(`${BASE_PATH}/defaults`).then((res) => res.data)
-  },
-
-  search(query: string) {
-    return apiClient.get<EstimateMasterListItem[]>(`${BASE_PATH}/search`, { params: { query } }).then((res) => res.data)
+  getAll() {
+    return apiClient.get<EstimateMasterListItem[]>(BASE_PATH).then((res) => res.data)
   },
 
   create(name: string) {

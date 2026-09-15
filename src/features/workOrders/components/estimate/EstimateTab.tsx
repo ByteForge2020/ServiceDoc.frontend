@@ -22,7 +22,6 @@ import {
   type EstimateFormState,
   type EstimateItemRow,
 } from '../../workOrderForm'
-import { estimateMasterListLabel } from '../../estimateMasterListLabel'
 import { SearchInputDropdown } from './SearchInputDropdown'
 
 const segmentBorder = { borderLeft: 2, borderLeftColor: 'divider' } as const
@@ -121,6 +120,7 @@ export function EstimateTab({ estimates, onEstimatesChange }: EstimateTabProps) 
 
       <Box>
         <SearchInputDropdown
+          excludedNames={estimates.map((estimate) => estimate.root.name)}
           onSelect={(name) => onEstimatesChange([...estimates, createEstimateFormState(name)])}
         />
       </Box>
@@ -173,7 +173,7 @@ function EstimateItemRowView({
           size="small"
           variant="outlined"
           fullWidth
-          value={estimateMasterListLabel(row.name, t)}
+          value={row.name}
           onChange={(event) => onChange({ name: event.target.value })}
           placeholder={row.subItem ? t('estimate.subItemNamePlaceholder') : undefined}
           slotProps={{ htmlInput: { 'aria-label': t('estimate.name') } }}

@@ -118,7 +118,6 @@
     "addItem": "Добавить позицию",
     "addSubItem": "Добавить подпозицию",
     "searchPlaceholder": "Начните вводить…",
-    "keepTyping": "Продолжайте вводить для поиска…",
     "noResults": "Ничего не найдено",
     "name": "Наименование",
     "subItemNamePlaceholder": "Введите наименование",
@@ -137,10 +136,6 @@
     "createItemError": "Не удалось создать позицию.",
     "approveAria": "Утвердить",
     "rejectAria": "Отклонить"
-  },
-  "estimateMasterList": {
-    "defaults": {
-    }
   },
   "teamMembers": {
     "tabLabel": "Сотрудники",

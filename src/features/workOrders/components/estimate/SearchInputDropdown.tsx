@@ -8,13 +8,8 @@ import { useTranslation } from 'react-i18next'
 import { extractErrorMessage } from '../../../../api/errorMessage'
 import { useToasters } from '../../../../app/toasters/useToasters'
 import { FormTextField } from '../../../../components/form/FormTextField'
-import { estimateMasterListLabel } from '../../estimateMasterListLabel'
-import {
-  useCreateEstimateMasterListItemMutation,
-  useEstimateMasterListDefaultsQuery,
-  useEstimateMasterListSearchQuery,
-} from '../../estimateMasterListQueries'
-import { useDebouncedValue } from '../useDebouncedValue'
+import { VirtualizedListbox } from '../../../../components/form/VirtualizedListbox'
+import { useCreateEstimateMasterListItemMutation, useEstimateMasterListItemsQuery } from '../../estimateMasterListQueries'
 
 interface SearchOption {
   id: string
@@ -31,33 +26,32 @@ interface CreateOption {
 type Option = SearchOption | CreateOption
 
 interface SearchInputDropdownProps {
+  excludedNames: string[]
   onSelect: (name: string) => void
 }
 
-export function SearchInputDropdown({ onSelect }: SearchInputDropdownProps) {
+export function SearchInputDropdown({ excludedNames, onSelect }: SearchInputDropdownProps) {
   const { t } = useTranslation()
   const toasters = useToasters()
   const [active, setActive] = useState(false)
   const [inputValue, setInputValue] = useState('')
-  const debouncedSearch = useDebouncedValue(inputValue, 300)
-  const { data: defaults } = useEstimateMasterListDefaultsQuery()
-  const { data: searchResults, isFetching } = useEstimateMasterListSearchQuery(debouncedSearch)
+  const { data: items, isLoading } = useEstimateMasterListItemsQuery()
   const createMutation = useCreateEstimateMasterListItemMutation()
 
   const options = useMemo<SearchOption[]>(() => {
-    const query = debouncedSearch.trim().toLowerCase()
+    const excluded = new Set(excludedNames.map((name) => name.trim().toLowerCase()))
+    const query = inputValue.trim().toLowerCase()
 
-    const defaultMatches = (defaults ?? [])
-      .map((item) => ({ id: item.id, name: item.name, label: estimateMasterListLabel(item.name, t) }))
-      .filter((item) => query.length === 0 || item.label.toLowerCase().includes(query))
-
-    const shopMatches = (searchResults ?? []).map((item) => ({ id: item.id, name: item.name, label: item.name }))
-
-    return [...defaultMatches, ...shopMatches]
-  }, [defaults, searchResults, debouncedSearch, t])
+    return (items ?? [])
+      .filter((item) => !excluded.has(item.name.trim().toLowerCase()))
+      .filter((item) => query.length === 0 || item.name.toLowerCase().includes(query))
+      .map((item) => ({ id: item.id, name: item.name, label: item.name }))
+  }, [items, inputValue, excludedNames])
 
   const trimmed = inputValue.trim()
-  const hasExactMatch = options.some((option) => option.label.toLowerCase() === trimmed.toLowerCase())
+  const hasExactMatch =
+    options.some((option) => option.label.toLowerCase() === trimmed.toLowerCase()) ||
+    excludedNames.some((name) => name.trim().toLowerCase() === trimmed.toLowerCase())
 
   const displayOptions: Option[] =
     trimmed.length > 0 && !hasExactMatch ? [...options, { id: '__create__', label: trimmed, isCreateOption: true }] : options
@@ -92,7 +86,7 @@ export function SearchInputDropdown({ onSelect }: SearchInputDropdownProps) {
       autoFocus
       openOnFocus
       options={displayOptions}
-      loading={isFetching}
+      loading={isLoading}
       inputValue={inputValue}
       onInputChange={(_event, newValue) => setInputValue(newValue)}
       onChange={(_event, newValue) => {
@@ -109,7 +103,8 @@ export function SearchInputDropdown({ onSelect }: SearchInputDropdownProps) {
       getOptionLabel={(option) => option.label}
       isOptionEqualToValue={(option, val) => option.id === val.id}
       filterOptions={(opts) => opts}
-      noOptionsText={trimmed.length < 2 ? t('estimate.keepTyping') : t('estimate.noResults')}
+      noOptionsText={t('estimate.noResults')}
+      slots={{ listbox: VirtualizedListbox }}
       fullWidth
       sx={{ maxWidth: 360 }}
       renderOption={(props, option) =>
@@ -137,7 +132,7 @@ export function SearchInputDropdown({ onSelect }: SearchInputDropdownProps) {
               ...params.slotProps.input,
               endAdornment: (
                 <>
-                  {(isFetching || createMutation.isPending) && <CircularProgress color="inherit" size={16} />}
+                  {(isLoading || createMutation.isPending) && <CircularProgress color="inherit" size={16} />}
                   {params.slotProps.input.endAdornment}
                 </>
               ),

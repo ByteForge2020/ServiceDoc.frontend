@@ -3,25 +3,14 @@ import { estimateMasterListApi } from '../../api/estimateMasterListApi'
 
 export const estimateMasterListKeys = {
   all: ['estimateMasterList'] as const,
-  defaults: ['estimateMasterList', 'defaults'] as const,
-  search: (query: string) => ['estimateMasterList', 'search', query] as const,
+  items: ['estimateMasterList', 'items'] as const,
 }
 
-export function useEstimateMasterListDefaultsQuery() {
+export function useEstimateMasterListItemsQuery() {
   return useQuery({
-    queryKey: estimateMasterListKeys.defaults,
-    queryFn: estimateMasterListApi.getDefaults,
+    queryKey: estimateMasterListKeys.items,
+    queryFn: estimateMasterListApi.getAll,
     staleTime: 5 * 60_000,
-  })
-}
-
-export function useEstimateMasterListSearchQuery(query: string) {
-  const trimmed = query.trim()
-  return useQuery({
-    queryKey: estimateMasterListKeys.search(trimmed),
-    queryFn: () => estimateMasterListApi.search(trimmed),
-    enabled: trimmed.length >= 2,
-    staleTime: 10_000,
   })
 }
 

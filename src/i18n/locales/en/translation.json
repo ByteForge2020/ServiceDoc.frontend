@@ -118,7 +118,6 @@
     "addItem": "Add item",
     "addSubItem": "Add sub-item",
     "searchPlaceholder": "Start typing…",
-    "keepTyping": "Keep typing to search…",
     "noResults": "No items found",
     "name": "Name",
     "subItemNamePlaceholder": "Enter name",
@@ -137,9 +136,6 @@
     "createItemError": "Failed to create item.",
     "approveAria": "Approve",
     "rejectAria": "Reject"
-  },
-  "estimateMasterList": {
-    "defaults": {}
   },
   "teamMembers": {
     "tabLabel": "Team Members",
