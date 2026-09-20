@@ -67,6 +67,8 @@ Before building a new UI primitive (form field, picker, dialog, provider/hook), 
 
 If a genuinely new reusable primitive is needed, add it under `src/components/` (plain components) or `src/app/<name>/` (provider + hook pairs, mirroring `confirm/` and `toasters/`) so every feature can reuse it — do not implement a look-alike inside a `features/*` folder.
 
+### Credentials for test local shop: test20@test.com Test1234!
+
 ### Conventions checklist for Claude Code
 1. New API calls → `axios` instance + wrapped in a `useQuery`/`useMutation` hook.
 2. New global/cross-page state → Redux slice with `createAsyncThunk` for async logic.

@@ -137,6 +137,28 @@
     "approveAria": "Утвердить",
     "rejectAria": "Отклонить"
   },
+  "appointments": {
+    "tabLabel": "Записи",
+    "defaultDurationTitle": "Длительность приёма по умолчанию",
+    "defaultDurationLabel": "Длительность",
+    "durationOptionLabel": "{{minutes}} мин",
+    "scheduleTitle": "График работы",
+    "weekdaysLabel": "Дни недели",
+    "openingTimeLabel": "Время открытия",
+    "closingTimeLabel": "Время закрытия",
+    "saveLabel": "Сохранить",
+    "saveSuccess": "Настройки записи сохранены.",
+    "saveError": "Не удалось сохранить настройки записи.",
+    "days": {
+      "monday": "Понедельник",
+      "tuesday": "Вторник",
+      "wednesday": "Среда",
+      "thursday": "Четверг",
+      "friday": "Пятница",
+      "saturday": "Суббота",
+      "sunday": "Воскресенье"
+    }
+  },
   "teamMembers": {
     "tabLabel": "Сотрудники",
     "title": "Сотрудники",

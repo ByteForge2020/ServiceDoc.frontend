@@ -137,6 +137,28 @@
     "approveAria": "Approve",
     "rejectAria": "Reject"
   },
+  "appointments": {
+    "tabLabel": "Appointments",
+    "defaultDurationTitle": "Default appointment duration",
+    "defaultDurationLabel": "Duration",
+    "durationOptionLabel": "{{minutes}} min",
+    "scheduleTitle": "Opening and closing schedule",
+    "weekdaysLabel": "Weekdays",
+    "openingTimeLabel": "Opening time",
+    "closingTimeLabel": "Closing time",
+    "saveLabel": "Save",
+    "saveSuccess": "Appointment settings saved.",
+    "saveError": "Failed to save appointment settings.",
+    "days": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
+    }
+  },
   "teamMembers": {
     "tabLabel": "Team Members",
     "title": "Team Members",
