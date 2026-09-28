@@ -1,5 +1,4 @@
 import { DateTime } from 'luxon'
-import { MINUTES_PER_DAY, PX_PER_MINUTE, SNAP_MINUTES } from './gridConstants'
 
 export function minutesToLabel(minutes: number): string {
   const hours = Math.floor(minutes / 60)
@@ -7,13 +6,13 @@ export function minutesToLabel(minutes: number): string {
   return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`
 }
 
-export function snapMinutes(rawMinutes: number): number {
-  const snapped = Math.round(rawMinutes / SNAP_MINUTES) * SNAP_MINUTES
-  return Math.min(Math.max(snapped, 0), MINUTES_PER_DAY - SNAP_MINUTES)
+export function snapMinutes(rawMinutes: number, snapToMinutes: number, maxMinutes: number): number {
+  const snapped = Math.round(rawMinutes / snapToMinutes) * snapToMinutes
+  return Math.min(Math.max(snapped, 0), maxMinutes - snapToMinutes)
 }
 
-export function offsetXToMinutes(offsetX: number): number {
-  return offsetX / PX_PER_MINUTE
+export function offsetXToMinutes(offsetX: number, pxPerMinute: number): number {
+  return offsetX / pxPerMinute
 }
 
 export function localDateAndMinutesToUtcIso(dateIso: string, minutes: number, zone: string): string {

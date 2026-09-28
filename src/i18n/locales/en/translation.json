@@ -2,6 +2,7 @@
   "common": {
     "appName": "ServiceDoc",
     "cancel": "Cancel",
+    "close": "Close",
     "change": "Change",
     "back": "Back",
     "signOut": "Sign out",
@@ -13,6 +14,7 @@
   "nav": {
     "workOrders": "Work orders",
     "jobs": "Jobs",
+    "appointments": "Appointments",
     "settings": "Settings"
   },
   "auth": {
@@ -236,6 +238,69 @@
       "updateSuccess": "Job updated.",
       "updateError": "Failed to update job."
     }
+  },
+  "appointmentsPage": {
+    "title": "Appointments",
+    "newAppointment": "New appointment",
+    "today": "Today",
+    "prevWeekAria": "Previous week",
+    "nextWeekAria": "Next week",
+    "scheduleAppointment": "Schedule appointment",
+    "status": {
+      "scheduled": "Expected",
+      "arrived": "Arrived",
+      "noShow": "Didn't show up"
+    },
+    "card": {
+      "noCustomer": "No client",
+      "menuAria": "Appointment options",
+      "editAppointment": "Edit appointment",
+      "deleteAppointment": "Delete appointment",
+      "deleteConfirmMessage": "Are you sure you want to delete appointment #{{number}}? This action cannot be undone.",
+      "deleteSuccess": "Appointment deleted.",
+      "deleteError": "Failed to delete appointment."
+    },
+    "details": {
+      "title": "Appointment #{{number}}",
+      "dateTime": "Date & time",
+      "client": "Client",
+      "vehicle": "Vehicle",
+      "noVehicle": "No vehicle",
+      "reason": "Reason for visit",
+      "convertToOrder": "Convert to order",
+      "viewOrder": "View order",
+      "convertedBadge": "Converted to order #{{number}}",
+      "convertSuccess": "Appointment converted to a work order.",
+      "convertError": "Failed to convert appointment to a work order.",
+      "convertConflict": "An order with this number already exists."
+    }
+  },
+  "appointmentForm": {
+    "newTitle": "New appointment",
+    "editTitle": "Edit appointment",
+    "backAria": "Back to appointments",
+    "reasonTitle": "Reason for visit",
+    "reasonLabel": "Reason",
+    "addReason": "Add reason",
+    "reasonSearchPlaceholder": "Search or add a reason",
+    "noReasonsFound": "No reasons found",
+    "createReasonError": "Failed to create reason.",
+    "timeTitle": "Select the time and date of the appointment",
+    "selectDate": "Select the date",
+    "selectTime": "Select time",
+    "selectDateFirst": "Select a date first",
+    "noSlots": "No available time slots for this date",
+    "numberTitle": "Appointment number",
+    "numberLabel": "Appointment number",
+    "numberPlaceholder": "Enter appointment number",
+    "numberInUse": "This appointment number is already in use.",
+    "numberConflict": "This appointment number is already in use.",
+    "createLabel": "Create",
+    "saveLabel": "Save",
+    "createSuccess": "Appointment created.",
+    "createError": "Failed to create appointment.",
+    "updateSuccess": "Appointment updated.",
+    "updateError": "Failed to update appointment."
   },
   "errors": {
     "somethingWentWrong": "Something went wrong."

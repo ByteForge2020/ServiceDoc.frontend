@@ -2,6 +2,7 @@
   "common": {
     "appName": "ServiceDoc",
     "cancel": "Отмена",
+    "close": "Закрыть",
     "change": "Изменить",
     "back": "Назад",
     "signOut": "Выйти",
@@ -13,6 +14,7 @@
   "nav": {
     "workOrders": "Заказ-наряды",
     "jobs": "Работы",
+    "appointments": "Записи",
     "settings": "Настройки"
   },
   "auth": {
@@ -236,6 +238,69 @@
       "updateSuccess": "Работа обновлена.",
       "updateError": "Не удалось обновить работу."
     }
+  },
+  "appointmentsPage": {
+    "title": "Записи",
+    "newAppointment": "Новая запись",
+    "today": "Сегодня",
+    "prevWeekAria": "Предыдущая неделя",
+    "nextWeekAria": "Следующая неделя",
+    "scheduleAppointment": "Записать клиента",
+    "status": {
+      "scheduled": "Ожидается",
+      "arrived": "Прибыл",
+      "noShow": "Не пришёл"
+    },
+    "card": {
+      "noCustomer": "Без клиента",
+      "menuAria": "Действия с записью",
+      "editAppointment": "Редактировать запись",
+      "deleteAppointment": "Удалить запись",
+      "deleteConfirmMessage": "Вы уверены, что хотите удалить запись №{{number}}? Это действие нельзя отменить.",
+      "deleteSuccess": "Запись удалена.",
+      "deleteError": "Не удалось удалить запись."
+    },
+    "details": {
+      "title": "Запись №{{number}}",
+      "dateTime": "Дата и время",
+      "client": "Клиент",
+      "vehicle": "Автомобиль",
+      "noVehicle": "Без автомобиля",
+      "reason": "Причина визита",
+      "convertToOrder": "Конвертировать в заказ-наряд",
+      "viewOrder": "Открыть заказ-наряд",
+      "convertedBadge": "Конвертировано в заказ-наряд №{{number}}",
+      "convertSuccess": "Запись конвертирована в заказ-наряд.",
+      "convertError": "Не удалось конвертировать запись в заказ-наряд.",
+      "convertConflict": "Заказ-наряд с таким номером уже существует."
+    }
+  },
+  "appointmentForm": {
+    "newTitle": "Новая запись",
+    "editTitle": "Редактировать запись",
+    "backAria": "Назад к записям",
+    "reasonTitle": "Причина визита",
+    "reasonLabel": "Причина",
+    "addReason": "Добавить причину",
+    "reasonSearchPlaceholder": "Найдите или добавьте причину",
+    "noReasonsFound": "Причины не найдены",
+    "createReasonError": "Не удалось создать причину.",
+    "timeTitle": "Выберите время и дату записи",
+    "selectDate": "Выберите дату",
+    "selectTime": "Выберите время",
+    "selectDateFirst": "Сначала выберите дату",
+    "noSlots": "На эту дату нет доступных слотов",
+    "numberTitle": "Номер записи",
+    "numberLabel": "Номер записи",
+    "numberPlaceholder": "Введите номер записи",
+    "numberInUse": "Этот номер записи уже используется.",
+    "numberConflict": "Этот номер записи уже используется.",
+    "createLabel": "Создать",
+    "saveLabel": "Сохранить",
+    "createSuccess": "Запись создана.",
+    "createError": "Не удалось создать запись.",
+    "updateSuccess": "Запись обновлена.",
+    "updateError": "Не удалось обновить запись."
   },
   "errors": {
     "somethingWentWrong": "Что-то пошло не так."

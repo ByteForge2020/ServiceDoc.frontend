@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next'
 import { useShopTimeZone } from '../../../app/shop/useShopTimeZone'
 import type { Job } from '../types'
 import { PX_PER_MINUTE } from '../gridConstants'
-import { formatTimeRange, utcIsoToMinutesOfDay } from '../timeUtils'
+import { formatTimeRange, utcIsoToMinutesOfDay } from '../../../utils/timeGrid'
 
 interface JobCardProps {
   job: Job

@@ -4,7 +4,7 @@ import { extractErrorMessage } from '../../../api/errorMessage'
 import { useShopTimeZone } from '../../../app/shop/useShopTimeZone'
 import { useToasters } from '../../../app/toasters/useToasters'
 import { useUpdateJobMutation } from '../queries'
-import { utcIsoToMinutesOfDay } from '../timeUtils'
+import { utcIsoToMinutesOfDay } from '../../../utils/timeGrid'
 import type { Job } from '../types'
 import { JobFormModal, type JobFormValues } from './JobFormModal'
 

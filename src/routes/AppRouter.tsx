@@ -8,6 +8,9 @@ import { CreateWorkOrderPage } from '../features/workOrders/CreateWorkOrderPage'
 import { EditWorkOrderPage } from '../features/workOrders/EditWorkOrderPage'
 import { WorkOrdersPage } from '../features/workOrders/WorkOrdersPage'
 import { JobsPage } from '../features/jobs/JobsPage'
+import { AppointmentsPage } from '../features/appointments/AppointmentsPage'
+import { CreateAppointmentPage } from '../features/appointments/CreateAppointmentPage'
+import { EditAppointmentPage } from '../features/appointments/EditAppointmentPage'
 import { ProtectedRoute } from './ProtectedRoute'
 
 export function AppRouter() {
@@ -21,6 +24,9 @@ export function AppRouter() {
           <Route path="/orders/new" element={<CreateWorkOrderPage />} />
           <Route path="/orders/:id" element={<EditWorkOrderPage />} />
           <Route path="/jobs" element={<JobsPage />} />
+          <Route path="/appointments" element={<AppointmentsPage />} />
+          <Route path="/appointments/new" element={<CreateAppointmentPage />} />
+          <Route path="/appointments/:id" element={<EditAppointmentPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/settings/team-members/new" element={<CreateTeamMemberPage />} />
           <Route path="/settings/team-members/:id" element={<EditTeamMemberPage />} />

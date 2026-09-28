@@ -13,7 +13,7 @@ import { DateTime } from 'luxon'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { useShopTimeZone } from '../../../app/shop/useShopTimeZone'
-import { formatScheduledRange } from '../../jobs/timeUtils'
+import { formatScheduledRange } from '../../../utils/timeGrid'
 import type { WorkOrder } from '../types'
 import { WorkOrderStatusChip } from '../WorkOrderStatusChip'
 

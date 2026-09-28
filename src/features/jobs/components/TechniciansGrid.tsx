@@ -14,9 +14,10 @@ import {
   PX_PER_MINUTE,
   ROW_HEIGHT,
   SLOT_MINUTES,
+  SNAP_MINUTES,
 } from '../gridConstants'
 import type { Job } from '../types'
-import { minutesToLabel, offsetXToMinutes, snapMinutes } from '../timeUtils'
+import { minutesToLabel, offsetXToMinutes, snapMinutes } from '../../../utils/timeGrid'
 import { JobCard } from './JobCard'
 
 interface HoverState {
@@ -62,7 +63,7 @@ export function TechniciansGrid({ technicians, jobs, onAddJob, onEditJob, onDele
   function handleMouseMove(event: ReactMouseEvent<HTMLDivElement>, technicianId: string) {
     const rect = event.currentTarget.getBoundingClientRect()
     const offsetX = event.clientX - rect.left
-    const minutes = snapMinutes(offsetXToMinutes(offsetX))
+    const minutes = snapMinutes(offsetXToMinutes(offsetX, PX_PER_MINUTE), SNAP_MINUTES, MINUTES_PER_DAY)
     setHover({ technicianId, minutes })
   }
 
@@ -73,7 +74,7 @@ export function TechniciansGrid({ technicians, jobs, onAddJob, onEditJob, onDele
   function handleClick(event: ReactMouseEvent<HTMLDivElement>, technician: TeamMember) {
     const rect = event.currentTarget.getBoundingClientRect()
     const offsetX = event.clientX - rect.left
-    const minutes = snapMinutes(offsetXToMinutes(offsetX))
+    const minutes = snapMinutes(offsetXToMinutes(offsetX, PX_PER_MINUTE), SNAP_MINUTES, MINUTES_PER_DAY)
     setPopover({
       technicianId: technician.id,
       technicianName: technicianDisplayName(technician),
