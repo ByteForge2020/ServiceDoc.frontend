@@ -32,7 +32,7 @@ export interface CreateAppointmentRequest {
   number: string
   customer: CustomerPayload | null
   vehicle: VehiclePayload | null
-  reasonIds: string[]
+  estimateMasterListIds: string[]
   scheduledTime: string
   durationMinutes: number
 }
@@ -42,7 +42,7 @@ export interface UpdateAppointmentRequest {
   status: AppointmentStatus
   customer: CustomerPayload | null
   vehicle: VehiclePayload | null
-  reasonIds: string[]
+  estimateMasterListIds: string[]
   scheduledTime: string
   durationMinutes: number
 }

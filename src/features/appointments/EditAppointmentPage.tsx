@@ -90,7 +90,7 @@ export function EditAppointmentPage() {
         status: appointment.status,
         customer: customerPayload,
         vehicle: vehiclePayload,
-        reasonIds: reasons.map((reason) => reason.id),
+        estimateMasterListIds: reasons.map((reason) => reason.id),
         scheduledTime: localDateAndMinutesToUtcIso(date.toISODate()!, minutes, zone),
         durationMinutes: appointment.durationMinutes,
       },
