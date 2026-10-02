@@ -7,7 +7,8 @@ import CircularProgress from '@mui/material/CircularProgress'
 import { extractErrorMessage } from '../../api/errorMessage'
 import { useToasters } from '../../app/toasters/useToasters'
 import { WorkOrderFormLayout } from './components/WorkOrderFormLayout'
-import { useUpdateWorkOrderMutation, useWorkOrderQuery } from './queries'
+import { downloadBlob } from '../../utils/downloadBlob'
+import { useDownloadWorkOrderPdfMutation, useUpdateWorkOrderMutation, useWorkOrderQuery } from './queries'
 import {
   EMPTY_CUSTOMER,
   EMPTY_VEHICLE,
@@ -27,6 +28,7 @@ export function EditWorkOrderPage() {
   const toasters = useToasters()
   const { data: workOrder, isPending: isLoadingWorkOrder } = useWorkOrderQuery(id)
   const mutation = useUpdateWorkOrderMutation(id ?? '')
+  const pdfMutation = useDownloadWorkOrderPdfMutation(id ?? '')
 
   const [orderNumber, setOrderNumber] = useState('')
   const [orderNumberConflict, setOrderNumberConflict] = useState(false)
@@ -86,6 +88,18 @@ export function EditWorkOrderPage() {
     )
   }
 
+  // The PDF is rendered by the backend from the saved order, so unsaved form edits are not included.
+  function handlePrintPdf() {
+    if (!workOrder) {
+      return
+    }
+
+    pdfMutation.mutate(undefined, {
+      onSuccess: (blob) => downloadBlob(blob, `WorkOrder-${workOrder.orderNumber}.pdf`),
+      onError: () => toasters.error(t('workOrderForm.printPdfError')),
+    })
+  }
+
   if (isLoadingWorkOrder || !initialized) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
@@ -117,6 +131,8 @@ export function EditWorkOrderPage() {
       saving={mutation.isPending}
       saveLabel={t('workOrderForm.saveLabel')}
       canSave={canSave}
+      onPrintPdf={handlePrintPdf}
+      printingPdf={pdfMutation.isPending}
     />
   )
 }

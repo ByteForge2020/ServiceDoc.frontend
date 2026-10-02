@@ -25,6 +25,10 @@ export const workOrdersApi = {
     return apiClient.get<WorkOrder>(`${BASE_PATH}/${id}`).then((res) => res.data)
   },
 
+  getPdf(id: string) {
+    return apiClient.get<Blob>(`${BASE_PATH}/${id}/pdf`, { responseType: 'blob' }).then((res) => res.data)
+  },
+
   create(request: CreateWorkOrderRequest) {
     return apiClient.post<WorkOrder>(BASE_PATH, request).then((res) => res.data)
   },

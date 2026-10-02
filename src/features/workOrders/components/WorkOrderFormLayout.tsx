@@ -1,13 +1,16 @@
 import type { FormEvent } from 'react'
 import { useState } from 'react'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import PrintIcon from '@mui/icons-material/Print'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
+import CircularProgress from '@mui/material/CircularProgress'
 import IconButton from '@mui/material/IconButton'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
+import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
 import type { EstimateFormState } from '../workOrderForm'
@@ -35,6 +38,8 @@ interface WorkOrderFormLayoutProps {
   saving: boolean
   saveLabel: string
   canSave: boolean
+  onPrintPdf?: () => void
+  printingPdf?: boolean
 }
 
 export function WorkOrderFormLayout({
@@ -56,6 +61,8 @@ export function WorkOrderFormLayout({
   saving,
   saveLabel,
   canSave,
+  onPrintPdf,
+  printingPdf = false,
 }: WorkOrderFormLayoutProps) {
   const { t } = useTranslation()
   const [tab, setTab] = useState(0)
@@ -73,10 +80,21 @@ export function WorkOrderFormLayout({
 
       <Box component="form" onSubmit={onSubmit} noValidate>
         <Stack spacing={3}>
-          <Tabs value={tab} onChange={(_event, newValue: number) => setTab(newValue)}>
-            <Tab label={t('workOrderForm.generalInformation')} value={0} />
-            <Tab label={t('workOrderForm.estimate')} value={1} />
-          </Tabs>
+          <Stack direction="row" sx={{ alignItems: 'center', borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs value={tab} onChange={(_event, newValue: number) => setTab(newValue)} sx={{ flexGrow: 1, borderBottom: 'none' }}>
+              <Tab label={t('workOrderForm.generalInformation')} value={0} />
+              <Tab label={t('workOrderForm.estimate')} value={1} />
+            </Tabs>
+            {onPrintPdf && (
+              <Tooltip title={t('workOrderForm.printPdf')}>
+                <span>
+                  <IconButton onClick={onPrintPdf} disabled={printingPdf} aria-label={t('workOrderForm.printPdf')}>
+                    {printingPdf ? <CircularProgress size={24} /> : <PrintIcon />}
+                  </IconButton>
+                </span>
+              </Tooltip>
+            )}
+          </Stack>
 
           {tab === 0 && (
             <Paper variant="outlined" sx={{ p: 4, borderRadius: '12px' }}>

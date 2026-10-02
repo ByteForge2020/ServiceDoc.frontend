@@ -70,6 +70,8 @@
     "createError": "Не удалось создать заказ-наряд.",
     "updateSuccess": "Заказ-наряд обновлён.",
     "updateError": "Не удалось обновить заказ-наряд.",
+    "printPdf": "Печать PDF",
+    "printPdfError": "Не удалось скачать PDF.",
     "orderNumberConflict": "Заказ-наряд с таким номером уже существует."
   },
   "customerInformation": {

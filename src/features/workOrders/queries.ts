@@ -64,3 +64,9 @@ export function useUpdateWorkOrderMutation(id: string) {
     },
   })
 }
+
+export function useDownloadWorkOrderPdfMutation(id: string) {
+  return useMutation({
+    mutationFn: () => workOrdersApi.getPdf(id),
+  })
+}

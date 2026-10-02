@@ -70,6 +70,8 @@
     "createError": "Failed to create work order.",
     "updateSuccess": "Work order updated.",
     "updateError": "Failed to update work order.",
+    "printPdf": "Print PDF",
+    "printPdfError": "Failed to download the PDF.",
     "orderNumberConflict": "An order with this number already exists."
   },
   "customerInformation": {
