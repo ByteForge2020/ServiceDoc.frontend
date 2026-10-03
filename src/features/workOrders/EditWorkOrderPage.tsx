@@ -33,6 +33,7 @@ export function EditWorkOrderPage() {
   const [orderNumber, setOrderNumber] = useState('')
   const [orderNumberConflict, setOrderNumberConflict] = useState(false)
   const [notes, setNotes] = useState('')
+  const [phaseId, setPhaseId] = useState('')
   const [customer, setCustomer] = useState(EMPTY_CUSTOMER)
   const [vehicle, setVehicle] = useState(EMPTY_VEHICLE)
   const [estimates, setEstimates] = useState<EstimateFormState[]>([])
@@ -45,6 +46,7 @@ export function EditWorkOrderPage() {
     setInitializedId(workOrder.id)
     setOrderNumber(workOrder.orderNumber)
     setNotes(workOrder.notes ?? '')
+    setPhaseId(workOrder.phaseId)
     setCustomer(customerToFormState(workOrder.customer))
     setVehicle(vehicleToFormState(workOrder.vehicle))
     setEstimates(estimatesToFormState(workOrder.estimates))
@@ -64,7 +66,7 @@ export function EditWorkOrderPage() {
     mutation.mutate(
       {
         orderNumber: orderNumber.trim(),
-        status: workOrder.status,
+        phaseId: phaseId || null,
         notes: notes.trim() ? notes.trim() : null,
         closedAt: workOrder.closedAt,
         customer: buildCustomerPayload(customer),
@@ -100,7 +102,7 @@ export function EditWorkOrderPage() {
     })
   }
 
-  if (isLoadingWorkOrder || !initialized) {
+  if (isLoadingWorkOrder || !workOrder || !initialized) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
         <CircularProgress />
@@ -123,6 +125,9 @@ export function EditWorkOrderPage() {
         setOrderNumberConflict(false)
       }}
       orderNumberError={orderNumberConflict}
+      phaseId={phaseId}
+      onPhaseChange={setPhaseId}
+      savedPhase={{ id: workOrder.phaseId, name: workOrder.phaseName }}
       notes={notes}
       onNotesChange={setNotes}
       estimates={estimates}

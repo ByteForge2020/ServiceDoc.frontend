@@ -52,7 +52,7 @@ export function WorkOrdersPage() {
               <TableRow>
                 <TableCell sx={{ width: 48 }} />
                 <TableCell>{t('workOrders.table.orderNumber')}</TableCell>
-                <TableCell>{t('workOrders.table.status')}</TableCell>
+                <TableCell>{t('workOrders.table.phase')}</TableCell>
                 <TableCell>{t('workOrders.table.customer')}</TableCell>
                 <TableCell>{t('workOrders.table.vehicle')}</TableCell>
                 <TableCell>{t('workOrders.table.notes')}</TableCell>

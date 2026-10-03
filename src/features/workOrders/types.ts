@@ -1,8 +1,6 @@
 import type { Customer } from '../customers/types'
 import type { Vehicle } from '../vehicles/types'
 
-export type WorkOrderStatus = 'Draft' | 'Open' | 'InProgress' | 'Completed' | 'Cancelled'
-
 export interface CustomerPayload {
   customerId: string | null
   firstName: string | null
@@ -57,6 +55,7 @@ export interface EstimatePayload {
 
 export interface CreateWorkOrderRequest {
   orderNumber: string
+  phaseId: string | null
   notes: string | null
   customer: CustomerPayload | null
   vehicle: VehiclePayload | null
@@ -65,7 +64,7 @@ export interface CreateWorkOrderRequest {
 
 export interface UpdateWorkOrderRequest {
   orderNumber: string
-  status: WorkOrderStatus
+  phaseId: string | null
   notes: string | null
   closedAt: string | null
   customer: CustomerPayload | null
@@ -91,7 +90,8 @@ export interface WorkOrder {
   vehicleId: string | null
   vehicleDescription: string | null
   vehicle: Vehicle | null
-  status: WorkOrderStatus
+  phaseId: string
+  phaseName: string
   notes: string | null
   openedAt: string
   closedAt: string | null

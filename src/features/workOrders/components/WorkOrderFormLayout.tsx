@@ -29,6 +29,9 @@ interface WorkOrderFormLayoutProps {
   orderNumber: string
   onOrderNumberChange: (value: string) => void
   orderNumberError: boolean
+  phaseId: string
+  onPhaseChange: (value: string) => void
+  savedPhase?: { id: string; name: string }
   notes: string
   onNotesChange: (value: string) => void
   estimates: EstimateFormState[]
@@ -52,6 +55,9 @@ export function WorkOrderFormLayout({
   orderNumber,
   onOrderNumberChange,
   orderNumberError,
+  phaseId,
+  onPhaseChange,
+  savedPhase,
   notes,
   onNotesChange,
   estimates,
@@ -112,6 +118,9 @@ export function WorkOrderFormLayout({
                   orderNumber={orderNumber}
                   onOrderNumberChange={onOrderNumberChange}
                   orderNumberError={orderNumberError}
+                  phaseId={phaseId}
+                  onPhaseChange={onPhaseChange}
+                  savedPhase={savedPhase}
                   notes={notes}
                   onNotesChange={onNotesChange}
                 />

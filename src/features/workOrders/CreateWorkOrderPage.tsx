@@ -24,6 +24,7 @@ export function CreateWorkOrderPage() {
   const [orderNumber, setOrderNumber] = useState('')
   const [orderNumberConflict, setOrderNumberConflict] = useState(false)
   const [notes, setNotes] = useState('')
+  const [phaseId, setPhaseId] = useState('')
   const [customer, setCustomer] = useState(EMPTY_CUSTOMER)
   const [vehicle, setVehicle] = useState(EMPTY_VEHICLE)
   const [estimates, setEstimates] = useState<EstimateFormState[]>([])
@@ -42,6 +43,7 @@ export function CreateWorkOrderPage() {
     mutation.mutate(
       {
         orderNumber: orderNumber.trim(),
+        phaseId: phaseId || null,
         notes: notes.trim() ? notes.trim() : null,
         customer: buildCustomerPayload(customer),
         vehicle: buildVehiclePayload(vehicle),
@@ -79,6 +81,8 @@ export function CreateWorkOrderPage() {
         setOrderNumberConflict(false)
       }}
       orderNumberError={orderNumberConflict}
+      phaseId={phaseId}
+      onPhaseChange={setPhaseId}
       notes={notes}
       onNotesChange={setNotes}
       estimates={estimates}

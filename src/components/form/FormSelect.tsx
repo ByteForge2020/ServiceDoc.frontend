@@ -8,6 +8,8 @@ import Typography from '@mui/material/Typography'
 export interface FormSelectOption<T extends string | number> {
   value: T
   label: string
+  /** Shown (e.g. as the current value) but cannot be picked. */
+  disabled?: boolean
 }
 
 export interface FormSelectProps<T extends string | number> {
@@ -67,7 +69,7 @@ export function FormSelect<T extends string | number>({
         }}
       >
         {options.map((option) => (
-          <MenuItem key={option.value} value={option.value}>
+          <MenuItem key={option.value} value={option.value} disabled={option.disabled}>
             {option.label}
           </MenuItem>
         ))}

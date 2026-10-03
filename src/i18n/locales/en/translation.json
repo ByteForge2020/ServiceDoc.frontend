@@ -35,7 +35,7 @@
     "noWorkOrders": "No work orders yet.",
     "table": {
       "orderNumber": "Order #",
-      "status": "Status",
+      "phase": "Phase",
       "customer": "Customer",
       "vehicle": "Vehicle",
       "notes": "Notes",
@@ -49,13 +49,6 @@
       "assigned": "Assigned",
       "scheduled": "Scheduled",
       "noDescription": "—"
-    },
-    "status": {
-      "draft": "Draft",
-      "open": "Open",
-      "inProgress": "In progress",
-      "completed": "Completed",
-      "cancelled": "Cancelled"
     }
   },
   "workOrderForm": {
@@ -115,6 +108,7 @@
     "orderNumberPlaceholder": "Enter order number",
     "orderNumberInUse": "This order number is already in use.",
     "notes": "Notes",
+    "phase": "Phase",
     "notesPlaceholder": "Enter notes"
   },
   "estimate": {
@@ -140,6 +134,26 @@
     "createItemError": "Failed to create item.",
     "approveAria": "Approve",
     "rejectAria": "Reject"
+  },
+  "phases": {
+    "tabLabel": "Phases",
+    "title": "Phases",
+    "description": "Phases show where a work order is in your workflow. Drag custom phases to change their order.",
+    "newPhase": "New phase",
+    "nameLabel": "Phase name",
+    "namePlaceholder": "Enter phase name",
+    "dragHint": "Drag to reorder",
+    "dragInstructions": "To reorder, press space or enter on the handle, move with the arrow keys, then press space or enter again to drop. Press escape to cancel.",
+    "defaultHint": "Default phase: it cannot be renamed, moved or deleted.",
+    "rename": "Rename",
+    "delete": "Delete",
+    "save": "Save",
+    "deleteConfirmMessage": "Delete the phase \"{{name}}\"? Work orders that already have it keep it, but it can no longer be selected.",
+    "nameConflict": "A phase with this name already exists.",
+    "createError": "Failed to create phase.",
+    "renameError": "Failed to rename phase.",
+    "deleteError": "Failed to delete phase.",
+    "reorderError": "Failed to reorder phases."
   },
   "appointments": {
     "tabLabel": "Appointments",

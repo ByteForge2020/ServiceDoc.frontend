@@ -5,6 +5,7 @@ import Tabs from '@mui/material/Tabs'
 import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
 import { AppointmentsTab } from './appointments/AppointmentsTab'
+import { PhasesTab } from './phases/PhasesTab'
 import { TeamMembersTab } from './teamMembers/TeamMembersTab'
 
 export function SettingsPage() {
@@ -20,10 +21,12 @@ export function SettingsPage() {
       <Tabs value={tab} onChange={(_event, newValue: number) => setTab(newValue)}>
         <Tab label={t('teamMembers.tabLabel')} value={0} />
         <Tab label={t('appointments.tabLabel')} value={1} />
+        <Tab label={t('phases.tabLabel')} value={2} />
       </Tabs>
 
       {tab === 0 && <TeamMembersTab />}
       {tab === 1 && <AppointmentsTab />}
+      {tab === 2 && <PhasesTab />}
     </Stack>
   )
 }

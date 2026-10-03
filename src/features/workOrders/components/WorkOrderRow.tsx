@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Box from '@mui/material/Box'
+import Chip from '@mui/material/Chip'
 import Collapse from '@mui/material/Collapse'
 import IconButton from '@mui/material/IconButton'
 import Table from '@mui/material/Table'
@@ -15,7 +16,6 @@ import { useNavigate } from 'react-router-dom'
 import { useShopTimeZone } from '../../../app/shop/useShopTimeZone'
 import { formatScheduledRange } from '../../../utils/timeGrid'
 import type { WorkOrder } from '../types'
-import { WorkOrderStatusChip } from '../WorkOrderStatusChip'
 
 function formatDate(value: string | null, zone: string): string {
   if (!value) {
@@ -54,7 +54,7 @@ export function WorkOrderRow({ workOrder }: WorkOrderRowProps) {
         </TableCell>
         <TableCell>{workOrder.orderNumber}</TableCell>
         <TableCell>
-          <WorkOrderStatusChip status={workOrder.status} />
+          <Chip size="small" label={workOrder.phaseName} />
         </TableCell>
         <TableCell>{workOrder.customerName ?? '—'}</TableCell>
         <TableCell>{workOrder.vehicleDescription ?? '—'}</TableCell>
