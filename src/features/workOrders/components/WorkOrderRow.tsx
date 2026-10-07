@@ -3,19 +3,27 @@ import Box from '@mui/material/Box'
 import Chip from '@mui/material/Chip'
 import Collapse from '@mui/material/Collapse'
 import IconButton from '@mui/material/IconButton'
-import Table from '@mui/material/Table'
-import TableBody from '@mui/material/TableBody'
+import Avatar from '@mui/material/Avatar'
 import TableCell from '@mui/material/TableCell'
-import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
+import Typography from '@mui/material/Typography'
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight'
+import ScheduleIcon from '@mui/icons-material/Schedule'
 import { DateTime } from 'luxon'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { useShopTimeZone } from '../../../app/shop/useShopTimeZone'
 import { formatScheduledRange } from '../../../utils/timeGrid'
 import type { WorkOrder } from '../types'
+
+function initials(name: string): string {
+  return name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join('')
+}
 
 function formatDate(value: string | null, zone: string): string {
   if (!value) {
@@ -48,7 +56,10 @@ export function WorkOrderRow({ workOrder }: WorkOrderRowProps) {
                 setOpen((prev) => !prev)
               }}
             >
-              {open ? <KeyboardArrowDownIcon fontSize="small" /> : <KeyboardArrowRightIcon fontSize="small" />}
+              <KeyboardArrowRightIcon
+                fontSize="small"
+                sx={{ transition: 'transform 0.2s', transform: open ? 'rotate(90deg)' : 'none' }}
+              />
             </IconButton>
           )}
         </TableCell>
@@ -65,27 +76,49 @@ export function WorkOrderRow({ workOrder }: WorkOrderRowProps) {
 
       {hasJobs && (
         <TableRow>
-          <TableCell sx={{ py: 0, borderBottom: open ? undefined : 'none' }} colSpan={8}>
+          <TableCell sx={{ py: 0, bgcolor: 'action.hover', borderBottom: open ? undefined : 'none' }} colSpan={8}>
             <Collapse in={open} timeout="auto" unmountOnExit>
-              <Box sx={{ my: 2 }}>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>{t('workOrders.jobsTable.description')}</TableCell>
-                      <TableCell>{t('workOrders.jobsTable.assigned')}</TableCell>
-                      <TableCell>{t('workOrders.jobsTable.scheduled')}</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {workOrder.jobs.map((job) => (
-                      <TableRow key={job.id}>
-                        <TableCell>{job.estimateItemName ?? t('workOrders.jobsTable.noDescription')}</TableCell>
-                        <TableCell>{job.assignedUserName}</TableCell>
-                        <TableCell>{formatScheduledRange(job.scheduledTime, job.scheduledDurationMinutes, zone)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+              <Box
+                sx={{
+                  my: 1.5,
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                  gap: 1.5,
+                }}
+              >
+                {workOrder.jobs.map((job) => (
+                  <Box
+                    key={job.id}
+                    sx={{
+                      p: 2,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 1.5,
+                      bgcolor: 'background.paper',
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      borderLeft: '3px solid',
+                      borderLeftColor: 'primary.main',
+                      borderRadius: '8px',
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {job.estimateItemName ?? t('workOrders.jobsTable.noDescription')}
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Avatar sx={{ width: 22, height: 22, fontSize: 11, bgcolor: 'primary.main' }}>
+                        {initials(job.assignedUserName)}
+                      </Avatar>
+                      <Typography variant="body2">{job.assignedUserName}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
+                      <ScheduleIcon sx={{ fontSize: 18 }} />
+                      <Typography variant="body2">
+                        {formatScheduledRange(job.scheduledTime, job.scheduledDurationMinutes, zone)}
+                      </Typography>
+                    </Box>
+                  </Box>
+                ))}
               </Box>
             </Collapse>
           </TableCell>

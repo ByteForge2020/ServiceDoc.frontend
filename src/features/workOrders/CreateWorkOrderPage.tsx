@@ -11,8 +11,11 @@ import {
   EMPTY_VEHICLE,
   buildCustomerPayload,
   buildEstimatesPayload,
+  buildSparePartsPayload,
   buildVehiclePayload,
+  isSparePartRowMissingName,
   type EstimateFormState,
+  type SparePartRow,
 } from './workOrderForm'
 
 export function CreateWorkOrderPage() {
@@ -28,8 +31,10 @@ export function CreateWorkOrderPage() {
   const [customer, setCustomer] = useState(EMPTY_CUSTOMER)
   const [vehicle, setVehicle] = useState(EMPTY_VEHICLE)
   const [estimates, setEstimates] = useState<EstimateFormState[]>([])
+  const [spareParts, setSpareParts] = useState<SparePartRow[]>([])
 
-  const canSave = orderNumber.trim().length > 0 && !mutation.isPending
+  const canSave =
+    orderNumber.trim().length > 0 && !spareParts.some(isSparePartRowMissingName) && !mutation.isPending
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
@@ -48,6 +53,7 @@ export function CreateWorkOrderPage() {
         customer: buildCustomerPayload(customer),
         vehicle: buildVehiclePayload(vehicle),
         estimates: buildEstimatesPayload(estimates),
+        spareParts: buildSparePartsPayload(spareParts),
       },
       {
         onSuccess: () => {
@@ -87,6 +93,8 @@ export function CreateWorkOrderPage() {
       onNotesChange={setNotes}
       estimates={estimates}
       onEstimatesChange={setEstimates}
+      spareParts={spareParts}
+      onSparePartsChange={setSpareParts}
       onSubmit={handleSubmit}
       saving={mutation.isPending}
       saveLabel={t('workOrderForm.createLabel')}

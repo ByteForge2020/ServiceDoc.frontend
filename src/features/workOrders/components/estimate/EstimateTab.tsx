@@ -15,6 +15,7 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import TextField from '@mui/material/TextField'
 import { useTranslation } from 'react-i18next'
+import { CellField } from '../../../../components/form/CellField'
 import type { EstimateStatus } from '../../types'
 import {
   createEstimateFormState,
@@ -23,8 +24,6 @@ import {
   type EstimateItemRow,
 } from '../../workOrderForm'
 import { SearchInputDropdown } from './SearchInputDropdown'
-
-const segmentBorder = { borderLeft: 2, borderLeftColor: 'divider' } as const
 
 interface EstimateTabProps {
   estimates: EstimateFormState[]
@@ -56,32 +55,13 @@ export function EstimateTab({ estimates, onEstimatesChange }: EstimateTabProps) 
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell rowSpan={2} sx={{ minWidth: 200 }}>
-                  {t('estimate.name')}
-                </TableCell>
-                <TableCell rowSpan={2}>{t('estimate.status')}</TableCell>
-                <TableCell colSpan={5} align="center" sx={segmentBorder}>
-                  {t('estimate.part')}
-                </TableCell>
-                <TableCell colSpan={2} align="center" sx={segmentBorder}>
-                  {t('estimate.labor')}
-                </TableCell>
-                <TableCell rowSpan={2} align="center" sx={segmentBorder}>
-                  {t('estimate.discount')}
-                </TableCell>
-                <TableCell rowSpan={2} align="center" sx={segmentBorder}>
-                  {t('estimate.total')}
-                </TableCell>
-                <TableCell rowSpan={2} />
-              </TableRow>
-              <TableRow>
-                <TableCell sx={segmentBorder}>{t('estimate.partNumber')}</TableCell>
-                <TableCell>{t('estimate.qty')}</TableCell>
-                <TableCell>{t('estimate.availQty')}</TableCell>
-                <TableCell>{t('estimate.cost')}</TableCell>
-                <TableCell>{t('estimate.price')}</TableCell>
-                <TableCell sx={segmentBorder}>{t('estimate.hours')}</TableCell>
+                <TableCell sx={{ minWidth: 240 }}>{t('estimate.name')}</TableCell>
+                <TableCell>{t('estimate.status')}</TableCell>
+                <TableCell>{t('estimate.hours')}</TableCell>
                 <TableCell>{t('estimate.priceHr')}</TableCell>
+                <TableCell>{t('estimate.discount')}</TableCell>
+                <TableCell>{t('estimate.total')}</TableCell>
+                <TableCell />
               </TableRow>
             </TableHead>
             <TableBody>
@@ -125,25 +105,6 @@ export function EstimateTab({ estimates, onEstimatesChange }: EstimateTabProps) 
         />
       </Box>
     </Stack>
-  )
-}
-
-interface CellFieldProps {
-  value: string
-  onChange: (value: string) => void
-  ariaLabel: string
-}
-
-function CellField({ value, onChange, ariaLabel }: CellFieldProps) {
-  return (
-    <TextField
-      size="small"
-      variant="outlined"
-      fullWidth
-      value={value}
-      onChange={(event) => onChange(event.target.value)}
-      slotProps={{ htmlInput: { 'aria-label': ariaLabel, inputMode: 'decimal' } }}
-    />
   )
 }
 
@@ -202,31 +163,16 @@ function EstimateItemRowView({
           </Stack>
         )}
       </TableCell>
-      <TableCell sx={segmentBorder}>
-        <CellField value={row.partNumber} onChange={(value) => onChange({ partNumber: value })} ariaLabel={t('estimate.partNumber')} />
-      </TableCell>
       <TableCell>
-        <CellField value={row.partQty} onChange={(value) => onChange({ partQty: value })} ariaLabel={t('estimate.qty')} />
-      </TableCell>
-      <TableCell>
-        <CellField value={row.availQty} onChange={(value) => onChange({ availQty: value })} ariaLabel={t('estimate.availQty')} />
-      </TableCell>
-      <TableCell>
-        <CellField value={row.partCostU} onChange={(value) => onChange({ partCostU: value })} ariaLabel={t('estimate.cost')} />
-      </TableCell>
-      <TableCell>
-        <CellField value={row.partPriceU} onChange={(value) => onChange({ partPriceU: value })} ariaLabel={t('estimate.price')} />
-      </TableCell>
-      <TableCell sx={segmentBorder}>
         <CellField value={row.hours} onChange={(value) => onChange({ hours: value })} ariaLabel={t('estimate.hours')} />
       </TableCell>
       <TableCell>
         <CellField value={row.priceHr} onChange={(value) => onChange({ priceHr: value })} ariaLabel={t('estimate.priceHr')} />
       </TableCell>
-      <TableCell sx={segmentBorder}>
+      <TableCell>
         <CellField value={row.discount} onChange={(value) => onChange({ discount: value })} ariaLabel={t('estimate.discount')} />
       </TableCell>
-      <TableCell sx={segmentBorder}>
+      <TableCell>
         <CellField value={row.total} onChange={(value) => onChange({ total: value })} ariaLabel={t('estimate.total')} />
       </TableCell>
       <TableCell>

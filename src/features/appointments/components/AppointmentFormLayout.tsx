@@ -81,7 +81,14 @@ export function AppointmentFormLayout({
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '3fr 1fr' }, gap: 3, alignItems: 'start' }}>
             <Stack spacing={3}>
               <Paper variant="outlined" sx={{ p: 4, borderRadius: '12px' }}>
-                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 4 }}>
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
+                    alignItems: 'start',
+                    gap: 4,
+                  }}
+                >
                   <CustomerInformationCard value={customer} onChange={onCustomerChange} />
                   <VehicleInformationCard value={vehicle} onChange={onVehicleChange} customerId={customer.customerId} />
                 </Box>

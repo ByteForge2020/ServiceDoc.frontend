@@ -13,10 +13,11 @@ import Tabs from '@mui/material/Tabs'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
-import type { EstimateFormState } from '../workOrderForm'
+import type { EstimateFormState, SparePartRow } from '../workOrderForm'
 import { CustomerInformationCard, type CustomerFormState } from './CustomerInformationCard'
 import { EstimateTab } from './estimate/EstimateTab'
 import { OrderInformationCard } from './OrderInformationCard'
+import { ProductsTab } from './products/ProductsTab'
 import { VehicleInformationCard, type VehicleFormState } from './VehicleInformationCard'
 
 interface WorkOrderFormLayoutProps {
@@ -36,6 +37,8 @@ interface WorkOrderFormLayoutProps {
   onNotesChange: (value: string) => void
   estimates: EstimateFormState[]
   onEstimatesChange: (value: EstimateFormState[]) => void
+  spareParts: SparePartRow[]
+  onSparePartsChange: (value: SparePartRow[]) => void
   onSubmit: (event: FormEvent) => void
   onCancel: () => void
   saving: boolean
@@ -62,6 +65,8 @@ export function WorkOrderFormLayout({
   onNotesChange,
   estimates,
   onEstimatesChange,
+  spareParts,
+  onSparePartsChange,
   onSubmit,
   onCancel,
   saving,
@@ -90,6 +95,7 @@ export function WorkOrderFormLayout({
             <Tabs value={tab} onChange={(_event, newValue: number) => setTab(newValue)} sx={{ flexGrow: 1, borderBottom: 'none' }}>
               <Tab label={t('workOrderForm.generalInformation')} value={0} />
               <Tab label={t('workOrderForm.estimate')} value={1} />
+              <Tab label={t('workOrderForm.products')} value={2} />
             </Tabs>
             {onPrintPdf && (
               <Tooltip title={t('workOrderForm.printPdf')}>
@@ -131,6 +137,12 @@ export function WorkOrderFormLayout({
           {tab === 1 && (
             <Paper variant="outlined" sx={{ p: 4, borderRadius: '12px' }}>
               <EstimateTab estimates={estimates} onEstimatesChange={onEstimatesChange} />
+            </Paper>
+          )}
+
+          {tab === 2 && (
+            <Paper variant="outlined" sx={{ p: 4, borderRadius: '12px' }}>
+              <ProductsTab spareParts={spareParts} onSparePartsChange={onSparePartsChange} />
             </Paper>
           )}
 

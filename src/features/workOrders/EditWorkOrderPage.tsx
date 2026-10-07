@@ -14,11 +14,15 @@ import {
   EMPTY_VEHICLE,
   buildCustomerPayload,
   buildEstimatesPayload,
+  buildSparePartsPayload,
   buildVehiclePayload,
   customerToFormState,
   estimatesToFormState,
+  isSparePartRowMissingName,
+  sparePartsToFormState,
   vehicleToFormState,
   type EstimateFormState,
+  type SparePartRow,
 } from './workOrderForm'
 
 export function EditWorkOrderPage() {
@@ -37,6 +41,7 @@ export function EditWorkOrderPage() {
   const [customer, setCustomer] = useState(EMPTY_CUSTOMER)
   const [vehicle, setVehicle] = useState(EMPTY_VEHICLE)
   const [estimates, setEstimates] = useState<EstimateFormState[]>([])
+  const [spareParts, setSpareParts] = useState<SparePartRow[]>([])
   const [initializedId, setInitializedId] = useState<string | undefined>(undefined)
   const initialized = initializedId === workOrder?.id
 
@@ -50,9 +55,11 @@ export function EditWorkOrderPage() {
     setCustomer(customerToFormState(workOrder.customer))
     setVehicle(vehicleToFormState(workOrder.vehicle))
     setEstimates(estimatesToFormState(workOrder.estimates))
+    setSpareParts(sparePartsToFormState(workOrder.spareParts))
   }
 
-  const canSave = orderNumber.trim().length > 0 && !mutation.isPending
+  const canSave =
+    orderNumber.trim().length > 0 && !spareParts.some(isSparePartRowMissingName) && !mutation.isPending
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
@@ -72,6 +79,7 @@ export function EditWorkOrderPage() {
         customer: buildCustomerPayload(customer),
         vehicle: buildVehiclePayload(vehicle),
         estimates: buildEstimatesPayload(estimates),
+        spareParts: buildSparePartsPayload(spareParts),
       },
       {
         onSuccess: () => {
@@ -132,6 +140,8 @@ export function EditWorkOrderPage() {
       onNotesChange={setNotes}
       estimates={estimates}
       onEstimatesChange={setEstimates}
+      spareParts={spareParts}
+      onSparePartsChange={setSpareParts}
       onSubmit={handleSubmit}
       saving={mutation.isPending}
       saveLabel={t('workOrderForm.saveLabel')}

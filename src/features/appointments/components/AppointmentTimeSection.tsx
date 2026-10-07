@@ -71,12 +71,13 @@ export function AppointmentTimeSection({
           )}
 
           {slots.length > 0 && (
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, 136px)', gap: 1 }}>
               {slots.map((start) => (
                 <Button
                   key={start}
                   variant={minutes === start ? 'contained' : 'outlined'}
                   size="small"
+                  sx={{ height: 40, whiteSpace: 'nowrap' }}
                   onClick={() => onMinutesChange(start)}
                 >
                   {minutesToLabel(start)} - {minutesToLabel(start + slotMinutes)}

@@ -203,7 +203,7 @@ export function AppointmentsWeekGrid({
                       height: SLOT_HEIGHT_PX,
                       borderBottom: '1px solid',
                       borderColor: 'divider',
-                      bgcolor: isActive ? 'transparent' : 'action.disabledBackground',
+                      bgcolor: isActive ? 'transparent' : 'action.hover',
                       cursor: isActive ? 'pointer' : 'default',
                       '&:hover .schedule-slot-button': isActive ? { opacity: 1 } : undefined,
                     }}

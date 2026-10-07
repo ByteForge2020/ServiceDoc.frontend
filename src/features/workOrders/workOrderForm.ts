@@ -8,6 +8,8 @@ import type {
   EstimateItemPayload,
   EstimatePayload,
   EstimateStatus,
+  SparePart,
+  SparePartPayload,
   VehiclePayload,
 } from './types'
 
@@ -113,11 +115,6 @@ export interface EstimateItemRow {
   key: string
   subItem: boolean
   name: string
-  partNumber: string
-  partQty: string
-  availQty: string
-  partCostU: string
-  partPriceU: string
   hours: string
   priceHr: string
   discount: string
@@ -129,11 +126,6 @@ export function createEstimateItemRow(subItem: boolean, name = ''): EstimateItem
     key: crypto.randomUUID(),
     subItem,
     name,
-    partNumber: '',
-    partQty: '',
-    availQty: '',
-    partCostU: '',
-    partPriceU: '',
     hours: '',
     priceHr: '',
     discount: '',
@@ -184,11 +176,6 @@ function estimateItemsToFormState(estimate: Estimate): EstimateItemRow[] {
       key: item.id,
       subItem: item.subItem,
       name: item.name,
-      partNumber: item.partNumber ?? '',
-      partQty: item.partQty != null ? String(item.partQty) : '',
-      availQty: item.availQty != null ? String(item.availQty) : '',
-      partCostU: item.partCostU != null ? String(item.partCostU) : '',
-      partPriceU: item.partPriceU != null ? String(item.partPriceU) : '',
       hours: item.hours != null ? String(item.hours) : '',
       priceHr: item.priceHr != null ? String(item.priceHr) : '',
       discount: item.discount != null ? String(item.discount) : '',
@@ -196,9 +183,15 @@ function estimateItemsToFormState(estimate: Estimate): EstimateItemRow[] {
     }))
 }
 
+// Accepts a decimal comma too, since shops type "1,5" as often as "1.5".
 function toNullableNumber(value: string): number | null {
-  const trimmed = value.trim()
-  return trimmed ? Number(trimmed) : null
+  const trimmed = value.trim().replace(',', '.')
+  if (!trimmed) {
+    return null
+  }
+
+  const parsed = Number(trimmed)
+  return Number.isFinite(parsed) ? parsed : null
 }
 
 export function buildEstimatesPayload(estimates: EstimateFormState[]): EstimatePayload[] {
@@ -216,14 +209,83 @@ function buildEstimateItemsPayload(rows: EstimateItemRow[]): EstimateItemPayload
   return rows.map((row) => ({
     subItem: row.subItem,
     name: row.name.trim(),
-    partNumber: row.partNumber.trim() || null,
-    partQty: toNullableNumber(row.partQty),
-    availQty: toNullableNumber(row.availQty),
-    partCostU: toNullableNumber(row.partCostU),
-    partPriceU: toNullableNumber(row.partPriceU),
     hours: toNullableNumber(row.hours),
     priceHr: toNullableNumber(row.priceHr),
     discount: toNullableNumber(row.discount),
     total: toNullableNumber(row.total),
   }))
+}
+
+// Products are free-form rows, one per product on the order; there is no master list behind them.
+export interface SparePartRow {
+  key: string
+  name: string
+  partNumber: string
+  qty: string
+  availQty: string
+  costU: string
+  priceU: string
+}
+
+export function createSparePartRow(): SparePartRow {
+  return {
+    key: crypto.randomUUID(),
+    name: '',
+    partNumber: '',
+    qty: '1',
+    availQty: '',
+    costU: '',
+    priceU: '',
+  }
+}
+
+export function sparePartsToFormState(spareParts: SparePart[]): SparePartRow[] {
+  return [...spareParts]
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((part) => ({
+      key: part.id,
+      name: part.name,
+      partNumber: part.partNumber ?? '',
+      qty: part.qty != null ? String(part.qty) : '',
+      availQty: part.availQty != null ? String(part.availQty) : '',
+      costU: part.costU != null ? String(part.costU) : '',
+      priceU: part.priceU != null ? String(part.priceU) : '',
+    }))
+}
+
+// A row the user added but never typed into (apart from the default quantity) carries no information.
+export function isSparePartRowBlank(row: SparePartRow): boolean {
+  return (
+    !row.name.trim() &&
+    !row.partNumber.trim() &&
+    !row.availQty.trim() &&
+    !row.costU.trim() &&
+    !row.priceU.trim() &&
+    (!row.qty.trim() || row.qty.trim() === '1')
+  )
+}
+
+// Rows with data but no name cannot be saved; the backend rejects them too.
+export function isSparePartRowMissingName(row: SparePartRow): boolean {
+  return !row.name.trim() && !isSparePartRowBlank(row)
+}
+
+export function sparePartRowTotal(row: SparePartRow): number | null {
+  const qty = toNullableNumber(row.qty)
+  const price = toNullableNumber(row.priceU)
+
+  return qty != null && price != null ? Math.round(qty * price * 100) / 100 : null
+}
+
+export function buildSparePartsPayload(rows: SparePartRow[]): SparePartPayload[] {
+  return rows
+    .filter((row) => !isSparePartRowBlank(row))
+    .map((row) => ({
+      name: row.name.trim(),
+      partNumber: row.partNumber.trim() || null,
+      qty: toNullableNumber(row.qty),
+      availQty: toNullableNumber(row.availQty),
+      costU: toNullableNumber(row.costU),
+      priceU: toNullableNumber(row.priceU),
+    }))
 }
