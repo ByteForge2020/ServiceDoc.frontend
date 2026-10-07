@@ -101,7 +101,7 @@ export function EstimateTab({ estimates, onEstimatesChange }: EstimateTabProps) 
       <Box>
         <SearchInputDropdown
           excludedNames={estimates.map((estimate) => estimate.root.name)}
-          onSelect={(name) => onEstimatesChange([...estimates, createEstimateFormState(name)])}
+          onSelect={(item) => onEstimatesChange([...estimates, createEstimateFormState(item.name, item)])}
         />
       </Box>
     </Stack>

@@ -1,3 +1,4 @@
+import type { EstimateMasterListItem } from '../../api/estimateMasterListApi'
 import type { Customer } from '../customers/types'
 import type { Vehicle } from '../vehicles/types'
 import type { CustomerFormState } from './components/CustomerInformationCard'
@@ -121,15 +122,23 @@ export interface EstimateItemRow {
   total: string
 }
 
-export function createEstimateItemRow(subItem: boolean, name = ''): EstimateItemRow {
+// Hours/PriceHr/Total of a master list item, copied into a new row. The row is not linked to the master
+// item afterwards, so editing it never changes the master list.
+export type EstimateItemDefaults = Pick<EstimateMasterListItem, 'hours' | 'priceHr' | 'total'>
+
+function numberToField(value: number | null | undefined): string {
+  return value != null ? String(value) : ''
+}
+
+export function createEstimateItemRow(subItem: boolean, name = '', defaults?: EstimateItemDefaults): EstimateItemRow {
   return {
     key: crypto.randomUUID(),
     subItem,
     name,
-    hours: '',
-    priceHr: '',
+    hours: numberToField(defaults?.hours),
+    priceHr: numberToField(defaults?.priceHr),
     discount: '',
-    total: '',
+    total: numberToField(defaults?.total),
   }
 }
 
@@ -142,12 +151,12 @@ export interface EstimateFormState {
   subItems: EstimateItemRow[]
 }
 
-export function createEstimateFormState(name: string): EstimateFormState {
+export function createEstimateFormState(name: string, defaults?: EstimateItemDefaults): EstimateFormState {
   return {
     key: crypto.randomUUID(),
     id: null,
     status: 'Draft',
-    root: createEstimateItemRow(false, name),
+    root: createEstimateItemRow(false, name, defaults),
     subItems: [],
   }
 }

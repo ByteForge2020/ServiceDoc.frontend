@@ -5,7 +5,9 @@ const BASE_PATH = '/api/v1/general/estimatemasterlist'
 export interface EstimateMasterListItem {
   id: string
   name: string
-  isDefault: boolean
+  hours: number | null
+  priceHr: number | null
+  total: number | null
 }
 
 export const estimateMasterListApi = {

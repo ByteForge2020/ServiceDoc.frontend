@@ -6,6 +6,7 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Stack from '@mui/material/Stack'
 import { useTranslation } from 'react-i18next'
 import { extractErrorMessage } from '../../../../api/errorMessage'
+import type { EstimateMasterListItem } from '../../../../api/estimateMasterListApi'
 import { useToasters } from '../../../../app/toasters/useToasters'
 import { FormTextField } from '../../../../components/form/FormTextField'
 import { VirtualizedListbox } from '../../../../components/form/VirtualizedListbox'
@@ -13,7 +14,7 @@ import { useCreateEstimateMasterListItemMutation, useEstimateMasterListItemsQuer
 
 interface SearchOption {
   id: string
-  name: string
+  item: EstimateMasterListItem
   label: string
 }
 
@@ -27,7 +28,7 @@ type Option = SearchOption | CreateOption
 
 interface SearchInputDropdownProps {
   excludedNames: string[]
-  onSelect: (name: string) => void
+  onSelect: (item: EstimateMasterListItem) => void
 }
 
 export function SearchInputDropdown({ excludedNames, onSelect }: SearchInputDropdownProps) {
@@ -45,7 +46,7 @@ export function SearchInputDropdown({ excludedNames, onSelect }: SearchInputDrop
     return (items ?? [])
       .filter((item) => !excluded.has(item.name.trim().toLowerCase()))
       .filter((item) => query.length === 0 || item.name.toLowerCase().includes(query))
-      .map((item) => ({ id: item.id, name: item.name, label: item.name }))
+      .map((item) => ({ id: item.id, item, label: item.name }))
   }, [items, inputValue, excludedNames])
 
   const trimmed = inputValue.trim()
@@ -64,7 +65,7 @@ export function SearchInputDropdown({ excludedNames, onSelect }: SearchInputDrop
   function handleCreate(name: string) {
     createMutation.mutate(name, {
       onSuccess: (created) => {
-        onSelect(created.name)
+        onSelect(created)
         reset()
       },
       onError: (error) => {
@@ -97,7 +98,7 @@ export function SearchInputDropdown({ excludedNames, onSelect }: SearchInputDrop
           handleCreate(newValue.label)
           return
         }
-        onSelect(newValue.name)
+        onSelect(newValue.item)
         reset()
       }}
       getOptionLabel={(option) => option.label}
