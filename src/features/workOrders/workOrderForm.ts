@@ -193,7 +193,7 @@ function estimateItemsToFormState(estimate: Estimate): EstimateItemRow[] {
 }
 
 // Accepts a decimal comma too, since shops type "1,5" as often as "1.5".
-function toNullableNumber(value: string): number | null {
+export function toNullableNumber(value: string): number | null {
   const trimmed = value.trim().replace(',', '.')
   if (!trimmed) {
     return null

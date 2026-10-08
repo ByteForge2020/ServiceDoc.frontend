@@ -163,6 +163,28 @@
     "deleteError": "Failed to delete phase.",
     "reorderError": "Failed to reorder phases."
   },
+  "workCatalog": {
+    "tabLabel": "Work Catalog",
+    "title": "Work Catalog",
+    "description": "Work items you can pick when creating an appointment or an estimate. Hours, price and total are copied into an estimate when you pick an item, and can then be changed per order.",
+    "newItem": "New work item",
+    "namePlaceholder": "Enter name",
+    "empty": "No work items yet.",
+    "searchPlaceholder": "Search by name",
+    "clearSearch": "Clear search",
+    "noResults": "No results found",
+    "createWithName": "Create work with this name",
+    "rowsPerPage": "Rows per page",
+    "displayedRows": "{{from}}–{{to}} of {{total}}",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "deleteConfirmMessage": "Delete \"{{name}}\"? Orders and appointments that already use it keep it, but it can no longer be selected.",
+    "nameConflict": "A work item with this name already exists.",
+    "createError": "Failed to create work item.",
+    "updateError": "Failed to save work item.",
+    "deleteError": "Failed to delete work item."
+  },
   "appointments": {
     "tabLabel": "Appointments",
     "defaultDurationTitle": "Default appointment duration",

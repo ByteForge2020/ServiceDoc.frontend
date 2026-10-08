@@ -13,24 +13,16 @@ interface Toast {
 export function ToasterProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<Toast | null>(null)
   const [open, setOpen] = useState(false)
-  const toastRef = useRef<Toast | null>(null)
-  const pending = useRef<Toast[]>([])
   const nextKey = useRef(0)
 
-  const enqueue = useCallback((message: string, severity: ToastSeverity) => {
+  // The latest toast wins: it replaces whatever is showing, immediately. A queue that advances on the exit
+  // transition can deadlock when two toasts are raised in the same tick (the first is never drawn, so it never
+  // "exits"), and after that no toast would show until a page reload. It also means that when a global handler and
+  // a caller both report the same failure, the caller's (later, more specific) message is the one the user sees.
+  const show = useCallback((message: string, severity: ToastSeverity) => {
     nextKey.current += 1
-    const item: Toast = { key: nextKey.current, message, severity }
-
-    if (toastRef.current === null) {
-      toastRef.current = item
-      setToast(item)
-      setOpen(true)
-    } else {
-      // A toast is already showing — queue this one and close the current
-      // toast so its exit transition can advance the queue.
-      pending.current.push(item)
-      setOpen(false)
-    }
+    setToast({ key: nextKey.current, message, severity })
+    setOpen(true)
   }, [])
 
   function handleClose(_: unknown, reason?: string) {
@@ -40,23 +32,14 @@ export function ToasterProvider({ children }: { children: ReactNode }) {
     setOpen(false)
   }
 
-  function handleExited() {
-    const next = pending.current.shift() ?? null
-    toastRef.current = next
-    setToast(next)
-    if (next) {
-      setOpen(true)
-    }
-  }
-
   const value = useMemo(
     () => ({
-      success: (message: string) => enqueue(message, 'success'),
-      error: (message: string) => enqueue(message, 'error'),
-      info: (message: string) => enqueue(message, 'info'),
-      warning: (message: string) => enqueue(message, 'warning'),
+      success: (message: string) => show(message, 'success'),
+      error: (message: string) => show(message, 'error'),
+      info: (message: string) => show(message, 'info'),
+      warning: (message: string) => show(message, 'warning'),
     }),
-    [enqueue],
+    [show],
   )
 
   useEffect(() => {
@@ -67,13 +50,13 @@ export function ToasterProvider({ children }: { children: ReactNode }) {
   return (
     <ToasterContext.Provider value={value}>
       {children}
+      {/* Keyed so a new toast remounts the Snackbar and restarts its auto-hide timer. */}
       <Snackbar
         key={toast?.key}
         open={open}
         autoHideDuration={4000}
         onClose={handleClose}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        slotProps={{ transition: { onExited: handleExited } }}
       >
         <Alert onClose={handleClose} severity={toast?.severity} variant="filled" sx={{ width: '100%' }}>
           {toast?.message}

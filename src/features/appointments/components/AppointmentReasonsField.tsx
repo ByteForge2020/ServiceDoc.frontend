@@ -79,7 +79,7 @@ export function AppointmentReasonsField({ reasons, onChange }: AppointmentReason
   }
 
   function handleCreate(name: string) {
-    createMutation.mutate(name, {
+    createMutation.mutate({ name }, {
       onSuccess: (created) => {
         addReason({ id: created.id, name: created.name })
       },

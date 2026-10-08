@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { AppointmentsTab } from './appointments/AppointmentsTab'
 import { PhasesTab } from './phases/PhasesTab'
 import { TeamMembersTab } from './teamMembers/TeamMembersTab'
+import { WorkCatalogTab } from './workCatalog/WorkCatalogTab'
 
 export function SettingsPage() {
   const { t } = useTranslation()
@@ -22,11 +23,13 @@ export function SettingsPage() {
         <Tab label={t('teamMembers.tabLabel')} value={0} />
         <Tab label={t('appointments.tabLabel')} value={1} />
         <Tab label={t('phases.tabLabel')} value={2} />
+        <Tab label={t('workCatalog.tabLabel')} value={3} />
       </Tabs>
 
       {tab === 0 && <TeamMembersTab />}
       {tab === 1 && <AppointmentsTab />}
       {tab === 2 && <PhasesTab />}
+      {tab === 3 && <WorkCatalogTab />}
     </Stack>
   )
 }

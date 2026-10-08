@@ -63,7 +63,7 @@ export function SearchInputDropdown({ excludedNames, onSelect }: SearchInputDrop
   }
 
   function handleCreate(name: string) {
-    createMutation.mutate(name, {
+    createMutation.mutate({ name }, {
       onSuccess: (created) => {
         onSelect(created)
         reset()
