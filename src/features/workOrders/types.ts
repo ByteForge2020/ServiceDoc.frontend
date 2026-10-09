@@ -1,3 +1,4 @@
+import type { EstimateType } from '../../api/estimateMasterListApi'
 import type { Customer } from '../customers/types'
 import type { Vehicle } from '../vehicles/types'
 
@@ -24,6 +25,7 @@ export type EstimateStatus = 'Draft' | 'Approved' | 'Rejected'
 export interface EstimateItemPayload {
   subItem: boolean
   name: string
+  type: EstimateType
   hours: number | null
   priceHr: number | null
   discount: number | null

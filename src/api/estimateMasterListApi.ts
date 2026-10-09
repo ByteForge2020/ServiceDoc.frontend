@@ -2,9 +2,13 @@ import { apiClient } from './apiClient'
 
 const BASE_PATH = '/api/v1/general/estimatemasterlist'
 
+// Fixed: the total is typed in. Hourly: the total is hours x hourly rate.
+export type EstimateType = 'Fixed' | 'Hourly'
+
 export interface EstimateMasterListItem {
   id: string
   name: string
+  type: EstimateType
   hours: number | null
   priceHr: number | null
   total: number | null
@@ -12,6 +16,8 @@ export interface EstimateMasterListItem {
 
 export interface EstimateMasterListInput {
   name: string
+  /** The server defaults to Fixed when omitted. */
+  type?: EstimateType
   hours?: number | null
   priceHr?: number | null
   total?: number | null

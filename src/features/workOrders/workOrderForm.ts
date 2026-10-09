@@ -1,4 +1,4 @@
-import type { EstimateMasterListItem } from '../../api/estimateMasterListApi'
+import type { EstimateMasterListItem, EstimateType } from '../../api/estimateMasterListApi'
 import type { Customer } from '../customers/types'
 import type { Vehicle } from '../vehicles/types'
 import type { CustomerFormState } from './components/CustomerInformationCard'
@@ -116,15 +116,16 @@ export interface EstimateItemRow {
   key: string
   subItem: boolean
   name: string
+  type: EstimateType
   hours: string
   priceHr: string
   discount: string
   total: string
 }
 
-// Hours/PriceHr/Total of a master list item, copied into a new row. The row is not linked to the master
+// Type/Hours/PriceHr/Total of a master list item, copied into a new row. The row is not linked to the master
 // item afterwards, so editing it never changes the master list.
-export type EstimateItemDefaults = Pick<EstimateMasterListItem, 'hours' | 'priceHr' | 'total'>
+export type EstimateItemDefaults = Pick<EstimateMasterListItem, 'type' | 'hours' | 'priceHr' | 'total'>
 
 function numberToField(value: number | null | undefined): string {
   return value != null ? String(value) : ''
@@ -135,6 +136,7 @@ export function createEstimateItemRow(subItem: boolean, name = '', defaults?: Es
     key: crypto.randomUUID(),
     subItem,
     name,
+    type: defaults?.type ?? 'Fixed',
     hours: numberToField(defaults?.hours),
     priceHr: numberToField(defaults?.priceHr),
     discount: '',
@@ -185,6 +187,7 @@ function estimateItemsToFormState(estimate: Estimate): EstimateItemRow[] {
       key: item.id,
       subItem: item.subItem,
       name: item.name,
+      type: item.type ?? 'Fixed',
       hours: item.hours != null ? String(item.hours) : '',
       priceHr: item.priceHr != null ? String(item.priceHr) : '',
       discount: item.discount != null ? String(item.discount) : '',
@@ -203,6 +206,45 @@ export function toNullableNumber(value: string): number | null {
   return Number.isFinite(parsed) ? parsed : null
 }
 
+/** The fields that decide how an estimate row (or work catalog row) is priced; all as typed in the inputs. */
+export interface EstimateAmountFields {
+  type: EstimateType
+  hours: string
+  priceHr: string
+  total: string
+}
+
+/**
+ * Hours x hourly rate, rounded to cents. An empty hours or rate counts as zero; the total stays empty only when both
+ * are empty. Mirrors the server (EstimateAmounts.ResolveTotal), which has the final say.
+ */
+export function calculateHourlyTotal(hours: string, priceHr: string): string {
+  const h = toNullableNumber(hours)
+  const p = toNullableNumber(priceHr)
+
+  if (h === null && p === null) {
+    return ''
+  }
+
+  return String(Math.round((h ?? 0) * (p ?? 0) * 100) / 100)
+}
+
+/**
+ * Applies an edit to a row's type/hours/rate/total and returns the patch to store. For an Hourly row the total is
+ * recalculated whenever the type, hours or rate changes; for a Fixed row nothing is recalculated, so hours and rate
+ * are kept untouched and the typed-in total stands. Switching Fixed -> Hourly -> Fixed therefore loses nothing.
+ */
+export function resolveAmountPatch<T extends EstimateAmountFields>(row: T, patch: Partial<T>): Partial<T> {
+  const next = { ...row, ...patch }
+  const recalculates = 'type' in patch || 'hours' in patch || 'priceHr' in patch
+
+  if (next.type === 'Hourly' && recalculates) {
+    return { ...patch, total: calculateHourlyTotal(next.hours, next.priceHr) }
+  }
+
+  return patch
+}
+
 export function buildEstimatesPayload(estimates: EstimateFormState[]): EstimatePayload[] {
   return estimates.map((estimate) => ({
     id: estimate.id,
@@ -218,6 +260,7 @@ function buildEstimateItemsPayload(rows: EstimateItemRow[]): EstimateItemPayload
   return rows.map((row) => ({
     subItem: row.subItem,
     name: row.name.trim(),
+    type: row.type,
     hours: toNullableNumber(row.hours),
     priceHr: toNullableNumber(row.priceHr),
     discount: toNullableNumber(row.discount),

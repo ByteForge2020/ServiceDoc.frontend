@@ -29,6 +29,7 @@ import type { EstimateMasterListItem } from '../../../api/estimateMasterListApi'
 import { useConfirm } from '../../../app/confirm/useConfirm'
 import { useToasters } from '../../../app/toasters/useToasters'
 import { CellField } from '../../../components/form/CellField'
+import { CellSelect } from '../../../components/form/CellSelect'
 import { HighlightedText } from '../../../components/HighlightedText'
 import {
   useCreateEstimateMasterListItemMutation,
@@ -37,14 +38,16 @@ import {
   useUpdateEstimateMasterListItemMutation,
 } from '../../workOrders/estimateMasterListQueries'
 import { useDebouncedValue } from '../../workOrders/components/useDebouncedValue'
-import { toNullableNumber } from '../../workOrders/workOrderForm'
+import { useEstimateTypeLabel, useEstimateTypeOptions } from '../../workOrders/useEstimateTypeOptions'
+import { resolveAmountPatch, toNullableNumber, type EstimateAmountFields } from '../../workOrders/workOrderForm'
 
 const MAX_NAME_LENGTH = 200
 const SEARCH_DEBOUNCE_MS = 250
 const SEARCH_WIDTH = 300
 const PAGE_SIZE_OPTIONS = [10, 25, 50]
 
-const COLUMN_WIDTHS = { name: '40%', amount: '15%', actions: '15%' }
+const COLUMN_WIDTHS = { name: '31%', type: '15%', amount: '13%', actions: '15%' }
+const COLUMN_COUNT = 6
 
 // Tall enough for the edit row's inputs, so view and edit rows have the same height.
 const ROW_SX = { height: (theme: Theme) => theme.spacing(6) }
@@ -54,18 +57,17 @@ const EDIT_ROW_SX = { ...ROW_SX, '& > .MuiTableCell-root': { py: 0 } }
 
 const NEW_ROW = 'new'
 
-interface Draft {
+interface Draft extends EstimateAmountFields {
   name: string
-  hours: string
-  priceHr: string
-  total: string
 }
 
-const EMPTY_DRAFT: Draft = { name: '', hours: '', priceHr: '', total: '' }
+// New work items are Fixed unless the user picks Hourly.
+const EMPTY_DRAFT: Draft = { name: '', type: 'Fixed', hours: '', priceHr: '', total: '' }
 
 function toDraft(item: EstimateMasterListItem): Draft {
   return {
     name: item.name,
+    type: item.type,
     hours: item.hours != null ? String(item.hours) : '',
     priceHr: item.priceHr != null ? String(item.priceHr) : '',
     total: item.total != null ? String(item.total) : '',
@@ -108,6 +110,8 @@ export function WorkCatalogTab() {
   const { t } = useTranslation()
   const toasters = useToasters()
   const confirm = useConfirm()
+  const typeOptions = useEstimateTypeOptions()
+  const typeLabel = useEstimateTypeLabel()
   const createMutation = useCreateEstimateMasterListItemMutation()
   const updateMutation = useUpdateEstimateMasterListItemMutation()
   const deleteMutation = useDeleteEstimateMasterListItemMutation()
@@ -154,7 +158,8 @@ export function WorkCatalogTab() {
     nameTooLong ||
     isAmountInvalid(draft.hours) ||
     isAmountInvalid(draft.priceHr) ||
-    isAmountInvalid(draft.total) ||
+    // An Hourly total is calculated from hours and rate, so only a typed-in (Fixed) total can be invalid.
+    (draft.type === 'Fixed' && isAmountInvalid(draft.total)) ||
     createMutation.isPending ||
     updateMutation.isPending
 
@@ -223,6 +228,7 @@ export function WorkCatalogTab() {
 
     const input = {
       name: draft.name.trim(),
+      type: draft.type,
       hours: toNullableNumber(draft.hours),
       priceHr: toNullableNumber(draft.priceHr),
       total: toNullableNumber(draft.total),
@@ -283,6 +289,11 @@ export function WorkCatalogTab() {
     )
   }
 
+  // Type, hours, rate and total edits go through the shared rule that keeps an Hourly total = hours x rate.
+  function changeAmounts(patch: Partial<EstimateAmountFields>) {
+    setDraft((current) => ({ ...current, ...resolveAmountPatch(current, patch) }))
+  }
+
   function renderEditRow(key: string, autoFocusName: boolean) {
     return (
       <TableRow key={key} onKeyDown={handleKeyDown} sx={EDIT_ROW_SX}>
@@ -301,27 +312,39 @@ export function WorkCatalogTab() {
           />
         </TableCell>
         <TableCell>
+          <CellSelect
+            value={draft.type}
+            onChange={(type) => changeAmounts({ type })}
+            options={typeOptions}
+            ariaLabel={t('estimate.type')}
+          />
+        </TableCell>
+        {/* Fixed: the total is typed in and hours/rate are kept but locked. Hourly: the total is hours x rate. */}
+        <TableCell>
           <CellField
             value={draft.hours}
-            onChange={(hours) => setDraft((current) => ({ ...current, hours }))}
+            onChange={(hours) => changeAmounts({ hours })}
             ariaLabel={t('estimate.hours')}
             error={isAmountInvalid(draft.hours)}
+            readOnly={draft.type === 'Fixed'}
           />
         </TableCell>
         <TableCell>
           <CellField
             value={draft.priceHr}
-            onChange={(priceHr) => setDraft((current) => ({ ...current, priceHr }))}
+            onChange={(priceHr) => changeAmounts({ priceHr })}
             ariaLabel={t('estimate.priceHr')}
             error={isAmountInvalid(draft.priceHr)}
+            readOnly={draft.type === 'Fixed'}
           />
         </TableCell>
         <TableCell>
           <CellField
             value={draft.total}
-            onChange={(total) => setDraft((current) => ({ ...current, total }))}
+            onChange={(total) => changeAmounts({ total })}
             ariaLabel={t('estimate.total')}
-            error={isAmountInvalid(draft.total)}
+            error={draft.type === 'Fixed' && isAmountInvalid(draft.total)}
+            readOnly={draft.type === 'Hourly'}
           />
         </TableCell>
         <TableCell>
@@ -393,6 +416,7 @@ export function WorkCatalogTab() {
           <TableHead>
             <TableRow>
               <TableCell sx={{ width: COLUMN_WIDTHS.name }}>{t('estimate.name')}</TableCell>
+              <TableCell sx={{ width: COLUMN_WIDTHS.type }}>{t('estimate.type')}</TableCell>
               <TableCell sx={{ width: COLUMN_WIDTHS.amount }}>{t('estimate.hours')}</TableCell>
               <TableCell sx={{ width: COLUMN_WIDTHS.amount }}>{t('estimate.priceHr')}</TableCell>
               <TableCell sx={{ width: COLUMN_WIDTHS.amount }}>{t('estimate.total')}</TableCell>
@@ -404,7 +428,7 @@ export function WorkCatalogTab() {
 
             {totalCount === 0 && !debouncedSearch && editingId !== NEW_ROW && (
               <TableRow>
-                <TableCell colSpan={5}>
+                <TableCell colSpan={COLUMN_COUNT}>
                   <Typography variant="body2" sx={{ color: 'text.secondary', py: 2, textAlign: 'center' }}>
                     {t('workCatalog.empty')}
                   </Typography>
@@ -414,7 +438,7 @@ export function WorkCatalogTab() {
 
             {totalCount === 0 && debouncedSearch && !isPlaceholderData && (
               <TableRow>
-                <TableCell colSpan={5}>
+                <TableCell colSpan={COLUMN_COUNT}>
                   <Stack spacing={2} sx={{ alignItems: 'center', py: 3 }}>
                     <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                       {t('workCatalog.noResults')}
@@ -437,6 +461,7 @@ export function WorkCatalogTab() {
                   <TableCell sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={item.name}>
                     <HighlightedText text={item.name} query={debouncedSearch} />
                   </TableCell>
+                  <TableCell>{typeLabel(item.type)}</TableCell>
                   <TableCell>{formatAmount(item.hours)}</TableCell>
                   <TableCell>{formatAmount(item.priceHr)}</TableCell>
                   <TableCell>{formatAmount(item.total)}</TableCell>

@@ -16,13 +16,16 @@ import TableRow from '@mui/material/TableRow'
 import TextField from '@mui/material/TextField'
 import { useTranslation } from 'react-i18next'
 import { CellField } from '../../../../components/form/CellField'
+import { CellSelect } from '../../../../components/form/CellSelect'
 import type { EstimateStatus } from '../../types'
 import {
   createEstimateFormState,
   createEstimateItemRow,
+  resolveAmountPatch,
   type EstimateFormState,
   type EstimateItemRow,
 } from '../../workOrderForm'
+import { useEstimateTypeOptions } from '../../useEstimateTypeOptions'
 import { SearchInputDropdown } from './SearchInputDropdown'
 
 interface EstimateTabProps {
@@ -57,6 +60,7 @@ export function EstimateTab({ estimates, onEstimatesChange }: EstimateTabProps) 
               <TableRow>
                 <TableCell sx={{ minWidth: 240 }}>{t('estimate.name')}</TableCell>
                 <TableCell>{t('estimate.status')}</TableCell>
+                <TableCell>{t('estimate.type')}</TableCell>
                 <TableCell>{t('estimate.hours')}</TableCell>
                 <TableCell>{t('estimate.priceHr')}</TableCell>
                 <TableCell>{t('estimate.discount')}</TableCell>
@@ -126,6 +130,12 @@ function EstimateItemRowView({
   onStatusChange,
 }: EstimateItemRowViewProps) {
   const { t } = useTranslation()
+  const typeOptions = useEstimateTypeOptions()
+
+  // Routes type/hours/rate/total edits through the shared rule that keeps an Hourly total = hours x rate.
+  function change(patch: Partial<EstimateItemRow>) {
+    onChange(resolveAmountPatch(row, patch))
+  }
 
   return (
     <TableRow sx={row.subItem ? { backgroundColor: 'background.default' } : undefined}>
@@ -163,17 +173,41 @@ function EstimateItemRowView({
           </Stack>
         )}
       </TableCell>
+      <TableCell sx={{ minWidth: 140 }}>
+        <CellSelect
+          value={row.type}
+          onChange={(type) => change({ type })}
+          options={typeOptions}
+          ariaLabel={t('estimate.type')}
+        />
+      </TableCell>
+      {/* Fixed: the total is typed in and hours/rate are kept but locked. Hourly: the total is hours x rate. */}
       <TableCell>
-        <CellField value={row.hours} onChange={(value) => onChange({ hours: value })} ariaLabel={t('estimate.hours')} />
+        <CellField
+          value={row.hours}
+          onChange={(value) => change({ hours: value })}
+          ariaLabel={t('estimate.hours')}
+          readOnly={row.type === 'Fixed'}
+        />
       </TableCell>
       <TableCell>
-        <CellField value={row.priceHr} onChange={(value) => onChange({ priceHr: value })} ariaLabel={t('estimate.priceHr')} />
+        <CellField
+          value={row.priceHr}
+          onChange={(value) => change({ priceHr: value })}
+          ariaLabel={t('estimate.priceHr')}
+          readOnly={row.type === 'Fixed'}
+        />
       </TableCell>
       <TableCell>
         <CellField value={row.discount} onChange={(value) => onChange({ discount: value })} ariaLabel={t('estimate.discount')} />
       </TableCell>
       <TableCell>
-        <CellField value={row.total} onChange={(value) => onChange({ total: value })} ariaLabel={t('estimate.total')} />
+        <CellField
+          value={row.total}
+          onChange={(value) => change({ total: value })}
+          ariaLabel={t('estimate.total')}
+          readOnly={row.type === 'Hourly'}
+        />
       </TableCell>
       <TableCell>
         <Stack direction="row" spacing={0}>

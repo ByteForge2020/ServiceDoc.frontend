@@ -32,6 +32,8 @@ export function CellField({
       error={error}
       placeholder={placeholder}
       autoFocus={autoFocus}
+      // A read-only value (e.g. a calculated total) is shown but looks different from an editable one.
+      sx={readOnly ? { '& .MuiInputBase-root': { bgcolor: 'action.hover' } } : undefined}
       slotProps={{
         htmlInput: { 'aria-label': ariaLabel, inputMode: numeric ? 'decimal' : 'text', readOnly },
       }}
