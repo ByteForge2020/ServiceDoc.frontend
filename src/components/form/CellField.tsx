@@ -9,6 +9,8 @@ interface CellFieldProps {
   placeholder?: string
   autoFocus?: boolean
   readOnly?: boolean
+  /** Greyed out and not focusable, for a value the user can never change (e.g. a calculated snapshot). */
+  disabled?: boolean
 }
 
 /** Compact, label-less input for editable table cells. Numeric by default (decimal keypad on touch devices). */
@@ -21,6 +23,7 @@ export function CellField({
   placeholder,
   autoFocus = false,
   readOnly = false,
+  disabled = false,
 }: CellFieldProps) {
   return (
     <TextField
@@ -32,6 +35,7 @@ export function CellField({
       error={error}
       placeholder={placeholder}
       autoFocus={autoFocus}
+      disabled={disabled}
       // A read-only value (e.g. a calculated total) is shown but looks different from an editable one.
       sx={readOnly ? { '& .MuiInputBase-root': { bgcolor: 'action.hover' } } : undefined}
       slotProps={{

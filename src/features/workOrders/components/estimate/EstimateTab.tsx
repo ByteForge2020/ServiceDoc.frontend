@@ -16,12 +16,13 @@ import TableRow from '@mui/material/TableRow'
 import TextField from '@mui/material/TextField'
 import { useTranslation } from 'react-i18next'
 import { CellField } from '../../../../components/form/CellField'
+import { useShopSettingsQuery } from '../../../../app/shop/queries'
 import { CellSelect } from '../../../../components/form/CellSelect'
 import type { EstimateStatus } from '../../types'
 import {
   createEstimateFormState,
   createEstimateItemRow,
-  resolveAmountPatch,
+  resolveItemPatch,
   type EstimateFormState,
   type EstimateItemRow,
 } from '../../workOrderForm'
@@ -35,6 +36,9 @@ interface EstimateTabProps {
 
 export function EstimateTab({ estimates, onEstimatesChange }: EstimateTabProps) {
   const { t } = useTranslation()
+  // Set when the shop has "price includes tax" on; new items then get their tax calculated from their total.
+  const { data: shopSettings } = useShopSettingsQuery()
+  const taxPercent = shopSettings?.priceIncludesTax ? (shopSettings.taxPercent ?? null) : null
 
   function updateEstimate(key: string, patch: Partial<EstimateFormState>) {
     onEstimatesChange(estimates.map((estimate) => (estimate.key === key ? { ...estimate, ...patch } : estimate)))
@@ -65,6 +69,7 @@ export function EstimateTab({ estimates, onEstimatesChange }: EstimateTabProps) 
                 <TableCell>{t('estimate.priceHr')}</TableCell>
                 <TableCell>{t('estimate.discount')}</TableCell>
                 <TableCell>{t('estimate.total')}</TableCell>
+                <TableCell>{t('estimate.tax')}</TableCell>
                 <TableCell />
               </TableRow>
             </TableHead>
@@ -79,7 +84,7 @@ export function EstimateTab({ estimates, onEstimatesChange }: EstimateTabProps) 
                     onRemove={() => onEstimatesChange(estimates.filter((item) => item.key !== estimate.key))}
                     onAddSubItem={() =>
                       updateEstimate(estimate.key, {
-                        subItems: [...estimate.subItems, createEstimateItemRow(true)],
+                        subItems: [...estimate.subItems, createEstimateItemRow(true, '', undefined, taxPercent)],
                       })
                     }
                   />
@@ -105,7 +110,7 @@ export function EstimateTab({ estimates, onEstimatesChange }: EstimateTabProps) 
       <Box>
         <SearchInputDropdown
           excludedNames={estimates.map((estimate) => estimate.root.name)}
-          onSelect={(item) => onEstimatesChange([...estimates, createEstimateFormState(item.name, item)])}
+          onSelect={(item) => onEstimatesChange([...estimates, createEstimateFormState(item.name, item, taxPercent)])}
         />
       </Box>
     </Stack>
@@ -134,7 +139,7 @@ function EstimateItemRowView({
 
   // Routes type/hours/rate/total edits through the shared rule that keeps an Hourly total = hours x rate.
   function change(patch: Partial<EstimateItemRow>) {
-    onChange(resolveAmountPatch(row, patch))
+    onChange(resolveItemPatch(row, patch))
   }
 
   return (
@@ -208,6 +213,10 @@ function EstimateItemRowView({
           ariaLabel={t('estimate.total')}
           readOnly={row.type === 'Hourly'}
         />
+      </TableCell>
+      {/* The tax is a snapshot taken when the item was added, so it can never be edited here. */}
+      <TableCell>
+        <CellField value={row.tax} onChange={() => undefined} ariaLabel={t('estimate.tax')} disabled />
       </TableCell>
       <TableCell>
         <Stack direction="row" spacing={0}>

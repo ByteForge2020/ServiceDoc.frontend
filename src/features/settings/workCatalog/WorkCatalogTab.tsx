@@ -38,6 +38,7 @@ import {
   useUpdateEstimateMasterListItemMutation,
 } from '../../workOrders/estimateMasterListQueries'
 import { useDebouncedValue } from '../../workOrders/components/useDebouncedValue'
+import { TaxSettings } from './TaxSettings'
 import { useEstimateTypeLabel, useEstimateTypeOptions } from '../../workOrders/useEstimateTypeOptions'
 import { resolveAmountPatch, toNullableNumber, type EstimateAmountFields } from '../../workOrders/workOrderForm'
 
@@ -409,6 +410,9 @@ export function WorkCatalogTab() {
           </Button>
         </Stack>
       </Stack>
+
+      {/* Shop-wide setting, not a per-row field: the tax it produces is stored on work order items, not here. */}
+      <TaxSettings />
 
       <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: '12px' }}>
         {/* Fixed layout + equal row heights keep every cell where it is when a row switches to edit mode. */}

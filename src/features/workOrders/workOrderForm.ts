@@ -121,6 +121,13 @@ export interface EstimateItemRow {
   priceHr: string
   discount: string
   total: string
+  /** Tax amount as shown (read-only). A snapshot: stored with the item and never recalculated after it is saved. */
+  tax: string
+  /**
+   * Set only on an item added in this editing session while the shop's "price includes tax" setting is on: the tax
+   * then follows the item's total until it is saved. null on every saved item, so history is never recalculated.
+   */
+  taxPercent: number | null
 }
 
 // Type/Hours/PriceHr/Total of a master list item, copied into a new row. The row is not linked to the master
@@ -131,7 +138,14 @@ function numberToField(value: number | null | undefined): string {
   return value != null ? String(value) : ''
 }
 
-export function createEstimateItemRow(subItem: boolean, name = '', defaults?: EstimateItemDefaults): EstimateItemRow {
+export function createEstimateItemRow(
+  subItem: boolean,
+  name = '',
+  defaults?: EstimateItemDefaults,
+  taxPercent: number | null = null,
+): EstimateItemRow {
+  const total = numberToField(defaults?.total)
+
   return {
     key: crypto.randomUUID(),
     subItem,
@@ -140,7 +154,9 @@ export function createEstimateItemRow(subItem: boolean, name = '', defaults?: Es
     hours: numberToField(defaults?.hours),
     priceHr: numberToField(defaults?.priceHr),
     discount: '',
-    total: numberToField(defaults?.total),
+    total,
+    tax: taxPercent !== null ? calculateTax(total, taxPercent) : '',
+    taxPercent,
   }
 }
 
@@ -153,12 +169,16 @@ export interface EstimateFormState {
   subItems: EstimateItemRow[]
 }
 
-export function createEstimateFormState(name: string, defaults?: EstimateItemDefaults): EstimateFormState {
+export function createEstimateFormState(
+  name: string,
+  defaults?: EstimateItemDefaults,
+  taxPercent: number | null = null,
+): EstimateFormState {
   return {
     key: crypto.randomUUID(),
     id: null,
     status: 'Draft',
-    root: createEstimateItemRow(false, name, defaults),
+    root: createEstimateItemRow(false, name, defaults, taxPercent),
     subItems: [],
   }
 }
@@ -192,6 +212,8 @@ function estimateItemsToFormState(estimate: Estimate): EstimateItemRow[] {
       priceHr: item.priceHr != null ? String(item.priceHr) : '',
       discount: item.discount != null ? String(item.discount) : '',
       total: item.total != null ? String(item.total) : '',
+      tax: item.tax != null ? String(item.tax) : '',
+      taxPercent: null,
     }))
 }
 
@@ -245,6 +267,27 @@ export function resolveAmountPatch<T extends EstimateAmountFields>(row: T, patch
   return patch
 }
 
+/** Tax for a total: total x rate / 100, rounded to cents (a total of 100 at 10% gives 10). Empty without a total. */
+export function calculateTax(total: string, taxPercent: number): string {
+  const value = toNullableNumber(total)
+
+  return value === null ? '' : String(Math.round(((value * taxPercent) / 100) * 100) / 100)
+}
+
+/**
+ * resolveAmountPatch for an estimate row, plus tax. A row added in this session while the shop setting is on carries
+ * `taxPercent`, and its tax follows its total. A saved row has none, so editing it never rewrites its tax snapshot.
+ */
+export function resolveItemPatch(row: EstimateItemRow, patch: Partial<EstimateItemRow>): Partial<EstimateItemRow> {
+  const amounts = resolveAmountPatch(row, patch)
+
+  if (row.taxPercent === null || !('total' in amounts)) {
+    return amounts
+  }
+
+  return { ...amounts, tax: calculateTax(amounts.total ?? row.total, row.taxPercent) }
+}
+
 export function buildEstimatesPayload(estimates: EstimateFormState[]): EstimatePayload[] {
   return estimates.map((estimate) => ({
     id: estimate.id,
@@ -265,6 +308,7 @@ function buildEstimateItemsPayload(rows: EstimateItemRow[]): EstimateItemPayload
     priceHr: toNullableNumber(row.priceHr),
     discount: toNullableNumber(row.discount),
     total: toNullableNumber(row.total),
+    tax: toNullableNumber(row.tax),
   }))
 }
 

@@ -123,6 +123,7 @@
     "type": "Type",
     "typeFixed": "Fixed",
     "typeHourly": "Hourly",
+    "tax": "Tax",
     "hours": "Hours",
     "priceHr": "$/Hr",
     "discount": "Discount",
@@ -171,6 +172,14 @@
     "title": "Work Catalog",
     "description": "Work items you can pick when creating an appointment or an estimate. Hours, price and total are copied into an estimate when you pick an item, and can then be changed per order.",
     "newItem": "New work item",
+    "tax": {
+      "priceIncludesTax": "Price includes tax",
+      "rateAria": "Tax rate, percent",
+      "rateRange": "Enter a rate from {{min}} to {{max}}.",
+      "hint": "Applies to items added to work orders from now on. Items already in work orders keep their tax.",
+      "saveSuccess": "Tax settings saved.",
+      "saveError": "Failed to save tax settings."
+    },
     "namePlaceholder": "Enter name",
     "empty": "No work items yet.",
     "searchPlaceholder": "Search by name",

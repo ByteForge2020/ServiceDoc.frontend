@@ -30,6 +30,8 @@ export interface EstimateItemPayload {
   priceHr: number | null
   discount: number | null
   total: number | null
+  /** Tax amount, a snapshot from when the item was added; null when there was none. */
+  tax: number | null
 }
 
 export interface EstimateItem extends EstimateItemPayload {
