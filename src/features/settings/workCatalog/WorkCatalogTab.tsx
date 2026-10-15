@@ -63,7 +63,7 @@ interface Draft extends EstimateAmountFields {
 }
 
 // New work items are Fixed unless the user picks Hourly.
-const EMPTY_DRAFT: Draft = { name: '', type: 'Fixed', hours: '', priceHr: '', total: '' }
+const EMPTY_DRAFT: Draft = { name: '', type: 'Fixed', hours: '', priceHr: '', price: '' }
 
 function toDraft(item: EstimateMasterListItem): Draft {
   return {
@@ -71,7 +71,7 @@ function toDraft(item: EstimateMasterListItem): Draft {
     type: item.type,
     hours: item.hours != null ? String(item.hours) : '',
     priceHr: item.priceHr != null ? String(item.priceHr) : '',
-    total: item.total != null ? String(item.total) : '',
+    price: item.price != null ? String(item.price) : '',
   }
 }
 
@@ -87,6 +87,39 @@ function isAmountInvalid(value: string): boolean {
 
 function formatAmount(value: number | null): string {
   return value != null ? String(value) : '—'
+}
+
+// Matches the height of the inputs in the edit row, so a locked value looks like a locked input.
+const LOCKED_VALUE_HEIGHT = '36px'
+
+/**
+ * An amount in a read-only row. When the item's type does not use it (hours and rate for Fixed, the price for Hourly)
+ * the value sits in a greyed-out box like the locked inputs of the edit row, so it reads as unavailable.
+ */
+function AmountCell({ value, locked }: { value: number | null; locked: boolean }) {
+  if (!locked) {
+    return <TableCell>{formatAmount(value)}</TableCell>
+  }
+
+  return (
+    <TableCell sx={{ py: 0 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          height: LOCKED_VALUE_HEIGHT,
+          px: '12px',
+          borderRadius: '8px',
+          border: 1,
+          borderColor: 'divider',
+          bgcolor: 'action.hover',
+          color: 'text.disabled',
+        }}
+      >
+        {formatAmount(value)}
+      </Box>
+    </TableCell>
+  )
 }
 
 // "/" or Ctrl/Cmd+K focuses the search; "/" is ignored while typing somewhere so it stays a normal character.
@@ -159,8 +192,8 @@ export function WorkCatalogTab() {
     nameTooLong ||
     isAmountInvalid(draft.hours) ||
     isAmountInvalid(draft.priceHr) ||
-    // An Hourly total is calculated from hours and rate, so only a typed-in (Fixed) total can be invalid.
-    (draft.type === 'Fixed' && isAmountInvalid(draft.total)) ||
+    // An Hourly price is calculated from hours and rate, so only a typed-in (Fixed) price can be invalid.
+    (draft.type === 'Fixed' && isAmountInvalid(draft.price)) ||
     createMutation.isPending ||
     updateMutation.isPending
 
@@ -232,7 +265,7 @@ export function WorkCatalogTab() {
       type: draft.type,
       hours: toNullableNumber(draft.hours),
       priceHr: toNullableNumber(draft.priceHr),
-      total: toNullableNumber(draft.total),
+      price: toNullableNumber(draft.price),
     }
 
     if (editingId === NEW_ROW) {
@@ -290,7 +323,7 @@ export function WorkCatalogTab() {
     )
   }
 
-  // Type, hours, rate and total edits go through the shared rule that keeps an Hourly total = hours x rate.
+  // Type, hours, rate and price edits go through the shared rule that keeps an Hourly price = hours x rate.
   function changeAmounts(patch: Partial<EstimateAmountFields>) {
     setDraft((current) => ({ ...current, ...resolveAmountPatch(current, patch) }))
   }
@@ -320,7 +353,7 @@ export function WorkCatalogTab() {
             ariaLabel={t('estimate.type')}
           />
         </TableCell>
-        {/* Fixed: the total is typed in and hours/rate are kept but locked. Hourly: the total is hours x rate. */}
+        {/* Fixed: the price is typed in and hours/rate are kept but locked. Hourly: the price is hours x rate. */}
         <TableCell>
           <CellField
             value={draft.hours}
@@ -341,10 +374,10 @@ export function WorkCatalogTab() {
         </TableCell>
         <TableCell>
           <CellField
-            value={draft.total}
-            onChange={(total) => changeAmounts({ total })}
-            ariaLabel={t('estimate.total')}
-            error={draft.type === 'Fixed' && isAmountInvalid(draft.total)}
+            value={draft.price}
+            onChange={(price) => changeAmounts({ price })}
+            ariaLabel={t('estimate.price')}
+            error={draft.type === 'Fixed' && isAmountInvalid(draft.price)}
             readOnly={draft.type === 'Hourly'}
           />
         </TableCell>
@@ -423,7 +456,7 @@ export function WorkCatalogTab() {
               <TableCell sx={{ width: COLUMN_WIDTHS.type }}>{t('estimate.type')}</TableCell>
               <TableCell sx={{ width: COLUMN_WIDTHS.amount }}>{t('estimate.hours')}</TableCell>
               <TableCell sx={{ width: COLUMN_WIDTHS.amount }}>{t('estimate.priceHr')}</TableCell>
-              <TableCell sx={{ width: COLUMN_WIDTHS.amount }}>{t('estimate.total')}</TableCell>
+              <TableCell sx={{ width: COLUMN_WIDTHS.amount }}>{t('estimate.price')}</TableCell>
               <TableCell sx={{ width: COLUMN_WIDTHS.actions }} />
             </TableRow>
           </TableHead>
@@ -466,9 +499,9 @@ export function WorkCatalogTab() {
                     <HighlightedText text={item.name} query={debouncedSearch} />
                   </TableCell>
                   <TableCell>{typeLabel(item.type)}</TableCell>
-                  <TableCell>{formatAmount(item.hours)}</TableCell>
-                  <TableCell>{formatAmount(item.priceHr)}</TableCell>
-                  <TableCell>{formatAmount(item.total)}</TableCell>
+                  <AmountCell value={item.hours} locked={item.type === 'Fixed'} />
+                  <AmountCell value={item.priceHr} locked={item.type === 'Fixed'} />
+                  <AmountCell value={item.price} locked={item.type === 'Hourly'} />
                   <TableCell>
                     <Stack direction="row" spacing={0}>
                       <IconButton size="small" onClick={() => startEditing(item)} aria-label={t('workCatalog.edit')}>

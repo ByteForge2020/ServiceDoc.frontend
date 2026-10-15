@@ -126,9 +126,16 @@
     "tax": "Tax",
     "hours": "Hours",
     "priceHr": "$/Hr",
+    "price": "Price",
+    "quantity": "Qty",
+    "complexity": "Coef.",
+    "currencyShort": "$",
     "discount": "Discount",
     "total": "Total",
     "removeAria": "Remove item",
+    "removeWithJobsTitle": "This service is scheduled in the job calendar",
+    "removeWithJobsMessage": "A job is scheduled in the job calendar for this service. If you remove the service, the job will also be deleted from the calendar when you save the order.",
+    "removeWithJobsConfirm": "Remove service and job",
     "createItemError": "Failed to create item.",
     "approveAria": "Approve",
     "rejectAria": "Reject"
@@ -167,10 +174,20 @@
     "deleteError": "Failed to delete phase.",
     "reorderError": "Failed to reorder phases."
   },
+  "workOrderSettings": {
+    "tabLabel": "Work orders",
+    "discountTypeTitle": "Discount type",
+    "discountTypeHint": "Applies to new work orders. Work orders that already exist keep their discount type.",
+    "discountTypePercent": "Percent",
+    "discountTypeFixed": "Fixed amount",
+    "save": "Save",
+    "saveSuccess": "Settings saved.",
+    "saveError": "Failed to save settings."
+  },
   "workCatalog": {
     "tabLabel": "Work Catalog",
     "title": "Work Catalog",
-    "description": "Work items you can pick when creating an appointment or an estimate. Hours, price and total are copied into an estimate when you pick an item, and can then be changed per order.",
+    "description": "Work items you can pick when creating an appointment or an estimate. Hours and price are copied into an estimate when you pick an item, and can then be changed per order.",
     "newItem": "New work item",
     "tax": {
       "priceIncludesTax": "Price includes tax",

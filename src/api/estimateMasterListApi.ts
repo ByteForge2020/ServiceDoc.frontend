@@ -2,7 +2,7 @@ import { apiClient } from './apiClient'
 
 const BASE_PATH = '/api/v1/general/estimatemasterlist'
 
-// Fixed: the total is typed in. Hourly: the total is hours x hourly rate.
+// Fixed: the price is typed in. Hourly: the price is hours x hourly rate.
 export type EstimateType = 'Fixed' | 'Hourly'
 
 export interface EstimateMasterListItem {
@@ -11,7 +11,7 @@ export interface EstimateMasterListItem {
   type: EstimateType
   hours: number | null
   priceHr: number | null
-  total: number | null
+  price: number | null
 }
 
 export interface EstimateMasterListInput {
@@ -20,7 +20,7 @@ export interface EstimateMasterListInput {
   type?: EstimateType
   hours?: number | null
   priceHr?: number | null
-  total?: number | null
+  price?: number | null
 }
 
 export interface EstimateMasterListPageParams {

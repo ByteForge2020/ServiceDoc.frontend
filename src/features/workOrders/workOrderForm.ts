@@ -1,4 +1,5 @@
 import type { EstimateMasterListItem, EstimateType } from '../../api/estimateMasterListApi'
+import type { DiscountType } from '../../app/shop/shopApi'
 import type { Customer } from '../customers/types'
 import type { Vehicle } from '../vehicles/types'
 import type { CustomerFormState } from './components/CustomerInformationCard'
@@ -114,12 +115,23 @@ export function buildVehiclePayload(vehicle: VehicleFormState): VehiclePayload |
 
 export interface EstimateItemRow {
   key: string
+  id: string | null
+  /** Scheduled jobs linked to this saved item (0 for a new one); the server deletes them when the item is removed. */
+  jobCount: number
   subItem: boolean
   name: string
   type: EstimateType
   hours: string
   priceHr: string
+  /** Price of one unit: typed for a Fixed item, hours x rate (read-only) for an Hourly one. */
+  price: string
+  /** Whole number, at least 1. */
+  quantity: string
+  /** Greater than 0, one decimal place. */
+  complexity: string
+  /** A percent or a money amount, depending on the work order's discount type. */
   discount: string
+  /** Calculated (read-only): price x quantity x complexity minus the discount. The server recalculates it on save. */
   total: string
   /** Tax amount as shown (read-only). A snapshot: stored with the item and never recalculated after it is saved. */
   tax: string
@@ -130,9 +142,9 @@ export interface EstimateItemRow {
   taxPercent: number | null
 }
 
-// Type/Hours/PriceHr/Total of a master list item, copied into a new row. The row is not linked to the master
+// Type/Hours/PriceHr/Price of a master list item, copied into a new row. The row is not linked to the master
 // item afterwards, so editing it never changes the master list.
-export type EstimateItemDefaults = Pick<EstimateMasterListItem, 'type' | 'hours' | 'priceHr' | 'total'>
+export type EstimateItemDefaults = Pick<EstimateMasterListItem, 'type' | 'hours' | 'priceHr' | 'price'>
 
 function numberToField(value: number | null | undefined): string {
   return value != null ? String(value) : ''
@@ -144,18 +156,24 @@ export function createEstimateItemRow(
   defaults?: EstimateItemDefaults,
   taxPercent: number | null = null,
 ): EstimateItemRow {
-  const total = numberToField(defaults?.total)
+  // Quantity 1, complexity 1 and no discount: the total is just the price.
+  const price = numberToField(defaults?.price)
 
   return {
     key: crypto.randomUUID(),
+    id: null,
+    jobCount: 0,
     subItem,
     name,
     type: defaults?.type ?? 'Fixed',
     hours: numberToField(defaults?.hours),
     priceHr: numberToField(defaults?.priceHr),
+    price,
+    quantity: '1',
+    complexity: '1',
     discount: '',
-    total,
-    tax: taxPercent !== null ? calculateTax(total, taxPercent) : '',
+    total: price,
+    tax: taxPercent !== null ? calculateTax(price, taxPercent) : '',
     taxPercent,
   }
 }
@@ -205,11 +223,16 @@ function estimateItemsToFormState(estimate: Estimate): EstimateItemRow[] {
     .sort((a, b) => a.sortOrder - b.sortOrder)
     .map((item) => ({
       key: item.id,
+      id: item.id,
+      jobCount: item.jobCount,
       subItem: item.subItem,
       name: item.name,
       type: item.type ?? 'Fixed',
       hours: item.hours != null ? String(item.hours) : '',
       priceHr: item.priceHr != null ? String(item.priceHr) : '',
+      price: item.price != null ? String(item.price) : '',
+      quantity: String(item.quantity),
+      complexity: String(item.complexity),
       discount: item.discount != null ? String(item.discount) : '',
       total: item.total != null ? String(item.total) : '',
       tax: item.tax != null ? String(item.tax) : '',
@@ -233,14 +256,14 @@ export interface EstimateAmountFields {
   type: EstimateType
   hours: string
   priceHr: string
-  total: string
+  price: string
 }
 
 /**
- * Hours x hourly rate, rounded to cents. An empty hours or rate counts as zero; the total stays empty only when both
- * are empty. Mirrors the server (EstimateAmounts.ResolveTotal), which has the final say.
+ * Hours x hourly rate, rounded to cents. An empty hours or rate counts as zero; the price stays empty only when both
+ * are empty. Mirrors the server (EstimateAmounts.ResolvePrice), which has the final say.
  */
-export function calculateHourlyTotal(hours: string, priceHr: string): string {
+export function calculateHourlyPrice(hours: string, priceHr: string): string {
   const h = toNullableNumber(hours)
   const p = toNullableNumber(priceHr)
 
@@ -252,16 +275,16 @@ export function calculateHourlyTotal(hours: string, priceHr: string): string {
 }
 
 /**
- * Applies an edit to a row's type/hours/rate/total and returns the patch to store. For an Hourly row the total is
+ * Applies an edit to a row's type/hours/rate/price and returns the patch to store. For an Hourly row the price is
  * recalculated whenever the type, hours or rate changes; for a Fixed row nothing is recalculated, so hours and rate
- * are kept untouched and the typed-in total stands. Switching Fixed -> Hourly -> Fixed therefore loses nothing.
+ * are kept untouched and the typed-in price stands. Switching Fixed -> Hourly -> Fixed therefore loses nothing.
  */
 export function resolveAmountPatch<T extends EstimateAmountFields>(row: T, patch: Partial<T>): Partial<T> {
   const next = { ...row, ...patch }
   const recalculates = 'type' in patch || 'hours' in patch || 'priceHr' in patch
 
   if (next.type === 'Hourly' && recalculates) {
-    return { ...patch, total: calculateHourlyTotal(next.hours, next.priceHr) }
+    return { ...patch, price: calculateHourlyPrice(next.hours, next.priceHr) }
   }
 
   return patch
@@ -274,18 +297,75 @@ export function calculateTax(total: string, taxPercent: number): string {
   return value === null ? '' : String(Math.round(((value * taxPercent) / 100) * 100) / 100)
 }
 
-/**
- * resolveAmountPatch for an estimate row, plus tax. A row added in this session while the shop setting is on carries
- * `taxPercent`, and its tax follows its total. A saved row has none, so editing it never rewrites its tax snapshot.
- */
-export function resolveItemPatch(row: EstimateItemRow, patch: Partial<EstimateItemRow>): Partial<EstimateItemRow> {
-  const amounts = resolveAmountPatch(row, patch)
+type EstimateLineFields = Pick<EstimateItemRow, 'price' | 'quantity' | 'complexity' | 'discount'>
 
-  if (row.taxPercent === null || !('total' in amounts)) {
-    return amounts
+/** The quantity as a whole number of at least 1; anything else counts as 1. */
+function quantityValue(row: Pick<EstimateItemRow, 'quantity'>): number {
+  const value = Math.floor(toNullableNumber(row.quantity) ?? 1)
+
+  return value >= 1 ? value : 1
+}
+
+/** The complexity multiplier; while it is empty or 0 (e.g. mid-typing) it counts as 1, which leaves the amount alone. */
+function complexityValue(row: Pick<EstimateItemRow, 'complexity'>): number {
+  const value = toNullableNumber(row.complexity) ?? 1
+
+  return value > 0 ? value : 1
+}
+
+/** Price x quantity x complexity, rounded to cents, before any discount. null while the row has no price. */
+export function calculateLineAmount(row: EstimateLineFields): number | null {
+  const price = toNullableNumber(row.price)
+
+  return price === null ? null : Math.round(price * quantityValue(row) * complexityValue(row) * 100) / 100
+}
+
+/** What the discount takes off, in money: a percent of the line amount, or the fixed amount itself. 0 without one. */
+export function calculateDiscountAmount(row: EstimateLineFields, discountType: DiscountType): number {
+  const amount = calculateLineAmount(row)
+  const discount = toNullableNumber(row.discount) ?? 0
+
+  if (amount === null) {
+    return 0
   }
 
-  return { ...amounts, tax: calculateTax(amounts.total ?? row.total, row.taxPercent) }
+  return discountType === 'Percent' ? Math.round(amount * Math.min(discount, 100)) / 100 : discount
+}
+
+/** Line amount minus the discount, never below zero. Empty without a price. Mirrors the server, which has the final say. */
+export function calculateLineTotal(row: EstimateLineFields, discountType: DiscountType): string {
+  const amount = calculateLineAmount(row)
+
+  if (amount === null) {
+    return ''
+  }
+
+  return String(Math.max(0, Math.round((amount - calculateDiscountAmount(row, discountType)) * 100) / 100))
+}
+
+/**
+ * Applies an edit to an estimate row and returns the patch to store: an Hourly row's price follows hours x rate, and the
+ * total is recalculated from price, quantity, complexity and discount. A row added in this session while the shop's tax
+ * setting is on carries `taxPercent`, and its tax follows its total; a saved row has none, so editing it never rewrites
+ * its tax snapshot.
+ */
+export function resolveItemPatch(
+  row: EstimateItemRow,
+  patch: Partial<EstimateItemRow>,
+  discountType: DiscountType,
+): Partial<EstimateItemRow> {
+  const next = { ...row, ...patch }
+  const reprices = 'type' in patch || 'hours' in patch || 'priceHr' in patch
+
+  const price = next.type === 'Hourly' && reprices ? calculateHourlyPrice(next.hours, next.priceHr) : next.price
+  const total = calculateLineTotal({ ...next, price }, discountType)
+  const resolved: Partial<EstimateItemRow> = { ...patch, price, total }
+
+  if (row.taxPercent !== null) {
+    resolved.tax = calculateTax(total, row.taxPercent)
+  }
+
+  return resolved
 }
 
 export function buildEstimatesPayload(estimates: EstimateFormState[]): EstimatePayload[] {
@@ -301,13 +381,16 @@ export function buildEstimatesPayload(estimates: EstimateFormState[]): EstimateP
 
 function buildEstimateItemsPayload(rows: EstimateItemRow[]): EstimateItemPayload[] {
   return rows.map((row) => ({
+    id: row.id,
     subItem: row.subItem,
     name: row.name.trim(),
     type: row.type,
     hours: toNullableNumber(row.hours),
     priceHr: toNullableNumber(row.priceHr),
+    price: toNullableNumber(row.price),
+    quantity: quantityValue(row),
+    complexity: complexityValue(row),
     discount: toNullableNumber(row.discount),
-    total: toNullableNumber(row.total),
     tax: toNullableNumber(row.tax),
   }))
 }
@@ -315,6 +398,8 @@ function buildEstimateItemsPayload(rows: EstimateItemRow[]): EstimateItemPayload
 // Products are free-form rows, one per product on the order; there is no master list behind them.
 export interface SparePartRow {
   key: string
+  /** Server id of a saved product; null until it is saved. Sent back so the server keeps the same record. */
+  id: string | null
   name: string
   partNumber: string
   qty: string
@@ -326,6 +411,7 @@ export interface SparePartRow {
 export function createSparePartRow(): SparePartRow {
   return {
     key: crypto.randomUUID(),
+    id: null,
     name: '',
     partNumber: '',
     qty: '1',
@@ -340,6 +426,7 @@ export function sparePartsToFormState(spareParts: SparePart[]): SparePartRow[] {
     .sort((a, b) => a.sortOrder - b.sortOrder)
     .map((part) => ({
       key: part.id,
+      id: part.id,
       name: part.name,
       partNumber: part.partNumber ?? '',
       qty: part.qty != null ? String(part.qty) : '',
@@ -377,6 +464,7 @@ export function buildSparePartsPayload(rows: SparePartRow[]): SparePartPayload[]
   return rows
     .filter((row) => !isSparePartRowBlank(row))
     .map((row) => ({
+      id: row.id,
       name: row.name.trim(),
       partNumber: row.partNumber.trim() || null,
       qty: toNullableNumber(row.qty),

@@ -140,6 +140,7 @@ export function EditWorkOrderPage() {
       onNotesChange={setNotes}
       estimates={estimates}
       onEstimatesChange={setEstimates}
+      discountType={workOrder.discountType}
       spareParts={spareParts}
       onSparePartsChange={setSpareParts}
       onSubmit={handleSubmit}

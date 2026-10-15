@@ -13,6 +13,7 @@ import Tabs from '@mui/material/Tabs'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
+import type { DiscountType } from '../../../app/shop/shopApi'
 import type { EstimateFormState, SparePartRow } from '../workOrderForm'
 import { CustomerInformationCard, type CustomerFormState } from './CustomerInformationCard'
 import { EstimateTab } from './estimate/EstimateTab'
@@ -37,6 +38,8 @@ interface WorkOrderFormLayoutProps {
   onNotesChange: (value: string) => void
   estimates: EstimateFormState[]
   onEstimatesChange: (value: EstimateFormState[]) => void
+  /** How the estimate's discounts are read: the order's own type when editing, the shop's current one when creating. */
+  discountType: DiscountType
   spareParts: SparePartRow[]
   onSparePartsChange: (value: SparePartRow[]) => void
   onSubmit: (event: FormEvent) => void
@@ -65,6 +68,7 @@ export function WorkOrderFormLayout({
   onNotesChange,
   estimates,
   onEstimatesChange,
+  discountType,
   spareParts,
   onSparePartsChange,
   onSubmit,
@@ -136,7 +140,7 @@ export function WorkOrderFormLayout({
 
           {tab === 1 && (
             <Paper variant="outlined" sx={{ p: 4, borderRadius: '12px' }}>
-              <EstimateTab estimates={estimates} onEstimatesChange={onEstimatesChange} />
+              <EstimateTab estimates={estimates} onEstimatesChange={onEstimatesChange} discountType={discountType} />
             </Paper>
           )}
 

@@ -16,32 +16,55 @@ import TableRow from '@mui/material/TableRow'
 import TextField from '@mui/material/TextField'
 import { useTranslation } from 'react-i18next'
 import { CellField } from '../../../../components/form/CellField'
+import { CellNumberStepper } from '../../../../components/form/CellNumberStepper'
+import type { DiscountType } from '../../../../app/shop/shopApi'
+import { useConfirm } from '../../../../app/confirm/useConfirm'
 import { useShopSettingsQuery } from '../../../../app/shop/queries'
 import { CellSelect } from '../../../../components/form/CellSelect'
 import type { EstimateStatus } from '../../types'
 import {
+  calculateDiscountAmount,
   createEstimateFormState,
   createEstimateItemRow,
   resolveItemPatch,
+  toNullableNumber,
   type EstimateFormState,
   type EstimateItemRow,
 } from '../../workOrderForm'
 import { useEstimateTypeOptions } from '../../useEstimateTypeOptions'
+import { DiscountField } from './DiscountField'
 import { SearchInputDropdown } from './SearchInputDropdown'
 
 interface EstimateTabProps {
   estimates: EstimateFormState[]
   onEstimatesChange: (estimates: EstimateFormState[]) => void
+  /** How every row's discount is read, fixed on the order when it is created. */
+  discountType: DiscountType
 }
 
-export function EstimateTab({ estimates, onEstimatesChange }: EstimateTabProps) {
+export function EstimateTab({ estimates, onEstimatesChange, discountType }: EstimateTabProps) {
   const { t } = useTranslation()
+  const confirm = useConfirm()
   // Set when the shop has "price includes tax" on; new items then get their tax calculated from their total.
   const { data: shopSettings } = useShopSettingsQuery()
   const taxPercent = shopSettings?.priceIncludesTax ? (shopSettings.taxPercent ?? null) : null
 
   function updateEstimate(key: string, patch: Partial<EstimateFormState>) {
     onEstimatesChange(estimates.map((estimate) => (estimate.key === key ? { ...estimate, ...patch } : estimate)))
+  }
+
+  // Removing a service that has scheduled jobs also removes those jobs (on save), so ask first.
+  async function confirmRemoval(rows: EstimateItemRow[]) {
+    if (!rows.some((row) => row.jobCount > 0)) {
+      return true
+    }
+
+    return confirm({
+      title: t('estimate.removeWithJobsTitle'),
+      message: t('estimate.removeWithJobsMessage'),
+      confirmLabel: t('estimate.removeWithJobsConfirm'),
+      destructive: true,
+    })
   }
 
   function updateSubItem(estimateKey: string, subKey: string, patch: Partial<EstimateItemRow>) {
@@ -67,7 +90,10 @@ export function EstimateTab({ estimates, onEstimatesChange }: EstimateTabProps) 
                 <TableCell>{t('estimate.type')}</TableCell>
                 <TableCell>{t('estimate.hours')}</TableCell>
                 <TableCell>{t('estimate.priceHr')}</TableCell>
-                <TableCell>{t('estimate.discount')}</TableCell>
+                <TableCell>{t('estimate.price')}</TableCell>
+                <TableCell sx={{ minWidth: 96 }}>{t('estimate.quantity')}</TableCell>
+                <TableCell sx={{ minWidth: 96 }}>{t('estimate.complexity')}</TableCell>
+                <TableCell sx={{ minWidth: 144 }}>{t('estimate.discount')}</TableCell>
                 <TableCell>{t('estimate.total')}</TableCell>
                 <TableCell>{t('estimate.tax')}</TableCell>
                 <TableCell />
@@ -78,10 +104,15 @@ export function EstimateTab({ estimates, onEstimatesChange }: EstimateTabProps) 
                 <Fragment key={estimate.key}>
                   <EstimateItemRowView
                     row={estimate.root}
+                    discountType={discountType}
                     status={estimate.status}
                     onStatusChange={(status) => updateEstimate(estimate.key, { status })}
                     onChange={(patch) => updateEstimate(estimate.key, { root: { ...estimate.root, ...patch } })}
-                    onRemove={() => onEstimatesChange(estimates.filter((item) => item.key !== estimate.key))}
+                    onRemove={async () => {
+                      if (await confirmRemoval([estimate.root, ...estimate.subItems])) {
+                        onEstimatesChange(estimates.filter((item) => item.key !== estimate.key))
+                      }
+                    }}
                     onAddSubItem={() =>
                       updateEstimate(estimate.key, {
                         subItems: [...estimate.subItems, createEstimateItemRow(true, '', undefined, taxPercent)],
@@ -92,12 +123,15 @@ export function EstimateTab({ estimates, onEstimatesChange }: EstimateTabProps) 
                     <EstimateItemRowView
                       key={sub.key}
                       row={sub}
+                      discountType={discountType}
                       onChange={(patch) => updateSubItem(estimate.key, sub.key, patch)}
-                      onRemove={() =>
-                        updateEstimate(estimate.key, {
-                          subItems: estimate.subItems.filter((row) => row.key !== sub.key),
-                        })
-                      }
+                      onRemove={async () => {
+                        if (await confirmRemoval([sub])) {
+                          updateEstimate(estimate.key, {
+                            subItems: estimate.subItems.filter((row) => row.key !== sub.key),
+                          })
+                        }
+                      }}
                     />
                   ))}
                 </Fragment>
@@ -119,8 +153,9 @@ export function EstimateTab({ estimates, onEstimatesChange }: EstimateTabProps) 
 
 interface EstimateItemRowViewProps {
   row: EstimateItemRow
+  discountType: DiscountType
   onChange: (patch: Partial<EstimateItemRow>) => void
-  onRemove: () => void
+  onRemove: () => void | Promise<void>
   onAddSubItem?: () => void
   status?: EstimateStatus
   onStatusChange?: (status: EstimateStatus) => void
@@ -128,6 +163,7 @@ interface EstimateItemRowViewProps {
 
 function EstimateItemRowView({
   row,
+  discountType,
   onChange,
   onRemove,
   onAddSubItem,
@@ -137,9 +173,9 @@ function EstimateItemRowView({
   const { t } = useTranslation()
   const typeOptions = useEstimateTypeOptions()
 
-  // Routes type/hours/rate/total edits through the shared rule that keeps an Hourly total = hours x rate.
+  // Routes every amount edit through the shared rule that keeps price, quantity, complexity, discount and total in step.
   function change(patch: Partial<EstimateItemRow>) {
-    onChange(resolveItemPatch(row, patch))
+    onChange(resolveItemPatch(row, patch, discountType))
   }
 
   return (
@@ -192,6 +228,7 @@ function EstimateItemRowView({
           value={row.hours}
           onChange={(value) => change({ hours: value })}
           ariaLabel={t('estimate.hours')}
+          maxDecimals={2}
           readOnly={row.type === 'Fixed'}
         />
       </TableCell>
@@ -200,19 +237,49 @@ function EstimateItemRowView({
           value={row.priceHr}
           onChange={(value) => change({ priceHr: value })}
           ariaLabel={t('estimate.priceHr')}
+          maxDecimals={2}
           readOnly={row.type === 'Fixed'}
         />
       </TableCell>
+      {/* Fixed: the price is typed in. Hourly: it is hours x rate, so it is shown but locked. */}
       <TableCell>
-        <CellField value={row.discount} onChange={(value) => onChange({ discount: value })} ariaLabel={t('estimate.discount')} />
+        <CellField
+          value={row.price}
+          onChange={(value) => change({ price: value })}
+          ariaLabel={t('estimate.price')}
+          maxDecimals={2}
+          readOnly={row.type === 'Hourly'}
+        />
+      </TableCell>
+      <TableCell>
+        <CellNumberStepper value={row.quantity} onChange={(value) => change({ quantity: value })} ariaLabel={t('estimate.quantity')} />
       </TableCell>
       <TableCell>
         <CellField
-          value={row.total}
-          onChange={(value) => change({ total: value })}
-          ariaLabel={t('estimate.total')}
-          readOnly={row.type === 'Hourly'}
+          value={row.complexity}
+          onChange={(value) => change({ complexity: value })}
+          // An empty or zero complexity is not allowed, so leaving the field puts the default back.
+          onBlur={() => {
+            if ((toNullableNumber(row.complexity) ?? 0) <= 0) {
+              change({ complexity: '1' })
+            }
+          }}
+          ariaLabel={t('estimate.complexity')}
+          maxDecimals={1}
         />
+      </TableCell>
+      <TableCell>
+        <DiscountField
+          value={row.discount}
+          onChange={(value) => change({ discount: value })}
+          discountType={discountType}
+          moneyEquivalent={calculateDiscountAmount(row, discountType)}
+          ariaLabel={t('estimate.discount')}
+        />
+      </TableCell>
+      {/* Always calculated: price x quantity x complexity minus the discount. */}
+      <TableCell>
+        <CellField value={row.total} onChange={() => undefined} ariaLabel={t('estimate.total')} readOnly />
       </TableCell>
       {/* The tax is a snapshot taken when the item was added, so it can never be edited here. */}
       <TableCell>

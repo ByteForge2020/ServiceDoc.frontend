@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { extractErrorMessage } from '../../api/errorMessage'
+import { useShopSettingsQuery } from '../../app/shop/queries'
 import { useToasters } from '../../app/toasters/useToasters'
 import { WorkOrderFormLayout } from './components/WorkOrderFormLayout'
 import { useCreateWorkOrderMutation } from './queries'
@@ -23,6 +24,8 @@ export function CreateWorkOrderPage() {
   const navigate = useNavigate()
   const toasters = useToasters()
   const mutation = useCreateWorkOrderMutation()
+  // The order takes the shop's discount type as it is when the order is created.
+  const { data: shopSettings } = useShopSettingsQuery()
 
   const [orderNumber, setOrderNumber] = useState('')
   const [orderNumberConflict, setOrderNumberConflict] = useState(false)
@@ -93,6 +96,7 @@ export function CreateWorkOrderPage() {
       onNotesChange={setNotes}
       estimates={estimates}
       onEstimatesChange={setEstimates}
+      discountType={shopSettings?.discountType ?? 'Percent'}
       spareParts={spareParts}
       onSparePartsChange={setSpareParts}
       onSubmit={handleSubmit}
