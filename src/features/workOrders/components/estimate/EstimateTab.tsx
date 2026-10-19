@@ -238,6 +238,7 @@ function EstimateItemRowView({
           onChange={(value) => change({ priceHr: value })}
           ariaLabel={t('estimate.priceHr')}
           maxDecimals={2}
+          unit={t('estimate.currencyShort')}
           readOnly={row.type === 'Fixed'}
         />
       </TableCell>
@@ -248,6 +249,7 @@ function EstimateItemRowView({
           onChange={(value) => change({ price: value })}
           ariaLabel={t('estimate.price')}
           maxDecimals={2}
+          unit={t('estimate.currencyShort')}
           readOnly={row.type === 'Hourly'}
         />
       </TableCell>
@@ -279,11 +281,23 @@ function EstimateItemRowView({
       </TableCell>
       {/* Always calculated: price x quantity x complexity minus the discount. */}
       <TableCell>
-        <CellField value={row.total} onChange={() => undefined} ariaLabel={t('estimate.total')} readOnly />
+        <CellField
+          value={row.total}
+          onChange={() => undefined}
+          ariaLabel={t('estimate.total')}
+          unit={t('estimate.currencyShort')}
+          readOnly
+        />
       </TableCell>
       {/* The tax is a snapshot taken when the item was added, so it can never be edited here. */}
       <TableCell>
-        <CellField value={row.tax} onChange={() => undefined} ariaLabel={t('estimate.tax')} disabled />
+        <CellField
+          value={row.tax}
+          onChange={() => undefined}
+          ariaLabel={t('estimate.tax')}
+          unit={t('estimate.currencyShort')}
+          disabled
+        />
       </TableCell>
       <TableCell>
         <Stack direction="row" spacing={0}>

@@ -1,3 +1,4 @@
+import InputAdornment from '@mui/material/InputAdornment'
 import TextField from '@mui/material/TextField'
 import { sanitizeDecimalInput } from '../../utils/decimalInput'
 
@@ -11,6 +12,8 @@ interface CellFieldProps {
    * extra digits are dropped as the user types or pastes. Without it the field takes whatever is typed.
    */
   maxDecimals?: number
+  /** A unit shown right after the value (e.g. a currency sign) while the field has one; not part of the value. */
+  unit?: string
   error?: boolean
   placeholder?: string
   autoFocus?: boolean
@@ -27,6 +30,7 @@ export function CellField({
   ariaLabel,
   numeric = true,
   maxDecimals,
+  unit,
   error = false,
   placeholder,
   autoFocus = false,
@@ -34,6 +38,8 @@ export function CellField({
   disabled = false,
   onBlur,
 }: CellFieldProps) {
+  const showUnit = unit !== undefined && value !== ''
+
   return (
     <TextField
       size="small"
@@ -51,7 +57,20 @@ export function CellField({
       // A read-only value (e.g. a calculated total) is shown but looks different from an editable one.
       sx={readOnly ? { '& .MuiInputBase-root': { bgcolor: 'action.hover' } } : undefined}
       slotProps={{
-        htmlInput: { 'aria-label': ariaLabel, inputMode: numeric ? 'decimal' : 'text', readOnly },
+        htmlInput: {
+          'aria-label': ariaLabel,
+          inputMode: numeric ? 'decimal' : 'text',
+          readOnly,
+          // Sized to the value so the unit hugs it: "50 р." rather than "50        р.".
+          style: showUnit ? { width: `${value.length}ch`, paddingRight: 0 } : undefined,
+        },
+        input: {
+          endAdornment: showUnit ? (
+            <InputAdornment position="end" disablePointerEvents sx={{ ml: 1 }}>
+              {unit}
+            </InputAdornment>
+          ) : undefined,
+        },
       }}
     />
   )
