@@ -16,8 +16,11 @@ const jobsUiSlice = createSlice({
     setSelectedDate(state, action: PayloadAction<string>) {
       state.selectedDate = action.payload
     },
+    shiftSelectedDate(state, action: PayloadAction<number>) {
+      state.selectedDate = DateTime.fromISO(state.selectedDate, { zone: 'utc' }).plus({ days: action.payload }).toISODate()!
+    },
   },
 })
 
-export const { setSelectedDate } = jobsUiSlice.actions
+export const { setSelectedDate, shiftSelectedDate } = jobsUiSlice.actions
 export default jobsUiSlice.reducer

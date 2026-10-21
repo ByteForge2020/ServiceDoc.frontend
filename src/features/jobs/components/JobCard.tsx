@@ -1,4 +1,5 @@
 import { useState, type MouseEvent as ReactMouseEvent } from 'react'
+import { useDraggable } from '@dnd-kit/core'
 import Box from '@mui/material/Box'
 import IconButton from '@mui/material/IconButton'
 import Menu from '@mui/material/Menu'
@@ -9,6 +10,7 @@ import { alpha } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 import { useShopTimeZone } from '../../../app/shop/useShopTimeZone'
 import type { Job } from '../types'
+import { JOB_CARD_ATTRIBUTE } from '../technicianUtils'
 import { PX_PER_MINUTE } from '../gridConstants'
 import { formatTimeRange, utcIsoToMinutesOfDay } from '../../../utils/timeGrid'
 
@@ -25,6 +27,8 @@ export function JobCard({ job, onEdit, onDelete, onHoverStart }: JobCardProps) {
   const [hovered, setHovered] = useState(false)
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null)
   const menuOpen = !!menuAnchor
+
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: job.id, data: { job } })
 
   const startMinutes = utcIsoToMinutesOfDay(job.scheduledTime, zone)
   const left = startMinutes * PX_PER_MINUTE
@@ -53,6 +57,10 @@ export function JobCard({ job, onEdit, onDelete, onHoverStart }: JobCardProps) {
 
   return (
     <Box
+      ref={setNodeRef}
+      {...{ [JOB_CARD_ATTRIBUTE]: '' }}
+      {...attributes}
+      {...listeners}
       onMouseEnter={() => {
         setHovered(true)
         onHoverStart?.()
@@ -73,6 +81,10 @@ export function JobCard({ job, onEdit, onDelete, onHoverStart }: JobCardProps) {
         overflow: 'hidden',
         px: 1,
         py: '2px',
+        cursor: 'grab',
+        touchAction: 'none',
+        // The DragOverlay shows the moving copy; the original stays in place, faded, until the drop.
+        opacity: isDragging ? 0.35 : 1,
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '2px' }}>
@@ -92,12 +104,42 @@ export function JobCard({ job, onEdit, onDelete, onHoverStart }: JobCardProps) {
         {job.estimateItemName ?? formatTimeRange(job.scheduledTime, job.scheduledDurationMinutes, zone)}
       </Typography>
 
-      <Menu anchorEl={menuAnchor} open={menuOpen} onClose={handleMenuClose}>
+      {/* The menu is portaled, but React still bubbles its pointer events up to the draggable card. */}
+      <Menu anchorEl={menuAnchor} open={menuOpen} onClose={handleMenuClose} onPointerDown={(event) => event.stopPropagation()}>
         <MenuItem onClick={handleEditClick}>{t('jobs.jobCard.editJob')}</MenuItem>
         <MenuItem onClick={handleDeleteClick} sx={{ color: 'error.main' }}>
           {t('jobs.jobCard.deleteJob')}
         </MenuItem>
       </Menu>
+    </Box>
+  )
+}
+
+/** The copy of a job card that follows the pointer while dragging; sized by DragOverlay to match the original. */
+export function JobCardPreview({ job }: { job: Job }) {
+  const zone = useShopTimeZone()
+
+  return (
+    <Box
+      sx={{
+        height: '100%',
+        borderRadius: '6px',
+        bgcolor: (theme) => alpha(theme.palette.primary.main, 0.3),
+        border: '1px solid',
+        borderColor: 'primary.main',
+        boxShadow: 4,
+        overflow: 'hidden',
+        px: 1,
+        py: '2px',
+        cursor: 'grabbing',
+      }}
+    >
+      <Typography variant="body2" noWrap sx={{ fontWeight: 600, color: 'primary.dark' }}>
+        #{job.orderNumber}
+      </Typography>
+      <Typography variant="caption" noWrap component="div">
+        {job.estimateItemName ?? formatTimeRange(job.scheduledTime, job.scheduledDurationMinutes, zone)}
+      </Typography>
     </Box>
   )
 }

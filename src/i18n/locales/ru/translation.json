@@ -312,6 +312,10 @@
       "title": "Редактировать работу для {{technician}}",
       "updateSuccess": "Работа обновлена.",
       "updateError": "Не удалось обновить работу."
+    },
+    "dragDrop": {
+      "rescheduleSuccess": "Работа перемещена.",
+      "rescheduleError": "Не удалось переместить работу."
     }
   },
   "appointmentsPage": {

@@ -19,6 +19,11 @@ export interface CreateJobPayload {
   estimateItemId: string | null
 }
 
+export interface RescheduleJobPayload {
+  assignedUserId: string
+  scheduledTime: string
+}
+
 export interface UpdateJobPayload {
   orderId: string
   scheduledTime: string

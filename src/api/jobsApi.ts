@@ -1,5 +1,5 @@
 import { apiClient } from './apiClient'
-import type { CreateJobPayload, Job, UpdateJobPayload } from '../features/jobs/types'
+import type { CreateJobPayload, Job, RescheduleJobPayload, UpdateJobPayload } from '../features/jobs/types'
 
 const BASE_PATH = '/api/v1/general/jobs'
 
@@ -14,6 +14,10 @@ export const jobsApi = {
 
   update(id: string, payload: UpdateJobPayload) {
     return apiClient.put<Job>(`${BASE_PATH}/${id}`, payload).then((res) => res.data)
+  },
+
+  reschedule(id: string, payload: RescheduleJobPayload) {
+    return apiClient.patch<Job>(`${BASE_PATH}/${id}/schedule`, payload).then((res) => res.data)
   },
 
   delete(id: string) {

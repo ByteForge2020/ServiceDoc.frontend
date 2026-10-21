@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react'
+import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react'
+import { useDndContext, useDroppable } from '@dnd-kit/core'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Popover from '@mui/material/Popover'
 import Typography from '@mui/material/Typography'
+import { alpha } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 import type { TeamMember } from '../../settings/teamMembers/types'
 import {
@@ -17,6 +19,7 @@ import {
   SNAP_MINUTES,
 } from '../gridConstants'
 import type { Job } from '../types'
+import { TIMELINE_ATTRIBUTE, technicianDisplayName } from '../technicianUtils'
 import { minutesToLabel, offsetXToMinutes, snapMinutes } from '../../../utils/timeGrid'
 import { JobCard } from './JobCard'
 
@@ -33,26 +36,71 @@ interface PopoverState {
   left: number
 }
 
+export interface DropPlaceholder {
+  technicianId: string
+  minutes: number
+  durationMinutes: number
+}
+
 interface TechniciansGridProps {
   technicians: TeamMember[]
   jobs: Job[]
+  /** Where the dragged job will land if dropped now; rendered underneath the drag overlay. */
+  dropPlaceholder: DropPlaceholder | null
   onAddJob: (params: { technicianId: string; technicianName: string; minutes: number }) => void
   onEditJob: (job: Job) => void
   onDeleteJob: (job: Job) => void
 }
 
-function technicianDisplayName(technician: TeamMember): string {
-  const name = `${technician.firstName ?? ''} ${technician.lastName ?? ''}`.trim()
-  return name.length > 0 ? name : technician.email
-}
-
 const slotTicks = Array.from({ length: MINUTES_PER_DAY / SLOT_MINUTES }, (_, i) => i * SLOT_MINUTES)
 
-export function TechniciansGrid({ technicians, jobs, onAddJob, onEditJob, onDeleteJob }: TechniciansGridProps) {
+interface TimelineDropRowProps {
+  technicianId: string
+  children: ReactNode
+  onMouseMove: (event: ReactMouseEvent<HTMLDivElement>) => void
+  onMouseLeave: () => void
+  onClick: (event: ReactMouseEvent<HTMLDivElement>) => void
+}
+
+function TimelineDropRow({ technicianId, children, onMouseMove, onMouseLeave, onClick }: TimelineDropRowProps) {
+  const { setNodeRef } = useDroppable({ id: technicianId })
+
+  return (
+    <Box
+      ref={setNodeRef}
+      {...{ [TIMELINE_ATTRIBUTE]: technicianId }}
+      sx={{
+        width: DAY_WIDTH_PX,
+        height: ROW_HEIGHT,
+        position: 'relative',
+        borderBottom: '1px solid',
+        borderColor: 'divider',
+        backgroundImage: (theme) =>
+          `repeating-linear-gradient(to right, transparent 0, transparent ${SLOT_MINUTES * PX_PER_MINUTE - 1}px, ${theme.palette.divider} ${SLOT_MINUTES * PX_PER_MINUTE - 1}px, ${theme.palette.divider} ${SLOT_MINUTES * PX_PER_MINUTE}px)`,
+        cursor: 'pointer',
+      }}
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
+      onClick={onClick}
+    >
+      {children}
+    </Box>
+  )
+}
+
+export function TechniciansGrid({
+  technicians,
+  jobs,
+  dropPlaceholder,
+  onAddJob,
+  onEditJob,
+  onDeleteJob,
+}: TechniciansGridProps) {
   const { t } = useTranslation()
   const scrollRef = useRef<HTMLDivElement>(null)
   const [hover, setHover] = useState<HoverState | null>(null)
   const [popover, setPopover] = useState<PopoverState | null>(null)
+  const isDragging = useDndContext().active !== null
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -162,7 +210,7 @@ export function TechniciansGrid({ technicians, jobs, onAddJob, onEditJob, onDele
 
         {technicians.map((technician) => {
           const technicianJobs = jobs.filter((job) => job.assignedUserId === technician.id)
-          const isHovered = hover?.technicianId === technician.id
+          const isHovered = !isDragging && hover?.technicianId === technician.id
 
           return (
             <Box key={technician.id} sx={{ display: 'flex' }}>
@@ -188,17 +236,8 @@ export function TechniciansGrid({ technicians, jobs, onAddJob, onEditJob, onDele
                 </Typography>
               </Box>
 
-              <Box
-                sx={{
-                  width: DAY_WIDTH_PX,
-                  height: ROW_HEIGHT,
-                  position: 'relative',
-                  borderBottom: '1px solid',
-                  borderColor: 'divider',
-                  backgroundImage: (theme) =>
-                    `repeating-linear-gradient(to right, transparent 0, transparent ${SLOT_MINUTES * PX_PER_MINUTE - 1}px, ${theme.palette.divider} ${SLOT_MINUTES * PX_PER_MINUTE - 1}px, ${theme.palette.divider} ${SLOT_MINUTES * PX_PER_MINUTE}px)`,
-                  cursor: 'pointer',
-                }}
+              <TimelineDropRow
+                technicianId={technician.id}
                 onMouseMove={(event) => handleMouseMove(event, technician.id)}
                 onMouseLeave={handleMouseLeave}
                 onClick={(event) => handleClick(event, technician)}
@@ -212,6 +251,30 @@ export function TechniciansGrid({ technicians, jobs, onAddJob, onEditJob, onDele
                     onHoverStart={() => setHover(null)}
                   />
                 ))}
+
+                {dropPlaceholder?.technicianId === technician.id && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 0,
+                      bottom: 0,
+                      left: dropPlaceholder.minutes * PX_PER_MINUTE,
+                      width: Math.max(dropPlaceholder.durationMinutes * PX_PER_MINUTE, 8),
+                      bgcolor: (theme) => alpha(theme.palette.primary.main, 0.2),
+                      borderLeft: '2px solid',
+                      borderColor: 'primary.main',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    {/* At the bottom so it doesn't sit under the drag overlay's text. */}
+                    <Typography
+                      variant="caption"
+                      sx={{ position: 'absolute', bottom: 0, left: 0, px: '4px', color: 'primary.dark', fontWeight: 600 }}
+                    >
+                      {minutesToLabel(dropPlaceholder.minutes)}
+                    </Typography>
+                  </Box>
+                )}
 
                 {isHovered && hover && (
                   <>
@@ -257,7 +320,7 @@ export function TechniciansGrid({ technicians, jobs, onAddJob, onEditJob, onDele
                     </Box>
                   </>
                 )}
-              </Box>
+              </TimelineDropRow>
             </Box>
           )
         })}

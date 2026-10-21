@@ -312,6 +312,10 @@
       "title": "Edit job for {{technician}}",
       "updateSuccess": "Job updated.",
       "updateError": "Failed to update job."
+    },
+    "dragDrop": {
+      "rescheduleSuccess": "Job moved.",
+      "rescheduleError": "Failed to move job."
     }
   },
   "appointmentsPage": {
