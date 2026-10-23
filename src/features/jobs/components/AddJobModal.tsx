@@ -41,7 +41,7 @@ export function AddJobModal({ open, technicianId, technicianName, dateIso, minut
       initialDateIso={dateIso}
       initialMinutes={minutes}
       initialDurationMinutes={30}
-      initialEstimateItemId={null}
+      initialDescriptions={[]}
       isSaving={createJobMutation.isPending}
       onClose={onClose}
       onSave={handleSave}

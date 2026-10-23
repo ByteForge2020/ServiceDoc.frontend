@@ -116,8 +116,6 @@ export function buildVehiclePayload(vehicle: VehicleFormState): VehiclePayload |
 export interface EstimateItemRow {
   key: string
   id: string | null
-  /** Scheduled jobs linked to this saved item (0 for a new one); the server deletes them when the item is removed. */
-  jobCount: number
   subItem: boolean
   name: string
   type: EstimateType
@@ -162,7 +160,6 @@ export function createEstimateItemRow(
   return {
     key: crypto.randomUUID(),
     id: null,
-    jobCount: 0,
     subItem,
     name,
     type: defaults?.type ?? 'Fixed',
@@ -224,7 +221,6 @@ function estimateItemsToFormState(estimate: Estimate): EstimateItemRow[] {
     .map((item) => ({
       key: item.id,
       id: item.id,
-      jobCount: item.jobCount,
       subItem: item.subItem,
       name: item.name,
       type: item.type ?? 'Fixed',

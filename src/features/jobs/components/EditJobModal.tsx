@@ -40,7 +40,7 @@ export function EditJobModal({ open, job, onClose }: EditJobModalProps) {
       initialDateIso={DateTime.fromISO(job.scheduledTime, { zone: 'utc' }).setZone(zone).toISODate()!}
       initialMinutes={utcIsoToMinutesOfDay(job.scheduledTime, zone)}
       initialDurationMinutes={job.scheduledDurationMinutes}
-      initialEstimateItemId={job.estimateItemId}
+      initialDescriptions={job.descriptions}
       isSaving={updateJobMutation.isPending}
       onClose={onClose}
       onSave={handleSave}

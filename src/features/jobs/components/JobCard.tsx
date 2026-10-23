@@ -21,6 +21,11 @@ interface JobCardProps {
   onHoverStart?: () => void
 }
 
+/** The job's descriptions on one line, or null when it has none. */
+function jobDescriptionsText(job: Job): string | null {
+  return job.descriptions.length > 0 ? job.descriptions.map((description) => description.name).join(', ') : null
+}
+
 export function JobCard({ job, onEdit, onDelete, onHoverStart }: JobCardProps) {
   const { t } = useTranslation()
   const zone = useShopTimeZone()
@@ -30,6 +35,7 @@ export function JobCard({ job, onEdit, onDelete, onHoverStart }: JobCardProps) {
 
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: job.id, data: { job } })
 
+  const descriptionsText = jobDescriptionsText(job)
   const startMinutes = utcIsoToMinutesOfDay(job.scheduledTime, zone)
   const left = startMinutes * PX_PER_MINUTE
   const width = Math.max(job.scheduledDurationMinutes * PX_PER_MINUTE, 8)
@@ -100,8 +106,8 @@ export function JobCard({ job, onEdit, onDelete, onHoverStart }: JobCardProps) {
           <MoreVertIcon fontSize="inherit" />
         </IconButton>
       </Box>
-      <Typography variant="caption" noWrap component="div">
-        {job.estimateItemName ?? formatTimeRange(job.scheduledTime, job.scheduledDurationMinutes, zone)}
+      <Typography variant="caption" noWrap component="div" title={descriptionsText ?? undefined}>
+        {descriptionsText ?? formatTimeRange(job.scheduledTime, job.scheduledDurationMinutes, zone)}
       </Typography>
 
       {/* The menu is portaled, but React still bubbles its pointer events up to the draggable card. */}
@@ -138,7 +144,7 @@ export function JobCardPreview({ job }: { job: Job }) {
         #{job.orderNumber}
       </Typography>
       <Typography variant="caption" noWrap component="div">
-        {job.estimateItemName ?? formatTimeRange(job.scheduledTime, job.scheduledDurationMinutes, zone)}
+        {jobDescriptionsText(job) ?? formatTimeRange(job.scheduledTime, job.scheduledDurationMinutes, zone)}
       </Typography>
     </Box>
   )

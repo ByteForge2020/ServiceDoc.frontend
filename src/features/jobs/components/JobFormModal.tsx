@@ -12,16 +12,17 @@ import { useTranslation } from 'react-i18next'
 import { useShopTimeZone } from '../../../app/shop/useShopTimeZone'
 import { AppDatePicker } from '../../../components/form/AppDatePicker'
 import { AppTimeField } from '../../../components/form/AppTimeField'
-import { FormSelect } from '../../../components/form/FormSelect'
 import { useWorkOrderQuery } from '../../workOrders/queries'
 import type { WorkOrderSummary } from '../../workOrders/types'
+import type { JobDescription, JobDescriptionPayload } from '../types'
+import { JobDescriptionsField, type JobDescriptionDraft } from './JobDescriptionsField'
 import { OrderPicker } from './OrderPicker'
 
 export interface JobFormValues {
   orderId: string
   scheduledTime: string
   scheduledDurationMinutes: number
-  estimateItemId: string | null
+  descriptions: JobDescriptionPayload[]
 }
 
 interface JobFormModalProps {
@@ -31,7 +32,7 @@ interface JobFormModalProps {
   initialDateIso: string
   initialMinutes: number
   initialDurationMinutes: number
-  initialEstimateItemId: string | null
+  initialDescriptions: JobDescription[]
   isSaving: boolean
   onClose: () => void
   onSave: (values: JobFormValues) => void
@@ -44,7 +45,7 @@ export function JobFormModal({
   initialDateIso,
   initialMinutes,
   initialDurationMinutes,
-  initialEstimateItemId,
+  initialDescriptions,
   isSaving,
   onClose,
   onSave,
@@ -56,28 +57,38 @@ export function JobFormModal({
   const [startDate, setStartDate] = useState<DateTime>(DateTime.fromISO(initialDateIso, { zone }))
   const [startMinutes, setStartMinutes] = useState<number>(initialMinutes)
   const [durationMinutes, setDurationMinutes] = useState<number>(initialDurationMinutes)
-  const [estimateItemId, setEstimateItemId] = useState<string | ''>(initialEstimateItemId ?? '')
+  const [descriptions, setDescriptions] = useState<JobDescriptionDraft[]>(() =>
+    initialDescriptions.map((description) => ({
+      key: description.id,
+      id: description.id,
+      estimateItemId: description.estimateItemId,
+      name: description.name,
+    })),
+  )
 
   const { data: order } = useWorkOrderQuery(selectedOrder?.id)
 
-  const estimateItemOptions = useMemo(
-    () =>
-      (order?.estimates ?? []).flatMap((estimate) =>
-        estimate.items.map((item) => ({ value: item.id, label: item.name })),
-      ),
+  const serviceOptions = useMemo(
+    () => (order?.estimates ?? []).flatMap((estimate) => estimate.items.map((item) => ({ id: item.id, name: item.name }))),
     [order],
   )
 
+  // An empty list of descriptions is valid.
   const canSave = !!selectedOrder && startDate.isValid && durationMinutes > 0
+
+  // Services belong to one order, so they are dropped when the order changes; custom descriptions stay.
+  function dropServiceDescriptions() {
+    setDescriptions((current) => current.filter((description) => description.estimateItemId === null))
+  }
 
   function handleSelectOrder(newOrder: WorkOrderSummary) {
     setSelectedOrder(newOrder)
-    setEstimateItemId('')
+    dropServiceDescriptions()
   }
 
   function handleChangeOrder() {
     setSelectedOrder(null)
-    setEstimateItemId('')
+    dropServiceDescriptions()
   }
 
   function handleSave() {
@@ -94,7 +105,7 @@ export function JobFormModal({
       orderId: selectedOrder.id,
       scheduledTime,
       scheduledDurationMinutes: durationMinutes,
-      estimateItemId: estimateItemId || null,
+      descriptions: descriptions.map(({ id, estimateItemId, name }) => ({ id, estimateItemId, name })),
     })
   }
 
@@ -130,18 +141,17 @@ export function JobFormModal({
               stepMinutes={15}
               required
             />
-
-            <FormSelect
-              label={t('jobs.addJobModal.jobDescription')}
-              placeholder={
-                selectedOrder ? t('jobs.addJobModal.noEstimateItems') : t('jobs.addJobModal.selectOrderFirst')
-              }
-              value={estimateItemId}
-              onChange={(value) => setEstimateItemId(value)}
-              options={estimateItemOptions}
-              disabled={!selectedOrder || estimateItemOptions.length === 0}
-            />
           </Box>
+
+          <JobDescriptionsField
+            services={serviceOptions}
+            descriptions={descriptions}
+            onChange={setDescriptions}
+            disabled={!selectedOrder}
+            placeholder={
+              selectedOrder ? t('jobs.addJobModal.addDescriptionPlaceholder') : t('jobs.addJobModal.selectOrderFirst')
+            }
+          />
 
           <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end', pt: 1 }}>
             <Button variant="text" onClick={onClose}>

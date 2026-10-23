@@ -61,8 +61,6 @@ export function useUpdateWorkOrderMutation(id: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: workOrderKeys.all })
       queryClient.invalidateQueries({ queryKey: workOrderKeys.detail(id) })
-      // Removing an estimate item removes its scheduled jobs, so the job calendar must refetch.
-      queryClient.invalidateQueries({ queryKey: ['jobs'] })
     },
   })
 }

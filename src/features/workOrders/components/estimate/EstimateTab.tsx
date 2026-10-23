@@ -18,7 +18,6 @@ import { useTranslation } from 'react-i18next'
 import { CellField } from '../../../../components/form/CellField'
 import { CellNumberStepper } from '../../../../components/form/CellNumberStepper'
 import type { DiscountType } from '../../../../app/shop/shopApi'
-import { useConfirm } from '../../../../app/confirm/useConfirm'
 import { useShopSettingsQuery } from '../../../../app/shop/queries'
 import { CellSelect } from '../../../../components/form/CellSelect'
 import type { EstimateStatus } from '../../types'
@@ -44,27 +43,12 @@ interface EstimateTabProps {
 
 export function EstimateTab({ estimates, onEstimatesChange, discountType }: EstimateTabProps) {
   const { t } = useTranslation()
-  const confirm = useConfirm()
   // Set when the shop has "price includes tax" on; new items then get their tax calculated from their total.
   const { data: shopSettings } = useShopSettingsQuery()
   const taxPercent = shopSettings?.priceIncludesTax ? (shopSettings.taxPercent ?? null) : null
 
   function updateEstimate(key: string, patch: Partial<EstimateFormState>) {
     onEstimatesChange(estimates.map((estimate) => (estimate.key === key ? { ...estimate, ...patch } : estimate)))
-  }
-
-  // Removing a service that has scheduled jobs also removes those jobs (on save), so ask first.
-  async function confirmRemoval(rows: EstimateItemRow[]) {
-    if (!rows.some((row) => row.jobCount > 0)) {
-      return true
-    }
-
-    return confirm({
-      title: t('estimate.removeWithJobsTitle'),
-      message: t('estimate.removeWithJobsMessage'),
-      confirmLabel: t('estimate.removeWithJobsConfirm'),
-      destructive: true,
-    })
   }
 
   function updateSubItem(estimateKey: string, subKey: string, patch: Partial<EstimateItemRow>) {
@@ -108,11 +92,7 @@ export function EstimateTab({ estimates, onEstimatesChange, discountType }: Esti
                     status={estimate.status}
                     onStatusChange={(status) => updateEstimate(estimate.key, { status })}
                     onChange={(patch) => updateEstimate(estimate.key, { root: { ...estimate.root, ...patch } })}
-                    onRemove={async () => {
-                      if (await confirmRemoval([estimate.root, ...estimate.subItems])) {
-                        onEstimatesChange(estimates.filter((item) => item.key !== estimate.key))
-                      }
-                    }}
+                    onRemove={() => onEstimatesChange(estimates.filter((item) => item.key !== estimate.key))}
                     onAddSubItem={() =>
                       updateEstimate(estimate.key, {
                         subItems: [...estimate.subItems, createEstimateItemRow(true, '', undefined, taxPercent)],
@@ -125,13 +105,11 @@ export function EstimateTab({ estimates, onEstimatesChange, discountType }: Esti
                       row={sub}
                       discountType={discountType}
                       onChange={(patch) => updateSubItem(estimate.key, sub.key, patch)}
-                      onRemove={async () => {
-                        if (await confirmRemoval([sub])) {
-                          updateEstimate(estimate.key, {
-                            subItems: estimate.subItems.filter((row) => row.key !== sub.key),
-                          })
-                        }
-                      }}
+                      onRemove={() =>
+                        updateEstimate(estimate.key, {
+                          subItems: estimate.subItems.filter((row) => row.key !== sub.key),
+                        })
+                      }
                     />
                   ))}
                 </Fragment>

@@ -103,7 +103,7 @@ export function WorkOrderRow({ workOrder }: WorkOrderRowProps) {
                     }}
                   >
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      {job.estimateItemName ?? t('workOrders.jobsTable.noDescription')}
+                      {job.descriptions.length > 0 ? job.descriptions.join(', ') : t('workOrders.jobsTable.noDescription')}
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Avatar sx={{ width: 22, height: 22, fontSize: 11, bgcolor: 'primary.main' }}>

@@ -47,8 +47,6 @@ export interface EstimateItem extends EstimateItemPayload {
   sortOrder: number
   /** Calculated by the server: price x quantity x complexity minus the discount. Never sent back. */
   total: number | null
-  /** Scheduled jobs that point at this item; removing the item removes them too. */
-  jobCount: number
 }
 
 export interface Estimate {
@@ -103,7 +101,7 @@ export interface UpdateWorkOrderRequest {
 
 export interface JobSummary {
   id: string
-  estimateItemName: string | null
+  descriptions: string[]
   assignedUserName: string
   scheduledTime: string
   scheduledDurationMinutes: number
