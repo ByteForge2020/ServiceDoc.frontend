@@ -45,6 +45,7 @@
       "collapseAria": "Hide jobs"
     },
     "jobsTable": {
+      "addJob": "Add job",
       "description": "Job description",
       "assigned": "Assigned",
       "scheduled": "Scheduled",
@@ -113,7 +114,7 @@
     "notesPlaceholder": "Enter notes"
   },
   "estimate": {
-    "status": "Status",
+    "status": "Approved",
     "addItem": "Add item",
     "addSubItem": "Add sub-item",
     "searchPlaceholder": "Start typing…",
@@ -128,10 +129,11 @@
     "priceHr": "$/Hr",
     "price": "Price",
     "quantity": "Qty",
-    "complexity": "Coef.",
     "currencyShort": "$",
     "discount": "Discount",
     "total": "Total",
+    "summaryTax": "Including tax",
+    "summaryTotal": "Estimate total",
     "removeAria": "Remove item",
     "createItemError": "Failed to create item.",
     "approveAria": "Approve",
@@ -319,6 +321,10 @@
     "dragDrop": {
       "rescheduleSuccess": "Job moved.",
       "rescheduleError": "Failed to move job."
+    },
+    "calendarDialog": {
+      "closeAria": "Close",
+      "jobNotFound": "This job can no longer be shown in the calendar. It may have been deleted, or its technician is no longer listed."
     }
   },
   "appointmentsPage": {

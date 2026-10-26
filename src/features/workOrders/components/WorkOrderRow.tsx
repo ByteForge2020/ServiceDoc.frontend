@@ -1,29 +1,23 @@
 import { useState } from 'react'
 import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
 import Collapse from '@mui/material/Collapse'
 import IconButton from '@mui/material/IconButton'
-import Avatar from '@mui/material/Avatar'
 import TableCell from '@mui/material/TableCell'
 import TableRow from '@mui/material/TableRow'
-import Typography from '@mui/material/Typography'
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight'
-import ScheduleIcon from '@mui/icons-material/Schedule'
 import { DateTime } from 'luxon'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
+import { extractErrorMessage } from '../../../api/errorMessage'
+import { useConfirm } from '../../../app/confirm/useConfirm'
 import { useShopTimeZone } from '../../../app/shop/useShopTimeZone'
-import { formatScheduledRange } from '../../../utils/timeGrid'
-import type { WorkOrder } from '../types'
-
-function initials(name: string): string {
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0].toUpperCase())
-    .join('')
-}
+import { useToasters } from '../../../app/toasters/useToasters'
+import { JobsCalendarDialog, type JobsCalendarDialogTarget } from '../../jobs/components/JobsCalendarDialog'
+import { useDeleteJobMutation } from '../../jobs/queries'
+import type { JobSummary, WorkOrder } from '../types'
+import { WorkOrderJobTile } from './WorkOrderJobTile'
 
 function formatDate(value: string | null, zone: string): string {
   if (!value) {
@@ -40,28 +34,50 @@ export function WorkOrderRow({ workOrder }: WorkOrderRowProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const zone = useShopTimeZone()
+  const toasters = useToasters()
+  const confirm = useConfirm()
+  const deleteJobMutation = useDeleteJobMutation()
   const [open, setOpen] = useState(false)
-  const hasJobs = workOrder.jobs.length > 0
+  const [calendarTarget, setCalendarTarget] = useState<JobsCalendarDialogTarget | null>(null)
+
+  async function handleDeleteJob(job: JobSummary) {
+    const confirmed = await confirm({
+      message: t('jobs.jobCard.deleteConfirmMessage', { orderNumber: workOrder.orderNumber }),
+      confirmLabel: t('jobs.jobCard.deleteJob'),
+      destructive: true,
+    })
+
+    if (!confirmed) {
+      return
+    }
+
+    deleteJobMutation.mutate(job.id, {
+      onSuccess: () => {
+        toasters.success(t('jobs.jobCard.deleteSuccess'))
+      },
+      onError: (error) => {
+        toasters.error(extractErrorMessage(error, t('jobs.jobCard.deleteError')))
+      },
+    })
+  }
 
   return (
     <>
       <TableRow hover onClick={() => navigate(`/orders/${workOrder.id}`)} sx={{ cursor: 'pointer' }}>
         <TableCell sx={{ width: 48 }}>
-          {hasJobs && (
-            <IconButton
-              size="small"
-              aria-label={open ? t('workOrders.table.collapseAria') : t('workOrders.table.expandAria')}
-              onClick={(event) => {
-                event.stopPropagation()
-                setOpen((prev) => !prev)
-              }}
-            >
-              <KeyboardArrowRightIcon
-                fontSize="small"
-                sx={{ transition: 'transform 0.2s', transform: open ? 'rotate(90deg)' : 'none' }}
-              />
-            </IconButton>
-          )}
+          <IconButton
+            size="small"
+            aria-label={open ? t('workOrders.table.collapseAria') : t('workOrders.table.expandAria')}
+            onClick={(event) => {
+              event.stopPropagation()
+              setOpen((prev) => !prev)
+            }}
+          >
+            <KeyboardArrowRightIcon
+              fontSize="small"
+              sx={{ transition: 'transform 0.2s', transform: open ? 'rotate(90deg)' : 'none' }}
+            />
+          </IconButton>
         </TableCell>
         <TableCell>{workOrder.orderNumber}</TableCell>
         <TableCell>
@@ -74,56 +90,58 @@ export function WorkOrderRow({ workOrder }: WorkOrderRowProps) {
         <TableCell>{formatDate(workOrder.closedAt, zone)}</TableCell>
       </TableRow>
 
-      {hasJobs && (
-        <TableRow>
-          <TableCell sx={{ py: 0, bgcolor: 'action.hover', borderBottom: open ? undefined : 'none' }} colSpan={8}>
-            <Collapse in={open} timeout="auto" unmountOnExit>
-              <Box
+      {/* This row has no click handler of its own, so clicks inside the calendar dialog (rendered from here) can't
+          bubble up to the row above and open the order. */}
+      <TableRow>
+        <TableCell sx={{ py: 0, bgcolor: 'action.hover', borderBottom: open ? undefined : 'none' }} colSpan={8}>
+          <Collapse in={open} timeout="auto" unmountOnExit>
+            <Box sx={{ my: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+              <Button
+                variant="text"
+                disableRipple
+                onClick={() =>
+                  setCalendarTarget({
+                    kind: 'addToOrder',
+                    order: { id: workOrder.id, orderNumber: workOrder.orderNumber },
+                  })
+                }
                 sx={{
-                  my: 1.5,
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                  gap: 1.5,
+                  alignSelf: 'flex-start',
+                  p: 0,
+                  minWidth: 0,
+                  fontWeight: 600,
+                  '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' },
                 }}
               >
-                {workOrder.jobs.map((job) => (
-                  <Box
-                    key={job.id}
-                    sx={{
-                      p: 2,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 1.5,
-                      bgcolor: 'background.paper',
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      borderLeft: '3px solid',
-                      borderLeftColor: 'primary.main',
-                      borderRadius: '8px',
-                    }}
-                  >
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      {job.descriptions.length > 0 ? job.descriptions.join(', ') : t('workOrders.jobsTable.noDescription')}
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Avatar sx={{ width: 22, height: 22, fontSize: 11, bgcolor: 'primary.main' }}>
-                        {initials(job.assignedUserName)}
-                      </Avatar>
-                      <Typography variant="body2">{job.assignedUserName}</Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
-                      <ScheduleIcon sx={{ fontSize: 18 }} />
-                      <Typography variant="body2">
-                        {formatScheduledRange(job.scheduledTime, job.scheduledDurationMinutes, zone)}
-                      </Typography>
-                    </Box>
-                  </Box>
-                ))}
-              </Box>
-            </Collapse>
-          </TableCell>
-        </TableRow>
-      )}
+                {t('workOrders.jobsTable.addJob')}
+              </Button>
+
+              {workOrder.jobs.length > 0 && (
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                    gap: 1.5,
+                  }}
+                >
+                  {workOrder.jobs.map((job) => (
+                    <WorkOrderJobTile
+                      key={job.id}
+                      job={job}
+                      onEdit={(item) =>
+                        setCalendarTarget({ kind: 'editJob', jobId: item.id, scheduledTime: item.scheduledTime })
+                      }
+                      onDelete={handleDeleteJob}
+                    />
+                  ))}
+                </Box>
+              )}
+            </Box>
+          </Collapse>
+
+          {calendarTarget && <JobsCalendarDialog target={calendarTarget} onClose={() => setCalendarTarget(null)} />}
+        </TableCell>
+      </TableRow>
     </>
   )
 }

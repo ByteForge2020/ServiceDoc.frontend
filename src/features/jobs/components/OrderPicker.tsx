@@ -14,11 +14,13 @@ import type { WorkOrderSummary } from '../../workOrders/types'
 
 interface OrderPickerProps {
   selectedOrder: WorkOrderSummary | null
+  /** Hides the "change order" link: the selected order is fixed. */
+  locked?: boolean
   onSelect: (order: WorkOrderSummary) => void
   onChangeOrder: () => void
 }
 
-export function OrderPicker({ selectedOrder, onSelect, onChangeOrder }: OrderPickerProps) {
+export function OrderPicker({ selectedOrder, locked = false, onSelect, onChangeOrder }: OrderPickerProps) {
   const { t } = useTranslation()
   const [inputValue, setInputValue] = useState('')
   const debouncedSearch = useDebouncedValue(inputValue, 300)
@@ -49,9 +51,11 @@ export function OrderPicker({ selectedOrder, onSelect, onChangeOrder }: OrderPic
           <Typography variant="body1" sx={{ fontWeight: 600 }}>
             {t('jobs.addJobModal.orderLabel', { orderNumber: selectedOrder.orderNumber })}
           </Typography>
-          <Button variant="text" onClick={onChangeOrder} sx={{ px: '8px', py: '4px', minWidth: 'auto' }}>
-            ({t('jobs.addJobModal.changeOrder')})
-          </Button>
+          {!locked && (
+            <Button variant="text" onClick={onChangeOrder} sx={{ px: '8px', py: '4px', minWidth: 'auto' }}>
+              ({t('jobs.addJobModal.changeOrder')})
+            </Button>
+          )}
         </Box>
       </Stack>
     )

@@ -19,7 +19,7 @@ import {
   SNAP_MINUTES,
 } from '../gridConstants'
 import type { Job } from '../types'
-import { TIMELINE_ATTRIBUTE, technicianDisplayName } from '../technicianUtils'
+import { JOB_ID_ATTRIBUTE, TIMELINE_ATTRIBUTE, technicianDisplayName } from '../technicianUtils'
 import { minutesToLabel, offsetXToMinutes, snapMinutes } from '../../../utils/timeGrid'
 import { JobCard } from './JobCard'
 
@@ -47,6 +47,14 @@ interface TechniciansGridProps {
   jobs: Job[]
   /** Where the dragged job will land if dropped now; rendered underneath the drag overlay. */
   dropPlaceholder: DropPlaceholder | null
+  /** Jobs for which this returns false are shown dimmed, with no menu and no dragging. */
+  isJobEditable: (job: Job) => boolean
+  /** Whether clicking an empty slot offers to add a job there. */
+  canAddJobs: boolean
+  /** A job to scroll into the middle of the view (and pulse) when the grid first appears. */
+  focusJobId?: string
+  /** Height the grid may grow to before it scrolls; sized for the full page by default. */
+  maxHeight?: string
   onAddJob: (params: { technicianId: string; technicianName: string; minutes: number }) => void
   onEditJob: (job: Job) => void
   onDeleteJob: (job: Job) => void
@@ -56,13 +64,14 @@ const slotTicks = Array.from({ length: MINUTES_PER_DAY / SLOT_MINUTES }, (_, i) 
 
 interface TimelineDropRowProps {
   technicianId: string
+  clickable: boolean
   children: ReactNode
   onMouseMove: (event: ReactMouseEvent<HTMLDivElement>) => void
   onMouseLeave: () => void
   onClick: (event: ReactMouseEvent<HTMLDivElement>) => void
 }
 
-function TimelineDropRow({ technicianId, children, onMouseMove, onMouseLeave, onClick }: TimelineDropRowProps) {
+function TimelineDropRow({ technicianId, clickable, children, onMouseMove, onMouseLeave, onClick }: TimelineDropRowProps) {
   const { setNodeRef } = useDroppable({ id: technicianId })
 
   return (
@@ -77,7 +86,7 @@ function TimelineDropRow({ technicianId, children, onMouseMove, onMouseLeave, on
         borderColor: 'divider',
         backgroundImage: (theme) =>
           `repeating-linear-gradient(to right, transparent 0, transparent ${SLOT_MINUTES * PX_PER_MINUTE - 1}px, ${theme.palette.divider} ${SLOT_MINUTES * PX_PER_MINUTE - 1}px, ${theme.palette.divider} ${SLOT_MINUTES * PX_PER_MINUTE}px)`,
-        cursor: 'pointer',
+        cursor: clickable ? 'pointer' : 'default',
       }}
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeave}
@@ -92,6 +101,10 @@ export function TechniciansGrid({
   technicians,
   jobs,
   dropPlaceholder,
+  isJobEditable,
+  canAddJobs,
+  focusJobId,
+  maxHeight = 'calc(100vh - 260px)',
   onAddJob,
   onEditJob,
   onDeleteJob,
@@ -103,12 +116,34 @@ export function TechniciansGrid({
   const isDragging = useDndContext().active !== null
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollLeft = INITIAL_SCROLL_HOUR * 60 * PX_PER_MINUTE
+    const container = scrollRef.current
+    if (!container) {
+      return
     }
-  }, [])
+
+    const card = focusJobId
+      ? container.querySelector<HTMLElement>(`[${JOB_ID_ATTRIBUTE}="${CSS.escape(focusJobId)}"]`)
+      : null
+
+    if (!card) {
+      container.scrollLeft = INITIAL_SCROLL_HOUR * 60 * PX_PER_MINUTE
+      return
+    }
+
+    // Centre the card in the part of the grid that is actually visible (below the sticky header, right of the sticky names).
+    const containerRect = container.getBoundingClientRect()
+    const cardRect = card.getBoundingClientRect()
+    const visibleCenterX = containerRect.left + NAME_COLUMN_WIDTH + (containerRect.width - NAME_COLUMN_WIDTH) / 2
+    const visibleCenterY = containerRect.top + HEADER_HEIGHT + (containerRect.height - HEADER_HEIGHT) / 2
+    container.scrollLeft += cardRect.left + cardRect.width / 2 - visibleCenterX
+    container.scrollTop += cardRect.top + cardRect.height / 2 - visibleCenterY
+  }, [focusJobId])
 
   function handleMouseMove(event: ReactMouseEvent<HTMLDivElement>, technicianId: string) {
+    if (!canAddJobs) {
+      return
+    }
+
     const rect = event.currentTarget.getBoundingClientRect()
     const offsetX = event.clientX - rect.left
     const minutes = snapMinutes(offsetXToMinutes(offsetX, PX_PER_MINUTE), SNAP_MINUTES, MINUTES_PER_DAY)
@@ -120,6 +155,10 @@ export function TechniciansGrid({
   }
 
   function handleClick(event: ReactMouseEvent<HTMLDivElement>, technician: TeamMember) {
+    if (!canAddJobs) {
+      return
+    }
+
     const rect = event.currentTarget.getBoundingClientRect()
     const offsetX = event.clientX - rect.left
     const minutes = snapMinutes(offsetXToMinutes(offsetX, PX_PER_MINUTE), SNAP_MINUTES, MINUTES_PER_DAY)
@@ -149,7 +188,7 @@ export function TechniciansGrid({
       ref={scrollRef}
       sx={{
         overflow: 'auto',
-        maxHeight: 'calc(100vh - 260px)',
+        maxHeight,
         border: '1px solid',
         borderColor: 'divider',
         borderRadius: '12px',
@@ -238,6 +277,7 @@ export function TechniciansGrid({
 
               <TimelineDropRow
                 technicianId={technician.id}
+                clickable={canAddJobs}
                 onMouseMove={(event) => handleMouseMove(event, technician.id)}
                 onMouseLeave={handleMouseLeave}
                 onClick={(event) => handleClick(event, technician)}
@@ -249,6 +289,8 @@ export function TechniciansGrid({
                     onEdit={onEditJob}
                     onDelete={onDeleteJob}
                     onHoverStart={() => setHover(null)}
+                    disabled={!isJobEditable(job)}
+                    highlighted={job.id === focusJobId}
                   />
                 ))}
 

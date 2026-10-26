@@ -30,7 +30,8 @@ export function EdgeIndicator({ side, active, label }: EdgeIndicatorProps) {
         bottom: 0,
         [side]: 0,
         width: EDGE_ZONE_PX,
-        zIndex: 1300,
+        // Above a dialog too, so the edge zones also show when the calendar is open in one.
+        zIndex: (theme) => theme.zIndex.modal + 100,
         pointerEvents: 'none',
         display: 'flex',
         flexDirection: 'column',

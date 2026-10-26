@@ -6,19 +6,29 @@ import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
 import Typography from '@mui/material/Typography'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
-import { alpha } from '@mui/material/styles'
+import { alpha, keyframes } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 import { useShopTimeZone } from '../../../app/shop/useShopTimeZone'
 import type { Job } from '../types'
-import { JOB_CARD_ATTRIBUTE } from '../technicianUtils'
+import { JOB_CARD_ATTRIBUTE, JOB_ID_ATTRIBUTE } from '../technicianUtils'
 import { PX_PER_MINUTE } from '../gridConstants'
 import { formatTimeRange, utcIsoToMinutesOfDay } from '../../../utils/timeGrid'
+
+// A short ring pulse that draws the eye to the job being edited when the calendar opens.
+const pulse = keyframes`
+  0% { box-shadow: 0 0 0 0 var(--pulse-color); }
+  100% { box-shadow: 0 0 0 10px transparent; }
+`
 
 interface JobCardProps {
   job: Job
   onEdit: (job: Job) => void
   onDelete: (job: Job) => void
   onHoverStart?: () => void
+  /** Locked: shown dimmed, with no menu and no dragging. */
+  disabled?: boolean
+  /** Pulses briefly to point out the job the calendar was opened for. */
+  highlighted?: boolean
 }
 
 /** The job's descriptions on one line, or null when it has none. */
@@ -26,14 +36,18 @@ function jobDescriptionsText(job: Job): string | null {
   return job.descriptions.length > 0 ? job.descriptions.map((description) => description.name).join(', ') : null
 }
 
-export function JobCard({ job, onEdit, onDelete, onHoverStart }: JobCardProps) {
+export function JobCard({ job, onEdit, onDelete, onHoverStart, disabled = false, highlighted = false }: JobCardProps) {
   const { t } = useTranslation()
   const zone = useShopTimeZone()
   const [hovered, setHovered] = useState(false)
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null)
   const menuOpen = !!menuAnchor
 
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: job.id, data: { job } })
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: job.id,
+    data: { job },
+    disabled,
+  })
 
   const descriptionsText = jobDescriptionsText(job)
   const startMinutes = utcIsoToMinutesOfDay(job.scheduledTime, zone)
@@ -64,7 +78,7 @@ export function JobCard({ job, onEdit, onDelete, onHoverStart }: JobCardProps) {
   return (
     <Box
       ref={setNodeRef}
-      {...{ [JOB_CARD_ATTRIBUTE]: '' }}
+      {...{ [JOB_CARD_ATTRIBUTE]: '', [JOB_ID_ATTRIBUTE]: job.id }}
       {...attributes}
       {...listeners}
       onMouseEnter={() => {
@@ -87,24 +101,28 @@ export function JobCard({ job, onEdit, onDelete, onHoverStart }: JobCardProps) {
         overflow: 'hidden',
         px: 1,
         py: '2px',
-        cursor: 'grab',
-        touchAction: 'none',
+        cursor: disabled ? 'default' : 'grab',
+        touchAction: disabled ? 'auto' : 'none',
         // The DragOverlay shows the moving copy; the original stays in place, faded, until the drop.
-        opacity: isDragging ? 0.35 : 1,
+        opacity: isDragging ? 0.35 : disabled ? 0.5 : 1,
+        '--pulse-color': (theme) => alpha(theme.palette.primary.main, 0.6),
+        animation: highlighted ? `${pulse} 900ms ease-out 3` : 'none',
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '2px' }}>
         <Typography variant="body2" noWrap sx={{ fontWeight: 600, color: 'primary.dark' }}>
           #{job.orderNumber}
         </Typography>
-        <IconButton
-          size="small"
-          aria-label={t('jobs.jobCard.menuAria')}
-          onClick={handleMenuOpen}
-          sx={{ p: '2px', flexShrink: 0, opacity: hovered || menuOpen ? 1 : 0 }}
-        >
-          <MoreVertIcon fontSize="inherit" />
-        </IconButton>
+        {!disabled && (
+          <IconButton
+            size="small"
+            aria-label={t('jobs.jobCard.menuAria')}
+            onClick={handleMenuOpen}
+            sx={{ p: '2px', flexShrink: 0, opacity: hovered || menuOpen ? 1 : 0 }}
+          >
+            <MoreVertIcon fontSize="inherit" />
+          </IconButton>
+        )}
       </Box>
       <Typography variant="caption" noWrap component="div" title={descriptionsText ?? undefined}>
         {descriptionsText ?? formatTimeRange(job.scheduledTime, job.scheduledDurationMinutes, zone)}

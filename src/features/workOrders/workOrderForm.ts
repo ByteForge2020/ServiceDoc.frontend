@@ -125,11 +125,9 @@ export interface EstimateItemRow {
   price: string
   /** Whole number, at least 1. */
   quantity: string
-  /** Greater than 0, one decimal place. */
-  complexity: string
   /** A percent or a money amount, depending on the work order's discount type. */
   discount: string
-  /** Calculated (read-only): price x quantity x complexity minus the discount. The server recalculates it on save. */
+  /** Calculated (read-only): price x quantity minus the discount. The server recalculates it on save. */
   total: string
   /** Tax amount as shown (read-only). A snapshot: stored with the item and never recalculated after it is saved. */
   tax: string
@@ -154,7 +152,7 @@ export function createEstimateItemRow(
   defaults?: EstimateItemDefaults,
   taxPercent: number | null = null,
 ): EstimateItemRow {
-  // Quantity 1, complexity 1 and no discount: the total is just the price.
+  // Quantity 1 and no discount: the total is just the price.
   const price = numberToField(defaults?.price)
 
   return {
@@ -167,7 +165,6 @@ export function createEstimateItemRow(
     priceHr: numberToField(defaults?.priceHr),
     price,
     quantity: '1',
-    complexity: '1',
     discount: '',
     total: price,
     tax: taxPercent !== null ? calculateTax(price, taxPercent) : '',
@@ -228,7 +225,6 @@ function estimateItemsToFormState(estimate: Estimate): EstimateItemRow[] {
       priceHr: item.priceHr != null ? String(item.priceHr) : '',
       price: item.price != null ? String(item.price) : '',
       quantity: String(item.quantity),
-      complexity: String(item.complexity),
       discount: item.discount != null ? String(item.discount) : '',
       total: item.total != null ? String(item.total) : '',
       tax: item.tax != null ? String(item.tax) : '',
@@ -293,7 +289,7 @@ export function calculateTax(total: string, taxPercent: number): string {
   return value === null ? '' : String(Math.round(((value * taxPercent) / 100) * 100) / 100)
 }
 
-type EstimateLineFields = Pick<EstimateItemRow, 'price' | 'quantity' | 'complexity' | 'discount'>
+type EstimateLineFields = Pick<EstimateItemRow, 'price' | 'quantity' | 'discount'>
 
 /** The quantity as a whole number of at least 1; anything else counts as 1. */
 function quantityValue(row: Pick<EstimateItemRow, 'quantity'>): number {
@@ -302,18 +298,11 @@ function quantityValue(row: Pick<EstimateItemRow, 'quantity'>): number {
   return value >= 1 ? value : 1
 }
 
-/** The complexity multiplier; while it is empty or 0 (e.g. mid-typing) it counts as 1, which leaves the amount alone. */
-function complexityValue(row: Pick<EstimateItemRow, 'complexity'>): number {
-  const value = toNullableNumber(row.complexity) ?? 1
-
-  return value > 0 ? value : 1
-}
-
-/** Price x quantity x complexity, rounded to cents, before any discount. null while the row has no price. */
+/** Price x quantity, rounded to cents, before any discount. null while the row has no price. */
 export function calculateLineAmount(row: EstimateLineFields): number | null {
   const price = toNullableNumber(row.price)
 
-  return price === null ? null : Math.round(price * quantityValue(row) * complexityValue(row) * 100) / 100
+  return price === null ? null : Math.round(price * quantityValue(row) * 100) / 100
 }
 
 /** What the discount takes off, in money: a percent of the line amount, or the fixed amount itself. 0 without one. */
@@ -341,7 +330,7 @@ export function calculateLineTotal(row: EstimateLineFields, discountType: Discou
 
 /**
  * Applies an edit to an estimate row and returns the patch to store: an Hourly row's price follows hours x rate, and the
- * total is recalculated from price, quantity, complexity and discount. A row added in this session while the shop's tax
+ * total is recalculated from price, quantity and discount. A row added in this session while the shop's tax
  * setting is on carries `taxPercent`, and its tax follows its total; a saved row has none, so editing it never rewrites
  * its tax snapshot.
  */
@@ -385,7 +374,6 @@ function buildEstimateItemsPayload(rows: EstimateItemRow[]): EstimateItemPayload
     priceHr: toNullableNumber(row.priceHr),
     price: toNullableNumber(row.price),
     quantity: quantityValue(row),
-    complexity: complexityValue(row),
     discount: toNullableNumber(row.discount),
     tax: toNullableNumber(row.tax),
   }))

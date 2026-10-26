@@ -29,6 +29,8 @@ interface JobFormModalProps {
   open: boolean
   title: string
   initialOrder: WorkOrderSummary | null
+  /** The order can't be changed (it is shown as fixed text). */
+  lockOrder?: boolean
   initialDateIso: string
   initialMinutes: number
   initialDurationMinutes: number
@@ -42,6 +44,7 @@ export function JobFormModal({
   open,
   title,
   initialOrder,
+  lockOrder = false,
   initialDateIso,
   initialMinutes,
   initialDurationMinutes,
@@ -120,7 +123,12 @@ export function JobFormModal({
 
       <DialogContent>
         <Stack spacing={3} sx={{ pt: 1 }}>
-          <OrderPicker selectedOrder={selectedOrder} onSelect={handleSelectOrder} onChangeOrder={handleChangeOrder} />
+          <OrderPicker
+            selectedOrder={selectedOrder}
+            locked={lockOrder}
+            onSelect={handleSelectOrder}
+            onChangeOrder={handleChangeOrder}
+          />
 
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
             <AppDatePicker label={t('jobs.addJobModal.startDate')} value={startDate} onChange={(value) => value && setStartDate(value)} required />

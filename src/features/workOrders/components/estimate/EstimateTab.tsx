@@ -26,12 +26,13 @@ import {
   createEstimateFormState,
   createEstimateItemRow,
   resolveItemPatch,
-  toNullableNumber,
   type EstimateFormState,
   type EstimateItemRow,
 } from '../../workOrderForm'
+import { MAX_HOURS, MAX_PRICE, MAX_QUANTITY } from '../../estimateLimits'
 import { useEstimateTypeOptions } from '../../useEstimateTypeOptions'
 import { DiscountField } from './DiscountField'
+import { EstimateSummary } from './EstimateSummary'
 import { SearchInputDropdown } from './SearchInputDropdown'
 
 interface EstimateTabProps {
@@ -40,6 +41,22 @@ interface EstimateTabProps {
   /** How every row's discount is read, fixed on the order when it is created. */
   discountType: DiscountType
 }
+
+// Column widths in px. Discount holds "-100%" plus its money equivalent, and tax/total can reach hundreds of billions.
+const COLUMN_WIDTH = {
+  name: 220,
+  status: 88,
+  type: 140,
+  hours: 100,
+  priceHr: 130,
+  price: 130,
+  quantity: 96,
+  discount: 200,
+  tax: 170,
+  total: 190,
+  actions: 90,
+}
+const TABLE_MIN_WIDTH = Object.values(COLUMN_WIDTH).reduce((sum, width) => sum + width, 0)
 
 export function EstimateTab({ estimates, onEstimatesChange, discountType }: EstimateTabProps) {
   const { t } = useTranslation()
@@ -66,21 +83,21 @@ export function EstimateTab({ estimates, onEstimatesChange, discountType }: Esti
     <Stack spacing={3}>
       {estimates.length > 0 && (
         <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: '12px' }}>
-          <Table size="small">
+          {/* Fixed layout: a column keeps its width whatever its inputs hold; a narrow screen scrolls sideways. */}
+          <Table size="small" sx={{ tableLayout: 'fixed', minWidth: TABLE_MIN_WIDTH }}>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ minWidth: 240 }}>{t('estimate.name')}</TableCell>
-                <TableCell>{t('estimate.status')}</TableCell>
-                <TableCell>{t('estimate.type')}</TableCell>
-                <TableCell>{t('estimate.hours')}</TableCell>
-                <TableCell>{t('estimate.priceHr')}</TableCell>
-                <TableCell>{t('estimate.price')}</TableCell>
-                <TableCell sx={{ minWidth: 96 }}>{t('estimate.quantity')}</TableCell>
-                <TableCell sx={{ minWidth: 96 }}>{t('estimate.complexity')}</TableCell>
-                <TableCell sx={{ minWidth: 144 }}>{t('estimate.discount')}</TableCell>
-                <TableCell>{t('estimate.total')}</TableCell>
-                <TableCell>{t('estimate.tax')}</TableCell>
-                <TableCell />
+                <TableCell sx={{ width: COLUMN_WIDTH.name }}>{t('estimate.name')}</TableCell>
+                <TableCell sx={{ width: COLUMN_WIDTH.status }}>{t('estimate.status')}</TableCell>
+                <TableCell sx={{ width: COLUMN_WIDTH.type }}>{t('estimate.type')}</TableCell>
+                <TableCell sx={{ width: COLUMN_WIDTH.hours }}>{t('estimate.hours')}</TableCell>
+                <TableCell sx={{ width: COLUMN_WIDTH.priceHr }}>{t('estimate.priceHr')}</TableCell>
+                <TableCell sx={{ width: COLUMN_WIDTH.price }}>{t('estimate.price')}</TableCell>
+                <TableCell sx={{ width: COLUMN_WIDTH.quantity }}>{t('estimate.quantity')}</TableCell>
+                <TableCell sx={{ width: COLUMN_WIDTH.discount }}>{t('estimate.discount')}</TableCell>
+                <TableCell sx={{ width: COLUMN_WIDTH.tax }}>{t('estimate.tax')}</TableCell>
+                <TableCell sx={{ width: COLUMN_WIDTH.total }}>{t('estimate.total')}</TableCell>
+                <TableCell sx={{ width: COLUMN_WIDTH.actions }} />
               </TableRow>
             </TableHead>
             <TableBody>
@@ -119,12 +136,15 @@ export function EstimateTab({ estimates, onEstimatesChange, discountType }: Esti
         </TableContainer>
       )}
 
-      <Box>
-        <SearchInputDropdown
-          excludedNames={estimates.map((estimate) => estimate.root.name)}
-          onSelect={(item) => onEstimatesChange([...estimates, createEstimateFormState(item.name, item, taxPercent)])}
-        />
-      </Box>
+      <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 3 }}>
+        <Box>
+          <SearchInputDropdown
+            excludedNames={estimates.map((estimate) => estimate.root.name)}
+            onSelect={(item) => onEstimatesChange([...estimates, createEstimateFormState(item.name, item, taxPercent)])}
+          />
+        </Box>
+        {estimates.length > 0 && <EstimateSummary estimates={estimates} />}
+      </Stack>
     </Stack>
   )
 }
@@ -151,7 +171,7 @@ function EstimateItemRowView({
   const { t } = useTranslation()
   const typeOptions = useEstimateTypeOptions()
 
-  // Routes every amount edit through the shared rule that keeps price, quantity, complexity, discount and total in step.
+  // Routes every amount edit through the shared rule that keeps price, quantity, discount and total in step.
   function change(patch: Partial<EstimateItemRow>) {
     onChange(resolveItemPatch(row, patch, discountType))
   }
@@ -192,7 +212,7 @@ function EstimateItemRowView({
           </Stack>
         )}
       </TableCell>
-      <TableCell sx={{ minWidth: 140 }}>
+      <TableCell>
         <CellSelect
           value={row.type}
           onChange={(type) => change({ type })}
@@ -207,7 +227,9 @@ function EstimateItemRowView({
           onChange={(value) => change({ hours: value })}
           ariaLabel={t('estimate.hours')}
           maxDecimals={2}
+          max={MAX_HOURS}
           readOnly={row.type === 'Fixed'}
+          struckThrough={row.type === 'Fixed'}
         />
       </TableCell>
       <TableCell>
@@ -216,8 +238,10 @@ function EstimateItemRowView({
           onChange={(value) => change({ priceHr: value })}
           ariaLabel={t('estimate.priceHr')}
           maxDecimals={2}
+          max={MAX_PRICE}
           unit={t('estimate.currencyShort')}
           readOnly={row.type === 'Fixed'}
+          struckThrough={row.type === 'Fixed'}
         />
       </TableCell>
       {/* Fixed: the price is typed in. Hourly: it is hours x rate, so it is shown but locked. */}
@@ -227,25 +251,17 @@ function EstimateItemRowView({
           onChange={(value) => change({ price: value })}
           ariaLabel={t('estimate.price')}
           maxDecimals={2}
+          max={MAX_PRICE}
           unit={t('estimate.currencyShort')}
           readOnly={row.type === 'Hourly'}
         />
       </TableCell>
       <TableCell>
-        <CellNumberStepper value={row.quantity} onChange={(value) => change({ quantity: value })} ariaLabel={t('estimate.quantity')} />
-      </TableCell>
-      <TableCell>
-        <CellField
-          value={row.complexity}
-          onChange={(value) => change({ complexity: value })}
-          // An empty or zero complexity is not allowed, so leaving the field puts the default back.
-          onBlur={() => {
-            if ((toNullableNumber(row.complexity) ?? 0) <= 0) {
-              change({ complexity: '1' })
-            }
-          }}
-          ariaLabel={t('estimate.complexity')}
-          maxDecimals={1}
+        <CellNumberStepper
+          value={row.quantity}
+          onChange={(value) => change({ quantity: value })}
+          ariaLabel={t('estimate.quantity')}
+          max={MAX_QUANTITY}
         />
       </TableCell>
       <TableCell>
@@ -257,16 +273,6 @@ function EstimateItemRowView({
           ariaLabel={t('estimate.discount')}
         />
       </TableCell>
-      {/* Always calculated: price x quantity x complexity minus the discount. */}
-      <TableCell>
-        <CellField
-          value={row.total}
-          onChange={() => undefined}
-          ariaLabel={t('estimate.total')}
-          unit={t('estimate.currencyShort')}
-          readOnly
-        />
-      </TableCell>
       {/* The tax is a snapshot taken when the item was added, so it can never be edited here. */}
       <TableCell>
         <CellField
@@ -274,7 +280,17 @@ function EstimateItemRowView({
           onChange={() => undefined}
           ariaLabel={t('estimate.tax')}
           unit={t('estimate.currencyShort')}
-          disabled
+          readOnly
+        />
+      </TableCell>
+      {/* Always calculated: price x quantity minus the discount. */}
+      <TableCell>
+        <CellField
+          value={row.total}
+          onChange={() => undefined}
+          ariaLabel={t('estimate.total')}
+          unit={t('estimate.currencyShort')}
+          readOnly
         />
       </TableCell>
       <TableCell>

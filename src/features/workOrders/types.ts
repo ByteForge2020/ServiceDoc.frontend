@@ -34,8 +34,6 @@ export interface EstimateItemPayload {
   price: number | null
   /** Whole number, at least 1. */
   quantity: number
-  /** Greater than 0, one decimal place; multiplies the amount. */
-  complexity: number
   /** A percent or a money amount, depending on the work order's discountType. */
   discount: number | null
   /** Tax amount, a snapshot from when the item was added; null when there was none. */
@@ -45,7 +43,7 @@ export interface EstimateItemPayload {
 export interface EstimateItem extends EstimateItemPayload {
   id: string
   sortOrder: number
-  /** Calculated by the server: price x quantity x complexity minus the discount. Never sent back. */
+  /** Calculated by the server: price x quantity minus the discount. Never sent back. */
   total: number | null
 }
 

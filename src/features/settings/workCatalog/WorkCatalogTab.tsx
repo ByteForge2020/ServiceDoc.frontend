@@ -39,6 +39,7 @@ import {
 } from '../../workOrders/estimateMasterListQueries'
 import { useDebouncedValue } from '../../workOrders/components/useDebouncedValue'
 import { TaxSettings } from './TaxSettings'
+import { MAX_HOURS, MAX_PRICE } from '../../workOrders/estimateLimits'
 import { useEstimateTypeLabel, useEstimateTypeOptions } from '../../workOrders/useEstimateTypeOptions'
 import { resolveAmountPatch, toNullableNumber, type EstimateAmountFields } from '../../workOrders/workOrderForm'
 
@@ -86,7 +87,7 @@ function isAmountInvalid(value: string): boolean {
 }
 
 function formatAmount(value: number | null): string {
-  return value != null ? String(value) : '—'
+  return value != null ? String(value) : ''
 }
 
 // Matches the height of the inputs in the edit row, so a locked value looks like a locked input.
@@ -96,7 +97,7 @@ const LOCKED_VALUE_HEIGHT = '36px'
  * An amount in a read-only row. When the item's type does not use it (hours and rate for Fixed, the price for Hourly)
  * the value sits in a greyed-out box like the locked inputs of the edit row, so it reads as unavailable.
  */
-function AmountCell({ value, locked }: { value: number | null; locked: boolean }) {
+function AmountCell({ value, locked, struckThrough = false }: { value: number | null; locked: boolean; struckThrough?: boolean }) {
   if (!locked) {
     return <TableCell>{formatAmount(value)}</TableCell>
   }
@@ -114,6 +115,8 @@ function AmountCell({ value, locked }: { value: number | null; locked: boolean }
           borderColor: 'divider',
           bgcolor: 'action.hover',
           color: 'text.disabled',
+          // A kept but unused value (hours and rate of a Fixed item) gets a faint line through it; a calculated one doesn't.
+          ...(struckThrough && value !== null && { textDecoration: 'line-through', textDecorationColor: (theme: Theme) => theme.palette.text.secondary }),
         }}
       >
         {formatAmount(value)}
@@ -360,7 +363,9 @@ export function WorkCatalogTab() {
             onChange={(hours) => changeAmounts({ hours })}
             ariaLabel={t('estimate.hours')}
             error={isAmountInvalid(draft.hours)}
+            max={MAX_HOURS}
             readOnly={draft.type === 'Fixed'}
+            struckThrough={draft.type === 'Fixed'}
           />
         </TableCell>
         <TableCell>
@@ -369,7 +374,9 @@ export function WorkCatalogTab() {
             onChange={(priceHr) => changeAmounts({ priceHr })}
             ariaLabel={t('estimate.priceHr')}
             error={isAmountInvalid(draft.priceHr)}
+            max={MAX_PRICE}
             readOnly={draft.type === 'Fixed'}
+            struckThrough={draft.type === 'Fixed'}
           />
         </TableCell>
         <TableCell>
@@ -378,6 +385,7 @@ export function WorkCatalogTab() {
             onChange={(price) => changeAmounts({ price })}
             ariaLabel={t('estimate.price')}
             error={draft.type === 'Fixed' && isAmountInvalid(draft.price)}
+            max={MAX_PRICE}
             readOnly={draft.type === 'Hourly'}
           />
         </TableCell>
@@ -499,8 +507,8 @@ export function WorkCatalogTab() {
                     <HighlightedText text={item.name} query={debouncedSearch} />
                   </TableCell>
                   <TableCell>{typeLabel(item.type)}</TableCell>
-                  <AmountCell value={item.hours} locked={item.type === 'Fixed'} />
-                  <AmountCell value={item.priceHr} locked={item.type === 'Fixed'} />
+                  <AmountCell value={item.hours} locked={item.type === 'Fixed'} struckThrough={item.type === 'Fixed'} />
+                  <AmountCell value={item.priceHr} locked={item.type === 'Fixed'} struckThrough={item.type === 'Fixed'} />
                   <AmountCell value={item.price} locked={item.type === 'Hourly'} />
                   <TableCell>
                     <Stack direction="row" spacing={0}>

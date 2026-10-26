@@ -1,5 +1,6 @@
 import InputAdornment from '@mui/material/InputAdornment'
 import TextField from '@mui/material/TextField'
+import type { Theme } from '@mui/material/styles'
 import { sanitizeDecimalInput } from '../../utils/decimalInput'
 
 interface CellFieldProps {
@@ -12,6 +13,8 @@ interface CellFieldProps {
    * extra digits are dropped as the user types or pastes. Without it the field takes whatever is typed.
    */
   maxDecimals?: number
+  /** A larger number typed or pasted is replaced by this one. Text is left alone (and still not a number). */
+  max?: number
   /** A unit shown right after the value (e.g. a currency sign) while the field has one; not part of the value. */
   unit?: string
   error?: boolean
@@ -20,6 +23,8 @@ interface CellFieldProps {
   readOnly?: boolean
   /** Greyed out and not focusable, for a value the user can never change (e.g. a calculated snapshot). */
   disabled?: boolean
+  /** A faint line through the value, for one that is kept but not used right now (e.g. hours of a Fixed item). */
+  struckThrough?: boolean
   onBlur?: () => void
 }
 
@@ -30,12 +35,14 @@ export function CellField({
   ariaLabel,
   numeric = true,
   maxDecimals,
+  max,
   unit,
   error = false,
   placeholder,
   autoFocus = false,
   readOnly = false,
   disabled = false,
+  struckThrough = false,
   onBlur,
 }: CellFieldProps) {
   const showUnit = unit !== undefined && value !== ''
@@ -46,16 +53,25 @@ export function CellField({
       variant="outlined"
       fullWidth
       value={value}
-      onChange={(event) =>
-        onChange(maxDecimals === undefined ? event.target.value : sanitizeDecimalInput(event.target.value, maxDecimals))
-      }
+      onChange={(event) => {
+        const next = maxDecimals === undefined ? event.target.value : sanitizeDecimalInput(event.target.value, maxDecimals)
+        onChange(max !== undefined && Number(next.replace(',', '.')) > max ? String(max) : next)
+      }}
       onBlur={onBlur}
       error={error}
       placeholder={placeholder}
       autoFocus={autoFocus}
       disabled={disabled}
       // A read-only value (e.g. a calculated total) is shown but looks different from an editable one.
-      sx={readOnly ? { '& .MuiInputBase-root': { bgcolor: 'action.hover' } } : undefined}
+      sx={{
+        ...(readOnly && { '& .MuiInputBase-root': { bgcolor: 'action.hover' } }),
+        ...(struckThrough && {
+          '& .MuiInputBase-input, & .MuiInputAdornment-root': {
+            textDecoration: 'line-through',
+            textDecorationColor: (theme: Theme) => theme.palette.text.secondary,
+          },
+        }),
+      }}
       slotProps={{
         htmlInput: {
           'aria-label': ariaLabel,

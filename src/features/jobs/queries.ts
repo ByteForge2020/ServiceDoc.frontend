@@ -1,9 +1,16 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { jobsApi } from '../../api/jobsApi'
+import { workOrderKeys } from '../workOrders/queries'
 import type { CreateJobPayload, Job, RescheduleJobPayload, UpdateJobPayload } from './types'
 
 export const jobsKeys = {
   range: (from: string, to: string) => ['jobs', from, to] as const,
+}
+
+// The work orders list shows each order's jobs, so it has to follow every change made in the job calendar.
+function invalidateJobData(queryClient: QueryClient) {
+  queryClient.invalidateQueries({ queryKey: ['jobs'] })
+  queryClient.invalidateQueries({ queryKey: workOrderKeys.all })
 }
 
 export function useJobsQuery(from: string, to: string) {
@@ -39,9 +46,7 @@ export function useRescheduleJobMutation() {
     onError: (_error, _variables, context) => {
       context?.previous.forEach(([key, data]) => queryClient.setQueryData(key, data))
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['jobs'] })
-    },
+    onSettled: () => invalidateJobData(queryClient),
   })
 }
 
@@ -50,9 +55,7 @@ export function useCreateJobMutation() {
 
   return useMutation({
     mutationFn: (payload: CreateJobPayload) => jobsApi.create(payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['jobs'] })
-    },
+    onSuccess: () => invalidateJobData(queryClient),
   })
 }
 
@@ -61,9 +64,7 @@ export function useUpdateJobMutation(id: string) {
 
   return useMutation({
     mutationFn: (payload: UpdateJobPayload) => jobsApi.update(id, payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['jobs'] })
-    },
+    onSuccess: () => invalidateJobData(queryClient),
   })
 }
 
@@ -72,8 +73,6 @@ export function useDeleteJobMutation() {
 
   return useMutation({
     mutationFn: (id: string) => jobsApi.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['jobs'] })
-    },
+    onSuccess: () => invalidateJobData(queryClient),
   })
 }

@@ -45,6 +45,7 @@
       "collapseAria": "Скрыть работы"
     },
     "jobsTable": {
+      "addJob": "Добавить работу",
       "description": "Описание работы",
       "assigned": "Исполнитель",
       "scheduled": "Запланировано",
@@ -113,7 +114,7 @@
     "notesPlaceholder": "Введите примечания"
   },
   "estimate": {
-    "status": "Статус",
+    "status": "Одобрено",
     "addItem": "Добавить позицию",
     "addSubItem": "Добавить подпозицию",
     "searchPlaceholder": "Начните вводить…",
@@ -128,10 +129,11 @@
     "priceHr": "Цена/ч",
     "price": "Цена",
     "quantity": "Кол-во",
-    "complexity": "Коэф.",
     "currencyShort": "р.",
     "discount": "Скидка",
     "total": "Итого",
+    "summaryTax": "В том числе НДС",
+    "summaryTotal": "Итого по смете",
     "removeAria": "Удалить позицию",
     "createItemError": "Не удалось создать позицию.",
     "approveAria": "Утвердить",
@@ -319,6 +321,10 @@
     "dragDrop": {
       "rescheduleSuccess": "Работа перемещена.",
       "rescheduleError": "Не удалось переместить работу."
+    },
+    "calendarDialog": {
+      "closeAria": "Закрыть",
+      "jobNotFound": "Эту работу больше нельзя показать в календаре. Возможно, она удалена или её техника нет в списке."
     }
   },
   "appointmentsPage": {

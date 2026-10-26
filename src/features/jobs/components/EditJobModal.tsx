@@ -11,10 +11,11 @@ import { JobFormModal, type JobFormValues } from './JobFormModal'
 interface EditJobModalProps {
   open: boolean
   job: Job
+  onUpdated?: () => void
   onClose: () => void
 }
 
-export function EditJobModal({ open, job, onClose }: EditJobModalProps) {
+export function EditJobModal({ open, job, onUpdated, onClose }: EditJobModalProps) {
   const { t } = useTranslation()
   const toasters = useToasters()
   const zone = useShopTimeZone()
@@ -25,6 +26,7 @@ export function EditJobModal({ open, job, onClose }: EditJobModalProps) {
       onSuccess: () => {
         toasters.success(t('jobs.editJobModal.updateSuccess'))
         onClose()
+        onUpdated?.()
       },
       onError: (error) => {
         toasters.error(extractErrorMessage(error, t('jobs.editJobModal.updateError')))
