@@ -6,6 +6,7 @@ import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
 import { AppointmentsTab } from './appointments/AppointmentsTab'
 import { PhasesTab } from './phases/PhasesTab'
+import { ServiceBaysTab } from './serviceBays/ServiceBaysTab'
 import { TeamMembersTab } from './teamMembers/TeamMembersTab'
 import { WorkOrdersTab } from './workOrders/WorkOrdersTab'
 import { WorkCatalogTab } from './workCatalog/WorkCatalogTab'
@@ -26,6 +27,7 @@ export function SettingsPage() {
         <Tab label={t('phases.tabLabel')} value={2} />
         <Tab label={t('workCatalog.tabLabel')} value={3} />
         <Tab label={t('workOrderSettings.tabLabel')} value={4} />
+        <Tab label={t('serviceBays.tabLabel')} value={5} />
       </Tabs>
 
       {tab === 0 && <TeamMembersTab />}
@@ -33,6 +35,7 @@ export function SettingsPage() {
       {tab === 2 && <PhasesTab />}
       {tab === 3 && <WorkCatalogTab />}
       {tab === 4 && <WorkOrdersTab />}
+      {tab === 5 && <ServiceBaysTab />}
     </Stack>
   )
 }

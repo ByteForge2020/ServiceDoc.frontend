@@ -16,7 +16,10 @@ import { useShopTimeZone } from '../../../app/shop/useShopTimeZone'
 import { useToasters } from '../../../app/toasters/useToasters'
 import { JobsCalendarDialog, type JobsCalendarDialogTarget } from '../../jobs/components/JobsCalendarDialog'
 import { useDeleteJobMutation } from '../../jobs/queries'
-import type { JobSummary, WorkOrder } from '../types'
+import { bookingErrorMessage } from '../../serviceBayBookings/bookingErrorMessage'
+import { useDeleteServiceBayBookingMutation } from '../../serviceBayBookings/queries'
+import type { JobSummary, ServiceBayBookingSummary, WorkOrder } from '../types'
+import { WorkOrderBookingTile } from './WorkOrderBookingTile'
 import { WorkOrderJobTile } from './WorkOrderJobTile'
 
 function formatDate(value: string | null, zone: string): string {
@@ -25,6 +28,21 @@ function formatDate(value: string | null, zone: string): string {
   }
   return DateTime.fromISO(value, { zone: 'utc' }).setZone(zone).toLocaleString(DateTime.DATETIME_MED)
 }
+
+// The "add" links above the tiles: plain text, no background or border.
+const linkButtonSx = {
+  alignSelf: 'flex-start',
+  p: 0,
+  minWidth: 0,
+  fontWeight: 600,
+  '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' },
+} as const
+
+const tileGridSx = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+  gap: 1.5,
+} as const
 
 interface WorkOrderRowProps {
   workOrder: WorkOrder
@@ -37,8 +55,32 @@ export function WorkOrderRow({ workOrder }: WorkOrderRowProps) {
   const toasters = useToasters()
   const confirm = useConfirm()
   const deleteJobMutation = useDeleteJobMutation()
+  const deleteBookingMutation = useDeleteServiceBayBookingMutation()
   const [open, setOpen] = useState(false)
   const [calendarTarget, setCalendarTarget] = useState<JobsCalendarDialogTarget | null>(null)
+
+  const order = { id: workOrder.id, orderNumber: workOrder.orderNumber }
+
+  async function handleDeleteBooking(booking: ServiceBayBookingSummary) {
+    const confirmed = await confirm({
+      message: t('serviceBayBookings.deleteConfirmMessage', { orderNumber: workOrder.orderNumber }),
+      confirmLabel: t('serviceBayBookings.delete'),
+      destructive: true,
+    })
+
+    if (!confirmed) {
+      return
+    }
+
+    deleteBookingMutation.mutate(booking.id, {
+      onSuccess: () => {
+        toasters.success(t('serviceBayBookings.deleteSuccess'))
+      },
+      onError: (error) => {
+        toasters.error(bookingErrorMessage(error, t('serviceBayBookings.deleteError')))
+      },
+    })
+  }
 
   async function handleDeleteJob(job: JobSummary) {
     const confirmed = await confirm({
@@ -99,31 +141,22 @@ export function WorkOrderRow({ workOrder }: WorkOrderRowProps) {
               <Button
                 variant="text"
                 disableRipple
-                onClick={() =>
-                  setCalendarTarget({
-                    kind: 'addToOrder',
-                    order: { id: workOrder.id, orderNumber: workOrder.orderNumber },
-                  })
-                }
-                sx={{
-                  alignSelf: 'flex-start',
-                  p: 0,
-                  minWidth: 0,
-                  fontWeight: 600,
-                  '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' },
-                }}
+                onClick={() => setCalendarTarget({ kind: 'addJob', order })}
+                sx={linkButtonSx}
               >
                 {t('workOrders.jobsTable.addJob')}
               </Button>
+              <Button
+                variant="text"
+                disableRipple
+                onClick={() => setCalendarTarget({ kind: 'addBooking', order })}
+                sx={linkButtonSx}
+              >
+                {t('workOrders.jobsTable.bookServiceBay')}
+              </Button>
 
               {workOrder.jobs.length > 0 && (
-                <Box
-                  sx={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                    gap: 1.5,
-                  }}
-                >
+                <Box sx={tileGridSx}>
                   {workOrder.jobs.map((job) => (
                     <WorkOrderJobTile
                       key={job.id}
@@ -132,6 +165,21 @@ export function WorkOrderRow({ workOrder }: WorkOrderRowProps) {
                         setCalendarTarget({ kind: 'editJob', jobId: item.id, scheduledTime: item.scheduledTime })
                       }
                       onDelete={handleDeleteJob}
+                    />
+                  ))}
+                </Box>
+              )}
+
+              {workOrder.serviceBayBookings.length > 0 && (
+                <Box sx={tileGridSx}>
+                  {workOrder.serviceBayBookings.map((booking) => (
+                    <WorkOrderBookingTile
+                      key={booking.id}
+                      booking={booking}
+                      onEdit={(item) =>
+                        setCalendarTarget({ kind: 'editBooking', bookingId: item.id, scheduledTime: item.scheduledTime })
+                      }
+                      onDelete={handleDeleteBooking}
                     />
                   ))}
                 </Box>

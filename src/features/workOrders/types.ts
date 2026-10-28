@@ -105,6 +105,16 @@ export interface JobSummary {
   scheduledDurationMinutes: number
 }
 
+export interface ServiceBayBookingSummary {
+  id: string
+  serviceBayName: string
+  /** The bay was deleted: the booking is kept, but the bay is no longer in the calendar, so it can't be edited. */
+  isServiceBayDeleted: boolean
+  descriptions: string[]
+  scheduledTime: string
+  scheduledDurationMinutes: number
+}
+
 export interface WorkOrder {
   id: string
   repairShopId: string
@@ -126,6 +136,7 @@ export interface WorkOrder {
   estimates: Estimate[]
   spareParts: SparePart[]
   jobs: JobSummary[]
+  serviceBayBookings: ServiceBayBookingSummary[]
 }
 
 export interface WorkOrderSummary {

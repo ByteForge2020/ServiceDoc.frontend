@@ -5,8 +5,6 @@ import Button from '@mui/material/Button'
 import Popover from '@mui/material/Popover'
 import Typography from '@mui/material/Typography'
 import { alpha } from '@mui/material/styles'
-import { useTranslation } from 'react-i18next'
-import type { TeamMember } from '../../settings/teamMembers/types'
 import {
   DAY_WIDTH_PX,
   HEADER_HEIGHT,
@@ -18,52 +16,57 @@ import {
   SLOT_MINUTES,
   SNAP_MINUTES,
 } from '../gridConstants'
-import type { Job } from '../types'
-import { JOB_ID_ATTRIBUTE, TIMELINE_ATTRIBUTE, technicianDisplayName } from '../technicianUtils'
+import type { CalendarEntry, CalendarRow } from '../types'
+import { ENTRY_ID_ATTRIBUTE, TIMELINE_ATTRIBUTE } from '../technicianUtils'
 import { minutesToLabel, offsetXToMinutes, snapMinutes } from '../../../utils/timeGrid'
-import { JobCard } from './JobCard'
+import { CalendarEntryCard, type EntryLabels } from './CalendarEntryCard'
 
 interface HoverState {
-  technicianId: string
+  rowId: string
   minutes: number
 }
 
 interface PopoverState {
-  technicianId: string
-  technicianName: string
+  rowId: string
+  rowName: string
   minutes: number
   top: number
   left: number
 }
 
 export interface DropPlaceholder {
-  technicianId: string
+  rowId: string
   minutes: number
   durationMinutes: number
 }
 
-interface TechniciansGridProps {
-  technicians: TeamMember[]
-  jobs: Job[]
-  /** Where the dragged job will land if dropped now; rendered underneath the drag overlay. */
+interface ResourceGridProps {
+  rows: CalendarRow[]
+  entries: CalendarEntry[]
+  /** Where the dragged entry will land if dropped now; rendered underneath the drag overlay. */
   dropPlaceholder: DropPlaceholder | null
-  /** Jobs for which this returns false are shown dimmed, with no menu and no dragging. */
-  isJobEditable: (job: Job) => boolean
-  /** Whether clicking an empty slot offers to add a job there. */
-  canAddJobs: boolean
-  /** A job to scroll into the middle of the view (and pulse) when the grid first appears. */
-  focusJobId?: string
+  /** Entries for which this returns false are shown dimmed, with no menu and no dragging. */
+  isEntryEditable: (entry: CalendarEntry) => boolean
+  /** Whether clicking an empty slot offers to add something there. */
+  canAdd: boolean
+  /** An entry to scroll into the middle of the view (and pulse) when the grid first appears. */
+  focusEntryId?: string
   /** Height the grid may grow to before it scrolls; sized for the full page by default. */
   maxHeight?: string
-  onAddJob: (params: { technicianId: string; technicianName: string; minutes: number }) => void
-  onEditJob: (job: Job) => void
-  onDeleteJob: (job: Job) => void
+  /** Shown instead of rows when there are none. */
+  emptyRowsText: ReactNode
+  /** Label of the button offered when an empty slot is clicked. */
+  addLabel: string
+  entryLabels: EntryLabels
+  onAdd: (params: { rowId: string; rowName: string; minutes: number }) => void
+  onEdit: (entry: CalendarEntry) => void
+  onDelete: (entry: CalendarEntry) => void
 }
 
 const slotTicks = Array.from({ length: MINUTES_PER_DAY / SLOT_MINUTES }, (_, i) => i * SLOT_MINUTES)
 
 interface TimelineDropRowProps {
-  technicianId: string
+  rowId: string
   clickable: boolean
   children: ReactNode
   onMouseMove: (event: ReactMouseEvent<HTMLDivElement>) => void
@@ -71,13 +74,13 @@ interface TimelineDropRowProps {
   onClick: (event: ReactMouseEvent<HTMLDivElement>) => void
 }
 
-function TimelineDropRow({ technicianId, clickable, children, onMouseMove, onMouseLeave, onClick }: TimelineDropRowProps) {
-  const { setNodeRef } = useDroppable({ id: technicianId })
+function TimelineDropRow({ rowId, clickable, children, onMouseMove, onMouseLeave, onClick }: TimelineDropRowProps) {
+  const { setNodeRef } = useDroppable({ id: rowId })
 
   return (
     <Box
       ref={setNodeRef}
-      {...{ [TIMELINE_ATTRIBUTE]: technicianId }}
+      {...{ [TIMELINE_ATTRIBUTE]: rowId }}
       sx={{
         width: DAY_WIDTH_PX,
         height: ROW_HEIGHT,
@@ -97,19 +100,22 @@ function TimelineDropRow({ technicianId, clickable, children, onMouseMove, onMou
   )
 }
 
-export function TechniciansGrid({
-  technicians,
-  jobs,
+/** The day grid shared by the calendars: one row per resource, entries positioned by their start time. */
+export function ResourceGrid({
+  rows,
+  entries,
   dropPlaceholder,
-  isJobEditable,
-  canAddJobs,
-  focusJobId,
+  isEntryEditable,
+  canAdd,
+  focusEntryId,
   maxHeight = 'calc(100vh - 260px)',
-  onAddJob,
-  onEditJob,
-  onDeleteJob,
-}: TechniciansGridProps) {
-  const { t } = useTranslation()
+  emptyRowsText,
+  addLabel,
+  entryLabels,
+  onAdd,
+  onEdit,
+  onDelete,
+}: ResourceGridProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [hover, setHover] = useState<HoverState | null>(null)
   const [popover, setPopover] = useState<PopoverState | null>(null)
@@ -121,8 +127,8 @@ export function TechniciansGrid({
       return
     }
 
-    const card = focusJobId
-      ? container.querySelector<HTMLElement>(`[${JOB_ID_ATTRIBUTE}="${CSS.escape(focusJobId)}"]`)
+    const card = focusEntryId
+      ? container.querySelector<HTMLElement>(`[${ENTRY_ID_ATTRIBUTE}="${CSS.escape(focusEntryId)}"]`)
       : null
 
     if (!card) {
@@ -137,25 +143,25 @@ export function TechniciansGrid({
     const visibleCenterY = containerRect.top + HEADER_HEIGHT + (containerRect.height - HEADER_HEIGHT) / 2
     container.scrollLeft += cardRect.left + cardRect.width / 2 - visibleCenterX
     container.scrollTop += cardRect.top + cardRect.height / 2 - visibleCenterY
-  }, [focusJobId])
+  }, [focusEntryId])
 
-  function handleMouseMove(event: ReactMouseEvent<HTMLDivElement>, technicianId: string) {
-    if (!canAddJobs) {
+  function handleMouseMove(event: ReactMouseEvent<HTMLDivElement>, rowId: string) {
+    if (!canAdd) {
       return
     }
 
     const rect = event.currentTarget.getBoundingClientRect()
     const offsetX = event.clientX - rect.left
     const minutes = snapMinutes(offsetXToMinutes(offsetX, PX_PER_MINUTE), SNAP_MINUTES, MINUTES_PER_DAY)
-    setHover({ technicianId, minutes })
+    setHover({ rowId, minutes })
   }
 
   function handleMouseLeave() {
     setHover(null)
   }
 
-  function handleClick(event: ReactMouseEvent<HTMLDivElement>, technician: TeamMember) {
-    if (!canAddJobs) {
+  function handleClick(event: ReactMouseEvent<HTMLDivElement>, row: CalendarRow) {
+    if (!canAdd) {
       return
     }
 
@@ -163,8 +169,8 @@ export function TechniciansGrid({
     const offsetX = event.clientX - rect.left
     const minutes = snapMinutes(offsetXToMinutes(offsetX, PX_PER_MINUTE), SNAP_MINUTES, MINUTES_PER_DAY)
     setPopover({
-      technicianId: technician.id,
-      technicianName: technicianDisplayName(technician),
+      rowId: row.id,
+      rowName: row.name,
       minutes,
       top: event.clientY,
       left: event.clientX,
@@ -175,11 +181,11 @@ export function TechniciansGrid({
     setPopover(null)
   }
 
-  function handleAddJobClick() {
+  function handleAddClick() {
     if (!popover) {
       return
     }
-    onAddJob({ technicianId: popover.technicianId, technicianName: popover.technicianName, minutes: popover.minutes })
+    onAdd({ rowId: popover.rowId, rowName: popover.rowName, minutes: popover.minutes })
     setPopover(null)
   }
 
@@ -239,20 +245,20 @@ export function TechniciansGrid({
           </Box>
         </Box>
 
-        {technicians.length === 0 && (
+        {rows.length === 0 && (
           <Box sx={{ p: 4 }}>
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              {t('jobs.noTechnicians')}
+              {emptyRowsText}
             </Typography>
           </Box>
         )}
 
-        {technicians.map((technician) => {
-          const technicianJobs = jobs.filter((job) => job.assignedUserId === technician.id)
-          const isHovered = !isDragging && hover?.technicianId === technician.id
+        {rows.map((row) => {
+          const rowEntries = entries.filter((entry) => entry.rowId === row.id)
+          const isHovered = !isDragging && hover?.rowId === row.id
 
           return (
-            <Box key={technician.id} sx={{ display: 'flex' }}>
+            <Box key={row.id} sx={{ display: 'flex' }}>
               <Box
                 sx={{
                   width: NAME_COLUMN_WIDTH,
@@ -271,30 +277,31 @@ export function TechniciansGrid({
                 }}
               >
                 <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
-                  {technicianDisplayName(technician)}
+                  {row.name}
                 </Typography>
               </Box>
 
               <TimelineDropRow
-                technicianId={technician.id}
-                clickable={canAddJobs}
-                onMouseMove={(event) => handleMouseMove(event, technician.id)}
+                rowId={row.id}
+                clickable={canAdd}
+                onMouseMove={(event) => handleMouseMove(event, row.id)}
                 onMouseLeave={handleMouseLeave}
-                onClick={(event) => handleClick(event, technician)}
+                onClick={(event) => handleClick(event, row)}
               >
-                {technicianJobs.map((job) => (
-                  <JobCard
-                    key={job.id}
-                    job={job}
-                    onEdit={onEditJob}
-                    onDelete={onDeleteJob}
+                {rowEntries.map((entry) => (
+                  <CalendarEntryCard
+                    key={entry.id}
+                    entry={entry}
+                    labels={entryLabels}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
                     onHoverStart={() => setHover(null)}
-                    disabled={!isJobEditable(job)}
-                    highlighted={job.id === focusJobId}
+                    disabled={!isEntryEditable(entry)}
+                    highlighted={entry.id === focusEntryId}
                   />
                 ))}
 
-                {dropPlaceholder?.technicianId === technician.id && (
+                {dropPlaceholder?.rowId === row.id && (
                   <Box
                     sx={{
                       position: 'absolute',
@@ -374,8 +381,8 @@ export function TechniciansGrid({
         anchorReference="anchorPosition"
         anchorPosition={popover ? { top: popover.top, left: popover.left } : undefined}
       >
-        <Button variant="text" onClick={handleAddJobClick} sx={{ m: 1 }}>
-          {t('jobs.addJobPopup.addJobToOrder')}
+        <Button variant="text" onClick={handleAddClick} sx={{ m: 1 }}>
+          {addLabel}
         </Button>
       </Popover>
     </Box>

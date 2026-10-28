@@ -46,6 +46,7 @@
     },
     "jobsTable": {
       "addJob": "Add job",
+      "bookServiceBay": "Book service bay",
       "description": "Job description",
       "assigned": "Assigned",
       "scheduled": "Scheduled",
@@ -173,6 +174,33 @@
     "deleteError": "Failed to delete phase.",
     "reorderError": "Failed to reorder phases."
   },
+  "serviceBays": {
+    "tabLabel": "Service bays",
+    "title": "Service bays",
+    "description": "The places in your shop where a vehicle can be booked in. Deleting a bay hides it from the calendar; bookings made for it are kept.",
+    "newServiceBay": "Add service bay",
+    "refreshAria": "Refresh service bays",
+    "table": {
+      "name": "Name"
+    },
+    "noServiceBays": "No service bays yet.",
+    "menuAria": "Service bay options",
+    "addTitle": "Add service bay",
+    "renameTitle": "Rename service bay",
+    "nameLabel": "Name",
+    "namePlaceholder": "e.g. Bay 1",
+    "save": "Save",
+    "rename": "Rename",
+    "delete": "Delete",
+    "deleteConfirmMessage": "Delete the service bay \"{{name}}\"? It will disappear from the calendar, but bookings already made for it are kept.",
+    "nameConflict": "A service bay with this name already exists.",
+    "createSuccess": "Service bay added.",
+    "renameSuccess": "Service bay renamed.",
+    "deleteSuccess": "Service bay deleted.",
+    "createError": "Failed to add service bay.",
+    "renameError": "Failed to rename service bay.",
+    "deleteError": "Failed to delete service bay."
+  },
   "workOrderSettings": {
     "tabLabel": "Work orders",
     "discountTypeTitle": "Discount type",
@@ -275,11 +303,16 @@
   "jobs": {
     "title": "Jobs",
     "tabs": {
-      "technicians": "Technicians"
+      "technicians": "Technicians",
+      "serviceBays": "Service bays"
     },
     "noTechnicians": "No technicians found.",
+    "noServiceBays": "No service bays yet. Add them in Settings → Service bays.",
     "addJobPopup": {
       "addJobToOrder": "Add job to Order"
+    },
+    "addBookingPopup": {
+      "bookServiceBay": "Book service bay for Order"
     },
     "addJobModal": {
       "title": "Add job to an Order for {{technician}}",
@@ -324,7 +357,31 @@
     },
     "calendarDialog": {
       "closeAria": "Close",
-      "jobNotFound": "This job can no longer be shown in the calendar. It may have been deleted, or its technician is no longer listed."
+      "entryNotFound": "This can no longer be shown in the calendar. It may have been deleted, or its technician or service bay is no longer listed."
+    }
+  },
+  "serviceBayBookings": {
+    "conflict": "This service bay is already booked at this time.",
+    "menuAria": "Booking options",
+    "edit": "Edit booking",
+    "delete": "Delete booking",
+    "deletedBay": "deleted",
+    "deleteConfirmMessage": "Are you sure you want to delete the service bay booking for order #{{orderNumber}}? This action cannot be undone.",
+    "deleteSuccess": "Booking deleted.",
+    "deleteError": "Failed to delete booking.",
+    "dragDrop": {
+      "rescheduleSuccess": "Booking moved.",
+      "rescheduleError": "Failed to move booking."
+    },
+    "addModal": {
+      "title": "Book {{serviceBay}} for an Order",
+      "createSuccess": "Service bay booked.",
+      "createError": "Failed to book service bay."
+    },
+    "editModal": {
+      "title": "Edit booking of {{serviceBay}}",
+      "updateSuccess": "Booking updated.",
+      "updateError": "Failed to update booking."
     }
   },
   "appointmentsPage": {

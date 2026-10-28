@@ -7,52 +7,66 @@ import MenuItem from '@mui/material/MenuItem'
 import Typography from '@mui/material/Typography'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import { alpha, keyframes } from '@mui/material/styles'
-import { useTranslation } from 'react-i18next'
 import { useShopTimeZone } from '../../../app/shop/useShopTimeZone'
-import type { Job } from '../types'
-import { JOB_CARD_ATTRIBUTE, JOB_ID_ATTRIBUTE } from '../technicianUtils'
+import type { CalendarEntry } from '../types'
+import { ENTRY_CARD_ATTRIBUTE, ENTRY_ID_ATTRIBUTE } from '../technicianUtils'
 import { PX_PER_MINUTE } from '../gridConstants'
 import { formatTimeRange, utcIsoToMinutesOfDay } from '../../../utils/timeGrid'
 
-// A short ring pulse that draws the eye to the job being edited when the calendar opens.
+// A short ring pulse that draws the eye to the entry being edited when the calendar opens.
 const pulse = keyframes`
   0% { box-shadow: 0 0 0 0 var(--pulse-color); }
   100% { box-shadow: 0 0 0 10px transparent; }
 `
 
-interface JobCardProps {
-  job: Job
-  onEdit: (job: Job) => void
-  onDelete: (job: Job) => void
+/** Texts that differ between the calendars (jobs / service bay bookings). */
+export interface EntryLabels {
+  menuAria: string
+  edit: string
+  delete: string
+}
+
+interface CalendarEntryCardProps {
+  entry: CalendarEntry
+  labels: EntryLabels
+  onEdit: (entry: CalendarEntry) => void
+  onDelete: (entry: CalendarEntry) => void
   onHoverStart?: () => void
   /** Locked: shown dimmed, with no menu and no dragging. */
   disabled?: boolean
-  /** Pulses briefly to point out the job the calendar was opened for. */
+  /** Pulses briefly to point out the entry the calendar was opened for. */
   highlighted?: boolean
 }
 
-/** The job's descriptions on one line, or null when it has none. */
-function jobDescriptionsText(job: Job): string | null {
-  return job.descriptions.length > 0 ? job.descriptions.map((description) => description.name).join(', ') : null
+/** The entry's descriptions on one line, or null when it has none. */
+function descriptionsText(entry: CalendarEntry): string | null {
+  return entry.descriptions.length > 0 ? entry.descriptions.map((description) => description.name).join(', ') : null
 }
 
-export function JobCard({ job, onEdit, onDelete, onHoverStart, disabled = false, highlighted = false }: JobCardProps) {
-  const { t } = useTranslation()
+export function CalendarEntryCard({
+  entry,
+  labels,
+  onEdit,
+  onDelete,
+  onHoverStart,
+  disabled = false,
+  highlighted = false,
+}: CalendarEntryCardProps) {
   const zone = useShopTimeZone()
   const [hovered, setHovered] = useState(false)
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null)
   const menuOpen = !!menuAnchor
 
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: job.id,
-    data: { job },
+    id: entry.id,
+    data: { entry },
     disabled,
   })
 
-  const descriptionsText = jobDescriptionsText(job)
-  const startMinutes = utcIsoToMinutesOfDay(job.scheduledTime, zone)
+  const text = descriptionsText(entry)
+  const startMinutes = utcIsoToMinutesOfDay(entry.scheduledTime, zone)
   const left = startMinutes * PX_PER_MINUTE
-  const width = Math.max(job.scheduledDurationMinutes * PX_PER_MINUTE, 8)
+  const width = Math.max(entry.scheduledDurationMinutes * PX_PER_MINUTE, 8)
 
   function handleMenuOpen(event: ReactMouseEvent<HTMLElement>) {
     event.stopPropagation()
@@ -66,19 +80,19 @@ export function JobCard({ job, onEdit, onDelete, onHoverStart, disabled = false,
   function handleEditClick(event: ReactMouseEvent<HTMLElement>) {
     event.stopPropagation()
     setMenuAnchor(null)
-    onEdit(job)
+    onEdit(entry)
   }
 
   function handleDeleteClick(event: ReactMouseEvent<HTMLElement>) {
     event.stopPropagation()
     setMenuAnchor(null)
-    onDelete(job)
+    onDelete(entry)
   }
 
   return (
     <Box
       ref={setNodeRef}
-      {...{ [JOB_CARD_ATTRIBUTE]: '', [JOB_ID_ATTRIBUTE]: job.id }}
+      {...{ [ENTRY_CARD_ATTRIBUTE]: '', [ENTRY_ID_ATTRIBUTE]: entry.id }}
       {...attributes}
       {...listeners}
       onMouseEnter={() => {
@@ -111,12 +125,12 @@ export function JobCard({ job, onEdit, onDelete, onHoverStart, disabled = false,
     >
       <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '2px' }}>
         <Typography variant="body2" noWrap sx={{ fontWeight: 600, color: 'primary.dark' }}>
-          #{job.orderNumber}
+          #{entry.orderNumber}
         </Typography>
         {!disabled && (
           <IconButton
             size="small"
-            aria-label={t('jobs.jobCard.menuAria')}
+            aria-label={labels.menuAria}
             onClick={handleMenuOpen}
             sx={{ p: '2px', flexShrink: 0, opacity: hovered || menuOpen ? 1 : 0 }}
           >
@@ -124,24 +138,25 @@ export function JobCard({ job, onEdit, onDelete, onHoverStart, disabled = false,
           </IconButton>
         )}
       </Box>
-      <Typography variant="caption" noWrap component="div" title={descriptionsText ?? undefined}>
-        {descriptionsText ?? formatTimeRange(job.scheduledTime, job.scheduledDurationMinutes, zone)}
+      <Typography variant="caption" noWrap component="div" title={text ?? undefined}>
+        {text ?? formatTimeRange(entry.scheduledTime, entry.scheduledDurationMinutes, zone)}
       </Typography>
 
       {/* The menu is portaled, but React still bubbles its pointer events up to the draggable card. */}
       <Menu anchorEl={menuAnchor} open={menuOpen} onClose={handleMenuClose} onPointerDown={(event) => event.stopPropagation()}>
-        <MenuItem onClick={handleEditClick}>{t('jobs.jobCard.editJob')}</MenuItem>
+        <MenuItem onClick={handleEditClick}>{labels.edit}</MenuItem>
         <MenuItem onClick={handleDeleteClick} sx={{ color: 'error.main' }}>
-          {t('jobs.jobCard.deleteJob')}
+          {labels.delete}
         </MenuItem>
       </Menu>
     </Box>
   )
 }
 
-/** The copy of a job card that follows the pointer while dragging; sized by DragOverlay to match the original. */
-export function JobCardPreview({ job }: { job: Job }) {
+/** The copy of an entry card that follows the pointer while dragging; sized by DragOverlay to match the original. */
+export function CalendarEntryCardPreview({ entry }: { entry: CalendarEntry }) {
   const zone = useShopTimeZone()
+  const text = descriptionsText(entry)
 
   return (
     <Box
@@ -159,10 +174,10 @@ export function JobCardPreview({ job }: { job: Job }) {
       }}
     >
       <Typography variant="body2" noWrap sx={{ fontWeight: 600, color: 'primary.dark' }}>
-        #{job.orderNumber}
+        #{entry.orderNumber}
       </Typography>
       <Typography variant="caption" noWrap component="div">
-        {jobDescriptionsText(job) ?? formatTimeRange(job.scheduledTime, job.scheduledDurationMinutes, zone)}
+        {text ?? formatTimeRange(entry.scheduledTime, entry.scheduledDurationMinutes, zone)}
       </Typography>
     </Box>
   )
