@@ -14,12 +14,14 @@ import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
 import { CellField } from '../../../../components/form/CellField'
 import { CellNumberStepper } from '../../../../components/form/CellNumberStepper'
+import { useConfirm } from '../../../../app/confirm/useConfirm'
 import type { DiscountType } from '../../../../app/shop/shopApi'
 import { useShopSettingsQuery } from '../../../../app/shop/queries'
-import { CellSelect } from '../../../../components/form/CellSelect'
+import { formatFixedDecimal } from '../../../../utils/decimalInput'
 import type { EstimateStatus } from '../../types'
 import {
   calculateDiscountAmount,
@@ -29,10 +31,11 @@ import {
   type EstimateFormState,
   type EstimateItemRow,
 } from '../../workOrderForm'
-import { MAX_HOURS, MAX_PRICE, MAX_QUANTITY } from '../../estimateLimits'
-import { useEstimateTypeOptions } from '../../useEstimateTypeOptions'
+import { MAX_QUANTITY } from '../../estimateLimits'
+import { CostCell } from './CostCell'
 import { DiscountField } from './DiscountField'
 import { EstimateSummary } from './EstimateSummary'
+import { ExecutorsCell } from './ExecutorsCell'
 import { SearchInputDropdown } from './SearchInputDropdown'
 
 interface EstimateTabProps {
@@ -42,27 +45,42 @@ interface EstimateTabProps {
   discountType: DiscountType
 }
 
-// Column widths in px. Discount holds "-100%" plus its money equivalent, and tax/total can reach hundreds of billions.
+// Column widths in px. Cost holds the type toggle plus hours x rate. Discount holds "-100%" plus its money equivalent, and total (with the tax under it) can reach hundreds of billions.
 const COLUMN_WIDTH = {
   name: 220,
+  executors: 280,
   status: 88,
-  type: 140,
-  hours: 100,
-  priceHr: 130,
-  price: 130,
+  cost: 340,
   quantity: 96,
-  discount: 200,
-  tax: 170,
-  total: 190,
+  discount: 150,
+  total: 240,
   actions: 90,
 }
+// A numeric column's title ends where its numbers end: the cell padding plus the input's own padding.
+const NUMERIC_HEAD_SX = { textAlign: 'right', pr: '30px' } as const
 const TABLE_MIN_WIDTH = Object.values(COLUMN_WIDTH).reduce((sum, width) => sum + width, 0)
 
 export function EstimateTab({ estimates, onEstimatesChange, discountType }: EstimateTabProps) {
   const { t } = useTranslation()
+  const confirm = useConfirm()
   // Set when the shop has "price includes tax" on; new items then get their tax calculated from their total.
   const { data: shopSettings } = useShopSettingsQuery()
   const taxPercent = shopSettings?.priceIncludesTax ? (shopSettings.taxPercent ?? null) : null
+
+  // Removing a row throws away its amounts and executors, so it is confirmed first.
+  function confirmRemove(name: string, subItemCount = 0): Promise<boolean> {
+    const label = name.trim() || t('estimate.unnamedItem')
+
+    return confirm({
+      title: t('estimate.removeTitle'),
+      message:
+        subItemCount > 0
+          ? t('estimate.removeConfirmWithSubItems', { name: label, count: subItemCount })
+          : t('estimate.removeConfirm', { name: label }),
+      confirmLabel: t('estimate.removeConfirmLabel'),
+      destructive: true,
+    })
+  }
 
   function updateEstimate(key: string, patch: Partial<EstimateFormState>) {
     onEstimatesChange(estimates.map((estimate) => (estimate.key === key ? { ...estimate, ...patch } : estimate)))
@@ -87,16 +105,21 @@ export function EstimateTab({ estimates, onEstimatesChange, discountType }: Esti
           <Table size="small" sx={{ tableLayout: 'fixed', minWidth: TABLE_MIN_WIDTH }}>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ width: COLUMN_WIDTH.name }}>{t('estimate.name')}</TableCell>
                 <TableCell sx={{ width: COLUMN_WIDTH.status }}>{t('estimate.status')}</TableCell>
-                <TableCell sx={{ width: COLUMN_WIDTH.type }}>{t('estimate.type')}</TableCell>
-                <TableCell sx={{ width: COLUMN_WIDTH.hours }}>{t('estimate.hours')}</TableCell>
-                <TableCell sx={{ width: COLUMN_WIDTH.priceHr }}>{t('estimate.priceHr')}</TableCell>
-                <TableCell sx={{ width: COLUMN_WIDTH.price }}>{t('estimate.price')}</TableCell>
-                <TableCell sx={{ width: COLUMN_WIDTH.quantity }}>{t('estimate.quantity')}</TableCell>
-                <TableCell sx={{ width: COLUMN_WIDTH.discount }}>{t('estimate.discount')}</TableCell>
-                <TableCell sx={{ width: COLUMN_WIDTH.tax }}>{t('estimate.tax')}</TableCell>
-                <TableCell sx={{ width: COLUMN_WIDTH.total }}>{t('estimate.total')}</TableCell>
+                <TableCell sx={{ width: COLUMN_WIDTH.name }}>{t('estimate.name')}</TableCell>
+                <TableCell sx={{ width: COLUMN_WIDTH.executors }}>{t('estimate.executors.title')}</TableCell>
+                <TableCell sx={{ width: COLUMN_WIDTH.cost }}>
+                  {/* "Type" over the toggle at the left, "Cost" over the amount at the right (its text ends where the input's does). */}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>{t('estimate.type')}</span>
+                    <Box component="span" sx={{ pr: '14px' }}>
+                      {t('estimate.cost')}
+                    </Box>
+                  </Box>
+                </TableCell>
+                <TableCell sx={{ width: COLUMN_WIDTH.quantity, ...NUMERIC_HEAD_SX }}>{t('estimate.quantity')}</TableCell>
+                <TableCell sx={{ width: COLUMN_WIDTH.discount, ...NUMERIC_HEAD_SX }}>{t('estimate.discount')}</TableCell>
+                <TableCell sx={{ width: COLUMN_WIDTH.total, ...NUMERIC_HEAD_SX }}>{t('estimate.total')}</TableCell>
                 <TableCell sx={{ width: COLUMN_WIDTH.actions }} />
               </TableRow>
             </TableHead>
@@ -109,7 +132,11 @@ export function EstimateTab({ estimates, onEstimatesChange, discountType }: Esti
                     status={estimate.status}
                     onStatusChange={(status) => updateEstimate(estimate.key, { status })}
                     onChange={(patch) => updateEstimate(estimate.key, { root: { ...estimate.root, ...patch } })}
-                    onRemove={() => onEstimatesChange(estimates.filter((item) => item.key !== estimate.key))}
+                    onRemove={async () => {
+                      if (await confirmRemove(estimate.root.name, estimate.subItems.length)) {
+                        onEstimatesChange(estimates.filter((item) => item.key !== estimate.key))
+                      }
+                    }}
                     onAddSubItem={() =>
                       updateEstimate(estimate.key, {
                         subItems: [...estimate.subItems, createEstimateItemRow(true, '', undefined, taxPercent)],
@@ -122,11 +149,16 @@ export function EstimateTab({ estimates, onEstimatesChange, discountType }: Esti
                       row={sub}
                       discountType={discountType}
                       onChange={(patch) => updateSubItem(estimate.key, sub.key, patch)}
-                      onRemove={() =>
+                      onRemove={async () => {
+                        // A sub-item nobody has named yet has nothing worth a warning.
+                        if (sub.name.trim() && !(await confirmRemove(sub.name))) {
+                          return
+                        }
+
                         updateEstimate(estimate.key, {
                           subItems: estimate.subItems.filter((row) => row.key !== sub.key),
                         })
-                      }
+                      }}
                     />
                   ))}
                 </Fragment>
@@ -168,8 +200,9 @@ function EstimateItemRowView({
   status,
   onStatusChange,
 }: EstimateItemRowViewProps) {
-  const { t } = useTranslation()
-  const typeOptions = useEstimateTypeOptions()
+  const { t, i18n } = useTranslation()
+  const formattedTax = formatFixedDecimal(row.tax, i18n.language, 2)
+  const taxText = formattedTax !== null ? `${t('estimate.tax')} ${formattedTax} ${t('estimate.currencyShort')}` : null
 
   // Routes every amount edit through the shared rule that keeps price, quantity, discount and total in step.
   function change(patch: Partial<EstimateItemRow>) {
@@ -178,17 +211,6 @@ function EstimateItemRowView({
 
   return (
     <TableRow sx={row.subItem ? { backgroundColor: 'background.default' } : undefined}>
-      <TableCell sx={row.subItem ? { pl: 4 } : undefined}>
-        <TextField
-          size="small"
-          variant="outlined"
-          fullWidth
-          value={row.name}
-          onChange={(event) => onChange({ name: event.target.value })}
-          placeholder={row.subItem ? t('estimate.subItemNamePlaceholder') : undefined}
-          slotProps={{ htmlInput: { 'aria-label': t('estimate.name') } }}
-        />
-      </TableCell>
       <TableCell>
         {/* Status belongs to the estimate, so only its root row shows it. */}
         {status && onStatusChange && (
@@ -212,49 +234,22 @@ function EstimateItemRowView({
           </Stack>
         )}
       </TableCell>
-      <TableCell>
-        <CellSelect
-          value={row.type}
-          onChange={(type) => change({ type })}
-          options={typeOptions}
-          ariaLabel={t('estimate.type')}
-        />
-      </TableCell>
-      {/* Fixed: the total is typed in and hours/rate are kept but locked. Hourly: the total is hours x rate. */}
-      <TableCell>
-        <CellField
-          value={row.hours}
-          onChange={(value) => change({ hours: value })}
-          ariaLabel={t('estimate.hours')}
-          maxDecimals={2}
-          max={MAX_HOURS}
-          readOnly={row.type === 'Fixed'}
-          struckThrough={row.type === 'Fixed'}
+      <TableCell sx={row.subItem ? { pl: 4 } : undefined}>
+        <TextField
+          size="small"
+          variant="outlined"
+          fullWidth
+          value={row.name}
+          onChange={(event) => onChange({ name: event.target.value })}
+          placeholder={row.subItem ? t('estimate.subItemNamePlaceholder') : undefined}
+          slotProps={{ htmlInput: { 'aria-label': t('estimate.name') } }}
         />
       </TableCell>
       <TableCell>
-        <CellField
-          value={row.priceHr}
-          onChange={(value) => change({ priceHr: value })}
-          ariaLabel={t('estimate.priceHr')}
-          maxDecimals={2}
-          max={MAX_PRICE}
-          unit={t('estimate.currencyShort')}
-          readOnly={row.type === 'Fixed'}
-          struckThrough={row.type === 'Fixed'}
-        />
+        <ExecutorsCell executors={row.executors} onChange={(executors) => onChange({ executors })} />
       </TableCell>
-      {/* Fixed: the price is typed in. Hourly: it is hours x rate, so it is shown but locked. */}
       <TableCell>
-        <CellField
-          value={row.price}
-          onChange={(value) => change({ price: value })}
-          ariaLabel={t('estimate.price')}
-          maxDecimals={2}
-          max={MAX_PRICE}
-          unit={t('estimate.currencyShort')}
-          readOnly={row.type === 'Hourly'}
-        />
+        <CostCell row={row} onChange={change} />
       </TableCell>
       <TableCell>
         <CellNumberStepper
@@ -273,27 +268,35 @@ function EstimateItemRowView({
           ariaLabel={t('estimate.discount')}
         />
       </TableCell>
-      {/* The tax is a snapshot taken when the item was added, so it can never be edited here. */}
+      {/* Always calculated: price x quantity minus the discount. Its tax, at the row's own rate, is the small line in the corner. */}
       <TableCell>
-        <CellField
-          value={row.tax}
-          onChange={() => undefined}
-          ariaLabel={t('estimate.tax')}
-          unit={t('estimate.currencyShort')}
-          readOnly
-        />
-      </TableCell>
-      {/* Always calculated: price x quantity minus the discount. */}
-      <TableCell>
-        <CellField
-          value={row.total}
-          onChange={() => undefined}
-          ariaLabel={t('estimate.total')}
-          unit={t('estimate.currencyShort')}
-          readOnly
-        />
-      </TableCell>
-      <TableCell>
+        <Box sx={{ position: 'relative' }}>
+          <CellField
+            value={row.total}
+            onChange={() => undefined}
+            ariaLabel={t('estimate.total')}
+            displayDecimals={2}
+            unit={t('estimate.currencyShort')}
+            readOnly
+          />
+          {taxText && (
+            // In the left corner: the total is right-aligned, so that side is free.
+            <Typography
+              variant="caption"
+              sx={{
+                position: 'absolute',
+                left: '8px',
+                bottom: '4px',
+                lineHeight: 1,
+                color: 'text.secondary',
+                pointerEvents: 'none',
+              }}
+            >
+              {taxText}
+            </Typography>
+          )}
+        </Box>
+      </TableCell>      <TableCell>
         <Stack direction="row" spacing={0}>
           {onAddSubItem && (
             <IconButton size="small" onClick={onAddSubItem} aria-label={t('estimate.addSubItem')}>

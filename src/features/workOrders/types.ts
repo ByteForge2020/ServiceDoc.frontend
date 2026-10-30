@@ -23,6 +23,11 @@ export interface VehiclePayload {
 
 export type EstimateStatus = 'Draft' | 'Approved' | 'Rejected'
 
+export interface EstimateItemExecutor {
+  userId: string
+  percent: number
+}
+
 export interface EstimateItemPayload {
   id: string | null
   subItem: boolean
@@ -36,8 +41,10 @@ export interface EstimateItemPayload {
   quantity: number
   /** A percent or a money amount, depending on the work order's discountType. */
   discount: number | null
-  /** Tax amount, a snapshot from when the item was added; null when there was none. */
+  /** Tax amount at the item's own rate, kept in step with its total as it is edited; null when there is none. */
   tax: number | null
+  /** Who does the item. Empty, or whole-percent shares that add up to 100. */
+  executors: EstimateItemExecutor[]
 }
 
 export interface EstimateItem extends EstimateItemPayload {

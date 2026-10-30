@@ -4,9 +4,11 @@ import type { Customer } from '../customers/types'
 import type { Vehicle } from '../vehicles/types'
 import type { CustomerFormState } from './components/CustomerInformationCard'
 import type { VehicleFormState } from './components/VehicleInformationCard'
+import type { ExecutorShare } from './executorShares'
 import type {
   CustomerPayload,
   Estimate,
+  EstimateItem,
   EstimateItemPayload,
   EstimatePayload,
   EstimateStatus,
@@ -123,19 +125,24 @@ export interface EstimateItemRow {
   priceHr: string
   /** Price of one unit: typed for a Fixed item, hours x rate (read-only) for an Hourly one. */
   price: string
+  /** The price typed while the row was Fixed, kept while it is Hourly so switching back restores it. Not saved. */
+  fixedPrice: string | null
   /** Whole number, at least 1. */
   quantity: string
   /** A percent or a money amount, depending on the work order's discount type. */
   discount: string
   /** Calculated (read-only): price x quantity minus the discount. The server recalculates it on save. */
   total: string
-  /** Tax amount as shown (read-only). A snapshot: stored with the item and never recalculated after it is saved. */
+  /** Tax amount as shown (read-only). Follows the total at the row's own rate (see `taxPercent`); stored with the item. */
   tax: string
   /**
-   * Set only on an item added in this editing session while the shop's "price includes tax" setting is on: the tax
-   * then follows the item's total until it is saved. null on every saved item, so history is never recalculated.
+   * The rate the row's tax follows: the tax is recalculated from the total whenever an amount is edited. A row added
+   * while the shop's "price includes tax" setting is on gets the shop's rate; a saved row keeps its own rate, read off
+   * its stored tax and total, so a later change of the shop setting never touches it. null: the tax is left as it is.
    */
   taxPercent: number | null
+  /** Employees doing this item: empty, or whole-percent shares adding up to 100 (see executorShares). */
+  executors: ExecutorShare[]
 }
 
 // Type/Hours/PriceHr/Price of a master list item, copied into a new row. The row is not linked to the master
@@ -154,21 +161,24 @@ export function createEstimateItemRow(
 ): EstimateItemRow {
   // Quantity 1 and no discount: the total is just the price.
   const price = numberToField(defaults?.price)
+  const type = defaults?.type ?? 'Fixed'
 
   return {
     key: crypto.randomUUID(),
     id: null,
     subItem,
     name,
-    type: defaults?.type ?? 'Fixed',
+    type,
     hours: numberToField(defaults?.hours),
     priceHr: numberToField(defaults?.priceHr),
     price,
+    fixedPrice: type === 'Fixed' ? price : null,
     quantity: '1',
     discount: '',
     total: price,
     tax: taxPercent !== null ? calculateTax(price, taxPercent) : '',
     taxPercent,
+    executors: [],
   }
 }
 
@@ -212,24 +222,44 @@ export function estimatesToFormState(estimates: Estimate[]): EstimateFormState[]
     })
 }
 
+// Below this total a tax rounded to cents says too little about the rate, so such a row keeps its tax as it is.
+const MIN_TOTAL_FOR_TAX_RATE = 100
+
+/** A saved row's own tax rate (its tax over its total, to two decimals); null when it has no tax or a too small total. */
+function savedItemTaxPercent(item: Pick<EstimateItem, 'tax' | 'total'>): number | null {
+  if (item.tax == null || item.total == null || item.total < MIN_TOTAL_FOR_TAX_RATE) {
+    return null
+  }
+
+  return Math.round((item.tax / item.total) * 10000) / 100
+}
+
 function estimateItemsToFormState(estimate: Estimate): EstimateItemRow[] {
   return [...estimate.items]
     .sort((a, b) => a.sortOrder - b.sortOrder)
-    .map((item) => ({
-      key: item.id,
-      id: item.id,
-      subItem: item.subItem,
-      name: item.name,
-      type: item.type ?? 'Fixed',
-      hours: item.hours != null ? String(item.hours) : '',
-      priceHr: item.priceHr != null ? String(item.priceHr) : '',
-      price: item.price != null ? String(item.price) : '',
-      quantity: String(item.quantity),
-      discount: item.discount != null ? String(item.discount) : '',
-      total: item.total != null ? String(item.total) : '',
-      tax: item.tax != null ? String(item.tax) : '',
-      taxPercent: null,
-    }))
+    .map((item) => {
+      const type = item.type ?? 'Fixed'
+      const price = item.price != null ? String(item.price) : ''
+
+      return {
+        key: item.id,
+        id: item.id,
+        subItem: item.subItem,
+        name: item.name,
+        type,
+        hours: item.hours != null ? String(item.hours) : '',
+        priceHr: item.priceHr != null ? String(item.priceHr) : '',
+        price,
+        // An Hourly item's stored price is hours x rate: a typed Fixed price is not kept anywhere once saved.
+        fixedPrice: type === 'Fixed' ? price : null,
+        quantity: String(item.quantity),
+        discount: item.discount != null ? String(item.discount) : '',
+        total: item.total != null ? String(item.total) : '',
+        tax: item.tax != null ? String(item.tax) : '',
+        taxPercent: savedItemTaxPercent(item),
+        executors: (item.executors ?? []).map(({ userId, percent }) => ({ userId, percent })),
+      }
+    })
 }
 
 // Accepts a decimal comma too, since shops type "1,5" as often as "1.5".
@@ -249,6 +279,8 @@ export interface EstimateAmountFields {
   hours: string
   priceHr: string
   price: string
+  /** The price typed while the row was Fixed, remembered while it is Hourly (null: none to restore). Never saved. */
+  fixedPrice: string | null
 }
 
 /**
@@ -268,18 +300,26 @@ export function calculateHourlyPrice(hours: string, priceHr: string): string {
 
 /**
  * Applies an edit to a row's type/hours/rate/price and returns the patch to store. For an Hourly row the price is
- * recalculated whenever the type, hours or rate changes; for a Fixed row nothing is recalculated, so hours and rate
- * are kept untouched and the typed-in price stands. Switching Fixed -> Hourly -> Fixed therefore loses nothing.
+ * recalculated whenever the type, hours or rate changes; for a Fixed row hours and rate are kept untouched and the
+ * typed-in price stands. The typed Fixed price is also remembered in `fixedPrice` while the row is Hourly (whose
+ * `price` is then hours x rate), so switching Fixed -> Hourly -> Fixed brings the typed price back. A row that was never
+ * Fixed has none to restore and keeps the hourly price as its starting Fixed price.
  */
 export function resolveAmountPatch<T extends EstimateAmountFields>(row: T, patch: Partial<T>): Partial<T> {
   const next = { ...row, ...patch }
   const recalculates = 'type' in patch || 'hours' in patch || 'priceHr' in patch
 
-  if (next.type === 'Hourly' && recalculates) {
-    return { ...patch, price: calculateHourlyPrice(next.hours, next.priceHr) }
+  if (next.type === 'Hourly') {
+    const fixedPrice = row.type === 'Fixed' ? row.price : row.fixedPrice
+    const price = recalculates ? calculateHourlyPrice(next.hours, next.priceHr) : next.price
+
+    return { ...patch, price, fixedPrice } as Partial<T>
   }
 
-  return patch
+  // Back to Fixed from Hourly: the price typed before, if there was one.
+  const price = row.type === 'Hourly' && 'type' in patch ? (row.fixedPrice ?? row.price) : next.price
+
+  return { ...patch, price, fixedPrice: price } as Partial<T>
 }
 
 /** Tax for a total: total x rate / 100, rounded to cents (a total of 100 at 10% gives 10). Empty without a total. */
@@ -330,21 +370,17 @@ export function calculateLineTotal(row: EstimateLineFields, discountType: Discou
 
 /**
  * Applies an edit to an estimate row and returns the patch to store: an Hourly row's price follows hours x rate, and the
- * total is recalculated from price, quantity and discount. A row added in this session while the shop's tax
- * setting is on carries `taxPercent`, and its tax follows its total; a saved row has none, so editing it never rewrites
- * its tax snapshot.
+ * total is recalculated from price, quantity and discount. A row with a `taxPercent` (a new one at the shop's rate, a
+ * saved one at its own) has its tax follow its total; a row without one keeps its tax as it is.
  */
 export function resolveItemPatch(
   row: EstimateItemRow,
   patch: Partial<EstimateItemRow>,
   discountType: DiscountType,
 ): Partial<EstimateItemRow> {
-  const next = { ...row, ...patch }
-  const reprices = 'type' in patch || 'hours' in patch || 'priceHr' in patch
-
-  const price = next.type === 'Hourly' && reprices ? calculateHourlyPrice(next.hours, next.priceHr) : next.price
-  const total = calculateLineTotal({ ...next, price }, discountType)
-  const resolved: Partial<EstimateItemRow> = { ...patch, price, total }
+  const amounts = resolveAmountPatch(row, patch)
+  const total = calculateLineTotal({ ...row, ...amounts }, discountType)
+  const resolved: Partial<EstimateItemRow> = { ...amounts, total }
 
   if (row.taxPercent !== null) {
     resolved.tax = calculateTax(total, row.taxPercent)
@@ -376,6 +412,7 @@ function buildEstimateItemsPayload(rows: EstimateItemRow[]): EstimateItemPayload
     quantity: quantityValue(row),
     discount: toNullableNumber(row.discount),
     tax: toNullableNumber(row.tax),
+    executors: row.executors.map(({ userId, percent }) => ({ userId, percent })),
   }))
 }
 

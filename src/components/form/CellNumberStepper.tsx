@@ -42,6 +42,8 @@ export function CellNumberStepper({ value, onChange, ariaLabel, min = 1, max }: 
       onKeyDown={handleKeyDown}
       onPaste={blockEvent}
       onDrop={blockEvent}
+      // The browser's up/down arrows sit at the end of the input's padding box: a small right padding puts them near the border.
+      sx={{ '& .MuiInputBase-input': { textAlign: 'right', pr: '4px' } }}
       slotProps={{ htmlInput: { 'aria-label': ariaLabel, min, max, step: 1, inputMode: 'none' } }}
     />
   )
