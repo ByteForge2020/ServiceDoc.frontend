@@ -11,7 +11,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Outlet } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../app/hooks'
-import { logout } from '../../features/auth/authSlice'
+import { signOut } from '../../features/auth/authSlice'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { Sidebar } from './Sidebar'
 
@@ -50,7 +50,7 @@ export function AppLayout() {
             <LanguageSwitcher />
           </Box>
           <Tooltip title={t('common.signOut')}>
-            <IconButton onClick={() => dispatch(logout())} aria-label={t('common.signOut')}>
+            <IconButton onClick={() => dispatch(signOut())} aria-label={t('common.signOut')}>
               <LogoutIcon />
             </IconButton>
           </Tooltip>

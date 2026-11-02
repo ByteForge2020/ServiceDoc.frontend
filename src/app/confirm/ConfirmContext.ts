@@ -6,6 +6,8 @@ export interface ConfirmOptions {
   confirmLabel?: string
   cancelLabel?: string
   destructive?: boolean
+  /** Only the confirm button: an information dialog that is just acknowledged. */
+  hideCancel?: boolean
 }
 
 export type ConfirmFn = (options: ConfirmOptions) => Promise<boolean>

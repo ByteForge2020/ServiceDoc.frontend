@@ -36,4 +36,8 @@ export const workOrdersApi = {
   update(id: string, request: UpdateWorkOrderRequest) {
     return apiClient.put<WorkOrder>(`${BASE_PATH}/${id}`, request).then((res) => res.data)
   },
+
+  reopen(id: string) {
+    return apiClient.post<WorkOrder>(`${BASE_PATH}/${id}/reopen`).then((res) => res.data)
+  },
 }

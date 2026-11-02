@@ -7,13 +7,13 @@ import IconButton from '@mui/material/IconButton'
 import TableCell from '@mui/material/TableCell'
 import TableRow from '@mui/material/TableRow'
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight'
-import { DateTime } from 'luxon'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { extractErrorMessage } from '../../../api/errorMessage'
 import { useConfirm } from '../../../app/confirm/useConfirm'
 import { useShopTimeZone } from '../../../app/shop/useShopTimeZone'
 import { useToasters } from '../../../app/toasters/useToasters'
+import { formatShopDateTime } from '../../../utils/formatShopDateTime'
 import { JobsCalendarDialog, type JobsCalendarDialogTarget } from '../../jobs/components/JobsCalendarDialog'
 import { useDeleteJobMutation } from '../../jobs/queries'
 import { bookingErrorMessage } from '../../serviceBayBookings/bookingErrorMessage'
@@ -21,13 +21,6 @@ import { useDeleteServiceBayBookingMutation } from '../../serviceBayBookings/que
 import type { JobSummary, ServiceBayBookingSummary, WorkOrder } from '../types'
 import { WorkOrderBookingTile } from './WorkOrderBookingTile'
 import { WorkOrderJobTile } from './WorkOrderJobTile'
-
-function formatDate(value: string | null, zone: string): string {
-  if (!value) {
-    return '—'
-  }
-  return DateTime.fromISO(value, { zone: 'utc' }).setZone(zone).toLocaleString(DateTime.DATETIME_MED)
-}
 
 // The "add" links above the tiles: plain text, no background or border.
 const linkButtonSx = {
@@ -128,8 +121,8 @@ export function WorkOrderRow({ workOrder }: WorkOrderRowProps) {
         <TableCell>{workOrder.customerName ?? '—'}</TableCell>
         <TableCell>{workOrder.vehicleDescription ?? '—'}</TableCell>
         <TableCell>{workOrder.notes ?? '—'}</TableCell>
-        <TableCell>{formatDate(workOrder.openedAt, zone)}</TableCell>
-        <TableCell>{formatDate(workOrder.closedAt, zone)}</TableCell>
+        <TableCell>{formatShopDateTime(workOrder.openedAt, zone)}</TableCell>
+        <TableCell>{formatShopDateTime(workOrder.closedAt, zone)}</TableCell>
       </TableRow>
 
       {/* This row has no click handler of its own, so clicks inside the calendar dialog (rendered from here) can't
@@ -138,22 +131,27 @@ export function WorkOrderRow({ workOrder }: WorkOrderRowProps) {
         <TableCell sx={{ py: 0, bgcolor: 'action.hover', borderBottom: open ? undefined : 'none' }} colSpan={8}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box sx={{ my: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-              <Button
-                variant="text"
-                disableRipple
-                onClick={() => setCalendarTarget({ kind: 'addJob', order })}
-                sx={linkButtonSx}
-              >
-                {t('workOrders.jobsTable.addJob')}
-              </Button>
-              <Button
-                variant="text"
-                disableRipple
-                onClick={() => setCalendarTarget({ kind: 'addBooking', order })}
-                sx={linkButtonSx}
-              >
-                {t('workOrders.jobsTable.bookServiceBay')}
-              </Button>
+              {/* A closed order takes no new jobs or bookings, and the existing ones can't be changed either. */}
+              {!workOrder.isClosed && (
+                <>
+                  <Button
+                    variant="text"
+                    disableRipple
+                    onClick={() => setCalendarTarget({ kind: 'addJob', order })}
+                    sx={linkButtonSx}
+                  >
+                    {t('workOrders.jobsTable.addJob')}
+                  </Button>
+                  <Button
+                    variant="text"
+                    disableRipple
+                    onClick={() => setCalendarTarget({ kind: 'addBooking', order })}
+                    sx={linkButtonSx}
+                  >
+                    {t('workOrders.jobsTable.bookServiceBay')}
+                  </Button>
+                </>
+              )}
 
               {workOrder.jobs.length > 0 && (
                 <Box sx={tileGridSx}>
@@ -161,6 +159,7 @@ export function WorkOrderRow({ workOrder }: WorkOrderRowProps) {
                     <WorkOrderJobTile
                       key={job.id}
                       job={job}
+                      readOnly={workOrder.isClosed}
                       onEdit={(item) =>
                         setCalendarTarget({ kind: 'editJob', jobId: item.id, scheduledTime: item.scheduledTime })
                       }
@@ -176,6 +175,7 @@ export function WorkOrderRow({ workOrder }: WorkOrderRowProps) {
                     <WorkOrderBookingTile
                       key={booking.id}
                       booking={booking}
+                      readOnly={workOrder.isClosed}
                       onEdit={(item) =>
                         setCalendarTarget({ kind: 'editBooking', bookingId: item.id, scheduledTime: item.scheduledTime })
                       }

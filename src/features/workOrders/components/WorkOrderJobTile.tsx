@@ -25,10 +25,12 @@ interface WorkOrderJobTileProps {
   job: JobSummary
   onEdit: (job: JobSummary) => void
   onDelete: (job: JobSummary) => void
+  /** The order is closed: the job is shown without its Edit / Delete menu. */
+  readOnly?: boolean
 }
 
 /** One scheduled job of a work order, with an Edit / Delete menu that appears on hover. */
-export function WorkOrderJobTile({ job, onEdit, onDelete }: WorkOrderJobTileProps) {
+export function WorkOrderJobTile({ job, onEdit, onDelete, readOnly = false }: WorkOrderJobTileProps) {
   const { t } = useTranslation()
   const zone = useShopTimeZone()
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null)
@@ -54,15 +56,17 @@ export function WorkOrderJobTile({ job, onEdit, onDelete }: WorkOrderJobTileProp
         '@media (hover: none)': { '& .job-tile-menu': { opacity: 1 } },
       }}
     >
-      <IconButton
-        className="job-tile-menu"
-        size="small"
-        aria-label={t('jobs.jobCard.menuAria')}
-        onClick={(event) => setMenuAnchor(event.currentTarget)}
-        sx={{ position: 'absolute', top: 8, right: 8 }}
-      >
-        <MoreVertIcon fontSize="small" />
-      </IconButton>
+      {!readOnly && (
+        <IconButton
+          className="job-tile-menu"
+          size="small"
+          aria-label={t('jobs.jobCard.menuAria')}
+          onClick={(event) => setMenuAnchor(event.currentTarget)}
+          sx={{ position: 'absolute', top: 8, right: 8 }}
+        >
+          <MoreVertIcon fontSize="small" />
+        </IconButton>
+      )}
 
       <Typography variant="body2" sx={{ fontWeight: 600, pr: 4, overflowWrap: 'anywhere' }}>
         {job.descriptions.length > 0 ? job.descriptions.join(', ') : t('workOrders.jobsTable.noDescription')}

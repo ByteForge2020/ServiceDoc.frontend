@@ -45,9 +45,11 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
           </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 3 }}>
-          <Button variant="text" onClick={() => handleResolve(false)}>
-            {pending?.options.cancelLabel ?? t('common.cancel')}
-          </Button>
+          {!pending?.options.hideCancel && (
+            <Button variant="text" onClick={() => handleResolve(false)}>
+              {pending?.options.cancelLabel ?? t('common.cancel')}
+            </Button>
+          )}
           <Button
             variant="contained"
             color={pending?.options.destructive ? 'error' : 'primary'}

@@ -52,13 +52,24 @@ export const refreshAccessToken = createAsyncThunk<
   void,
   { state: { auth: AuthState }; rejectValue: string }
 >('auth/refresh', async (_, { getState, rejectWithValue }) => {
-  const { refreshToken } = getState().auth
+  // Every refresh replaces the refresh token, and all tabs share the stored one: another tab may already have
+  // refreshed, in which case its token is the current one.
+  const refreshToken = tokenStorage.getRefreshToken() ?? getState().auth.refreshToken
   if (!refreshToken) {
     return rejectWithValue(i18n.t('auth.noRefreshToken'))
   }
   try {
     return await authApi.refresh(refreshToken)
   } catch (error) {
+    // Two tabs refreshing at the same moment: this one lost, and the other's new tokens are (about to be) stored.
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    const storedAccessToken = tokenStorage.getAccessToken()
+    const storedRefreshToken = tokenStorage.getRefreshToken()
+
+    if (storedAccessToken && storedRefreshToken && storedRefreshToken !== refreshToken) {
+      return { accessToken: storedAccessToken, refreshToken: storedRefreshToken, expiresIn: 0, tokenType: 'Bearer' }
+    }
+
     return rejectWithValue(extractErrorMessage(error, i18n.t('auth.sessionExpired')))
   }
 })
@@ -94,4 +105,23 @@ const authSlice = createSlice({
 })
 
 export const { logout } = authSlice.actions
+
+/** Signs out here at once, then revokes the session on the server (best effort: it is gone locally either way). */
+export const signOut = createAsyncThunk<void, void, { state: { auth: AuthState } }>(
+  'auth/signOut',
+  async (_, { getState, dispatch }) => {
+    const { refreshToken } = getState().auth
+    dispatch(logout())
+
+    if (!refreshToken) {
+      return
+    }
+
+    try {
+      await authApi.logout(refreshToken)
+    } catch {
+      // Nothing to do: the tokens were already dropped from this browser.
+    }
+  },
+)
 export default authSlice.reducer

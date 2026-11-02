@@ -65,6 +65,19 @@ export function useUpdateWorkOrderMutation(id: string) {
   })
 }
 
+export function useReopenWorkOrderMutation(id: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: () => workOrdersApi.reopen(id),
+    onSuccess: (workOrder) => {
+      // The response is the reopened order, so the form can start from it without waiting for a refetch.
+      queryClient.setQueryData(workOrderKeys.detail(id), workOrder)
+      queryClient.invalidateQueries({ queryKey: workOrderKeys.all })
+    },
+  })
+}
+
 export function useDownloadWorkOrderPdfMutation(id: string) {
   return useMutation({
     mutationFn: () => workOrdersApi.getPdf(id),

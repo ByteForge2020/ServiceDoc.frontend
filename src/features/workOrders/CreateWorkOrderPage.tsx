@@ -3,8 +3,10 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { extractErrorMessage } from '../../api/errorMessage'
+import { useConfirm } from '../../app/confirm/useConfirm'
 import { useShopSettingsQuery } from '../../app/shop/queries'
 import { useToasters } from '../../app/toasters/useToasters'
+import { usePhasesQuery } from '../settings/phases/queries'
 import { WorkOrderFormLayout } from './components/WorkOrderFormLayout'
 import { useCreateWorkOrderMutation } from './queries'
 import {
@@ -23,7 +25,10 @@ export function CreateWorkOrderPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const toasters = useToasters()
+  const confirm = useConfirm()
   const mutation = useCreateWorkOrderMutation()
+  const { data: phases = [] } = usePhasesQuery()
+  const closedPhaseId = phases.find((phase) => phase.systemType === 'Closed')?.id
   // The order takes the shop's discount type as it is when the order is created.
   const { data: shopSettings } = useShopSettingsQuery()
 
@@ -39,19 +44,14 @@ export function CreateWorkOrderPage() {
   const canSave =
     orderNumber.trim().length > 0 && !spareParts.some(isSparePartRowMissingName) && !mutation.isPending
 
-  function handleSubmit(event: FormEvent) {
-    event.preventDefault()
-
-    if (!orderNumber.trim()) {
-      return
-    }
-
+  // `closePhaseId`: create the order straight into "Closed Order", i.e. save and close it in one go.
+  function submit(closePhaseId?: string) {
     setOrderNumberConflict(false)
 
     mutation.mutate(
       {
         orderNumber: orderNumber.trim(),
-        phaseId: phaseId || null,
+        phaseId: closePhaseId ?? (phaseId || null),
         notes: notes.trim() ? notes.trim() : null,
         customer: buildCustomerPayload(customer),
         vehicle: buildVehiclePayload(vehicle),
@@ -60,7 +60,7 @@ export function CreateWorkOrderPage() {
       },
       {
         onSuccess: () => {
-          toasters.success(t('workOrderForm.createSuccess'))
+          toasters.success(t(closePhaseId ? 'workOrderForm.closeSuccess' : 'workOrderForm.createSuccess'))
           navigate('/orders', { replace: true })
         },
         onError: (error) => {
@@ -69,10 +69,43 @@ export function CreateWorkOrderPage() {
             toasters.error(t('workOrderForm.orderNumberConflict'))
             return
           }
-          toasters.error(extractErrorMessage(error, t('workOrderForm.createError')))
+          toasters.error(extractErrorMessage(error, t(closePhaseId ? 'workOrderForm.closeError' : 'workOrderForm.createError')))
         },
       },
     )
+  }
+
+  function handleSubmit(event: FormEvent) {
+    event.preventDefault()
+
+    if (!orderNumber.trim()) {
+      return
+    }
+
+    submit()
+  }
+
+  // The Close button and choosing "Closed Order" in the phase select both end up here.
+  async function handleCloseOrder() {
+    if (!closedPhaseId) {
+      return
+    }
+
+    if (!canSave) {
+      toasters.error(t('workOrderForm.closeNeedsValidData'))
+      return
+    }
+
+    const confirmed = await confirm({
+      title: t('workOrderForm.closeConfirmTitle'),
+      message: t('workOrderForm.closeConfirmMessage'),
+      confirmLabel: t('workOrderForm.closeOrder'),
+      destructive: true,
+    })
+
+    if (confirmed) {
+      submit(closedPhaseId)
+    }
   }
 
   return (
@@ -97,12 +130,14 @@ export function CreateWorkOrderPage() {
       estimates={estimates}
       onEstimatesChange={setEstimates}
       discountType={shopSettings?.discountType ?? 'Percent'}
+      taxPercent={shopSettings?.priceIncludesTax ? (shopSettings.taxPercent ?? null) : null}
       spareParts={spareParts}
       onSparePartsChange={setSpareParts}
       onSubmit={handleSubmit}
       saving={mutation.isPending}
       saveLabel={t('workOrderForm.createLabel')}
       canSave={canSave}
+      onCloseOrder={handleCloseOrder}
     />
   )
 }

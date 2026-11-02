@@ -17,13 +17,15 @@ interface WorkOrderBookingTileProps {
   booking: ServiceBayBookingSummary
   onEdit: (booking: ServiceBayBookingSummary) => void
   onDelete: (booking: ServiceBayBookingSummary) => void
+  /** The order is closed: the booking is shown without its Edit / Delete menu. */
+  readOnly?: boolean
 }
 
 /**
  * One service bay booking of a work order, with an Edit / Delete menu that appears on hover. A different accent
  * colour and a bay icon tell it apart from the job tiles.
  */
-export function WorkOrderBookingTile({ booking, onEdit, onDelete }: WorkOrderBookingTileProps) {
+export function WorkOrderBookingTile({ booking, onEdit, onDelete, readOnly = false }: WorkOrderBookingTileProps) {
   const { t } = useTranslation()
   const zone = useShopTimeZone()
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null)
@@ -49,15 +51,17 @@ export function WorkOrderBookingTile({ booking, onEdit, onDelete }: WorkOrderBoo
         '@media (hover: none)': { '& .booking-tile-menu': { opacity: 1 } },
       }}
     >
-      <IconButton
-        className="booking-tile-menu"
-        size="small"
-        aria-label={t('serviceBayBookings.menuAria')}
-        onClick={(event) => setMenuAnchor(event.currentTarget)}
-        sx={{ position: 'absolute', top: 8, right: 8 }}
-      >
-        <MoreVertIcon fontSize="small" />
-      </IconButton>
+      {!readOnly && (
+        <IconButton
+          className="booking-tile-menu"
+          size="small"
+          aria-label={t('serviceBayBookings.menuAria')}
+          onClick={(event) => setMenuAnchor(event.currentTarget)}
+          sx={{ position: 'absolute', top: 8, right: 8 }}
+        >
+          <MoreVertIcon fontSize="small" />
+        </IconButton>
+      )}
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, pr: 4, minWidth: 0 }}>
         <CarRepairIcon sx={{ fontSize: 20, color: 'warning.main', flexShrink: 0 }} />

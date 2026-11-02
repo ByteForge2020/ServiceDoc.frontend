@@ -14,6 +14,11 @@ interface OrderInformationCardProps {
   onPhaseChange: (value: string) => void
   /** The phase saved on the order (edit screen). If it has since been deleted it stays visible but cannot be re-selected. */
   savedPhase?: { id: string; name: string }
+  /**
+   * Choosing the "Closed Order" phase doesn't change the select: it asks to close the order, which has its own
+   * confirmation, instead (the same as the Close button).
+   */
+  onRequestClose: () => void
   notes: string
   onNotesChange: (value: string) => void
 }
@@ -25,6 +30,7 @@ export function OrderInformationCard({
   phaseId,
   onPhaseChange,
   savedPhase,
+  onRequestClose,
   notes,
   onNotesChange,
 }: OrderInformationCardProps) {
@@ -32,6 +38,7 @@ export function OrderInformationCard({
   const { data: phases = [] } = usePhasesQuery()
 
   const noPhaseId = phases.find((phase) => phase.systemType === 'NoPhase')?.id ?? ''
+  const closedPhaseId = phases.find((phase) => phase.systemType === 'Closed')?.id
   const phaseOptions: FormSelectOption<string>[] = phases.map((phase) => ({ value: phase.id, label: phase.name }))
 
   if (savedPhase && !phases.some((phase) => phase.id === savedPhase.id)) {
@@ -57,7 +64,7 @@ export function OrderInformationCard({
       <FormSelect
         label={t('orderInformation.phase')}
         value={phaseId || noPhaseId}
-        onChange={(value) => onPhaseChange(value)}
+        onChange={(value) => (value === closedPhaseId ? onRequestClose() : onPhaseChange(value))}
         options={phaseOptions}
       />
 

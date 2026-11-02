@@ -5,7 +5,7 @@ export type DiscountType = 'Percent' | 'Fixed'
 
 export interface ShopSettings {
   timeZoneIana: string
-  /** When on, new estimate items get their tax calculated from their total at `taxPercent`. */
+  /** When on, the shop's open work orders get their tax calculated from item totals at `taxPercent`. */
   priceIncludesTax: boolean
   /** 1-99. Kept while `priceIncludesTax` is off. */
   taxPercent: number | null

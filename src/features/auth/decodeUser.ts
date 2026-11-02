@@ -1,20 +1,19 @@
 import { jwtDecode } from 'jwt-decode'
 import type { AuthUser } from './types'
 
-interface KeycloakAccessTokenClaims {
-  preferred_username?: string
+interface AccessTokenClaims {
+  name?: string
   email?: string
   RepairShopId?: string
-  repairShopId?: string
 }
 
 export function buildUserFromToken(accessToken: string): AuthUser | null {
   try {
-    const claims = jwtDecode<KeycloakAccessTokenClaims>(accessToken)
+    const claims = jwtDecode<AccessTokenClaims>(accessToken)
     return {
-      username: claims.preferred_username ?? claims.email ?? 'Unknown',
+      username: claims.name ?? claims.email ?? 'Unknown',
       email: claims.email,
-      repairShopId: claims.RepairShopId ?? claims.repairShopId,
+      repairShopId: claims.RepairShopId,
     }
   } catch {
     return null

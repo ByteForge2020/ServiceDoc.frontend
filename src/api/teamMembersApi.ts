@@ -6,7 +6,7 @@ import type {
 } from '../features/settings/teamMembers/types'
 
 const GENERAL_BASE_PATH = '/api/v1/general/teammembers'
-const KEYCLOAK_BASE_PATH = '/api/v1/keycloak/teammembers'
+const AUTH_BASE_PATH = '/api/v1/auth/teammembers'
 
 export const teamMembersApi = {
   getAll() {
@@ -18,10 +18,10 @@ export const teamMembersApi = {
   },
 
   create(request: CreateTeamMemberPayload) {
-    return apiClient.post<{ id: string }>(KEYCLOAK_BASE_PATH, request).then((res) => res.data)
+    return apiClient.post<{ id: string }>(AUTH_BASE_PATH, request).then((res) => res.data)
   },
 
   update(id: string, request: UpdateTeamMemberPayload) {
-    return apiClient.put<void>(`${KEYCLOAK_BASE_PATH}/${id}`, request).then((res) => res.data)
+    return apiClient.put<void>(`${AUTH_BASE_PATH}/${id}`, request).then((res) => res.data)
   },
 }

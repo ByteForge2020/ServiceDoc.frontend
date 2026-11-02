@@ -8,7 +8,6 @@ import type { ExecutorShare } from './executorShares'
 import type {
   CustomerPayload,
   Estimate,
-  EstimateItem,
   EstimateItemPayload,
   EstimatePayload,
   EstimateStatus,
@@ -133,14 +132,6 @@ export interface EstimateItemRow {
   discount: string
   /** Calculated (read-only): price x quantity minus the discount. The server recalculates it on save. */
   total: string
-  /** Tax amount as shown (read-only). Follows the total at the row's own rate (see `taxPercent`); stored with the item. */
-  tax: string
-  /**
-   * The rate the row's tax follows: the tax is recalculated from the total whenever an amount is edited. A row added
-   * while the shop's "price includes tax" setting is on gets the shop's rate; a saved row keeps its own rate, read off
-   * its stored tax and total, so a later change of the shop setting never touches it. null: the tax is left as it is.
-   */
-  taxPercent: number | null
   /** Employees doing this item: empty, or whole-percent shares adding up to 100 (see executorShares). */
   executors: ExecutorShare[]
 }
@@ -153,12 +144,7 @@ function numberToField(value: number | null | undefined): string {
   return value != null ? String(value) : ''
 }
 
-export function createEstimateItemRow(
-  subItem: boolean,
-  name = '',
-  defaults?: EstimateItemDefaults,
-  taxPercent: number | null = null,
-): EstimateItemRow {
+export function createEstimateItemRow(subItem: boolean, name = '', defaults?: EstimateItemDefaults): EstimateItemRow {
   // Quantity 1 and no discount: the total is just the price.
   const price = numberToField(defaults?.price)
   const type = defaults?.type ?? 'Fixed'
@@ -176,8 +162,6 @@ export function createEstimateItemRow(
     quantity: '1',
     discount: '',
     total: price,
-    tax: taxPercent !== null ? calculateTax(price, taxPercent) : '',
-    taxPercent,
     executors: [],
   }
 }
@@ -191,16 +175,12 @@ export interface EstimateFormState {
   subItems: EstimateItemRow[]
 }
 
-export function createEstimateFormState(
-  name: string,
-  defaults?: EstimateItemDefaults,
-  taxPercent: number | null = null,
-): EstimateFormState {
+export function createEstimateFormState(name: string, defaults?: EstimateItemDefaults): EstimateFormState {
   return {
     key: crypto.randomUUID(),
     id: null,
     status: 'Draft',
-    root: createEstimateItemRow(false, name, defaults, taxPercent),
+    root: createEstimateItemRow(false, name, defaults),
     subItems: [],
   }
 }
@@ -220,18 +200,6 @@ export function estimatesToFormState(estimates: Estimate[]): EstimateFormState[]
         subItems: rows.filter((_row, index) => index !== rootIndex),
       }
     })
-}
-
-// Below this total a tax rounded to cents says too little about the rate, so such a row keeps its tax as it is.
-const MIN_TOTAL_FOR_TAX_RATE = 100
-
-/** A saved row's own tax rate (its tax over its total, to two decimals); null when it has no tax or a too small total. */
-function savedItemTaxPercent(item: Pick<EstimateItem, 'tax' | 'total'>): number | null {
-  if (item.tax == null || item.total == null || item.total < MIN_TOTAL_FOR_TAX_RATE) {
-    return null
-  }
-
-  return Math.round((item.tax / item.total) * 10000) / 100
 }
 
 function estimateItemsToFormState(estimate: Estimate): EstimateItemRow[] {
@@ -255,8 +223,6 @@ function estimateItemsToFormState(estimate: Estimate): EstimateItemRow[] {
         quantity: String(item.quantity),
         discount: item.discount != null ? String(item.discount) : '',
         total: item.total != null ? String(item.total) : '',
-        tax: item.tax != null ? String(item.tax) : '',
-        taxPercent: savedItemTaxPercent(item),
         executors: (item.executors ?? []).map(({ userId, percent }) => ({ userId, percent })),
       }
     })
@@ -322,11 +288,14 @@ export function resolveAmountPatch<T extends EstimateAmountFields>(row: T, patch
   return { ...patch, price, fixedPrice: price } as Partial<T>
 }
 
-/** Tax for a total: total x rate / 100, rounded to cents (a total of 100 at 10% gives 10). Empty without a total. */
-export function calculateTax(total: string, taxPercent: number): string {
+/**
+ * Tax for a total at the order's rate: total x rate / 100, rounded to cents (a total of 100 at 10% gives 10). Empty
+ * without a total or without a rate. The server works it out the same way; nothing about tax is saved.
+ */
+export function calculateTax(total: string, taxPercent: number | null): string {
   const value = toNullableNumber(total)
 
-  return value === null ? '' : String(Math.round(((value * taxPercent) / 100) * 100) / 100)
+  return value === null || taxPercent === null ? '' : String(Math.round(((value * taxPercent) / 100) * 100) / 100)
 }
 
 type EstimateLineFields = Pick<EstimateItemRow, 'price' | 'quantity' | 'discount'>
@@ -370,8 +339,8 @@ export function calculateLineTotal(row: EstimateLineFields, discountType: Discou
 
 /**
  * Applies an edit to an estimate row and returns the patch to store: an Hourly row's price follows hours x rate, and the
- * total is recalculated from price, quantity and discount. A row with a `taxPercent` (a new one at the shop's rate, a
- * saved one at its own) has its tax follow its total; a row without one keeps its tax as it is.
+ * total is recalculated from price, quantity and discount. Tax is not part of a row: it is worked out from the total
+ * at the order's tax rate wherever it is shown.
  */
 export function resolveItemPatch(
   row: EstimateItemRow,
@@ -379,14 +348,8 @@ export function resolveItemPatch(
   discountType: DiscountType,
 ): Partial<EstimateItemRow> {
   const amounts = resolveAmountPatch(row, patch)
-  const total = calculateLineTotal({ ...row, ...amounts }, discountType)
-  const resolved: Partial<EstimateItemRow> = { ...amounts, total }
 
-  if (row.taxPercent !== null) {
-    resolved.tax = calculateTax(total, row.taxPercent)
-  }
-
-  return resolved
+  return { ...amounts, total: calculateLineTotal({ ...row, ...amounts }, discountType) }
 }
 
 export function buildEstimatesPayload(estimates: EstimateFormState[]): EstimatePayload[] {
@@ -411,7 +374,6 @@ function buildEstimateItemsPayload(rows: EstimateItemRow[]): EstimateItemPayload
     price: toNullableNumber(row.price),
     quantity: quantityValue(row),
     discount: toNullableNumber(row.discount),
-    tax: toNullableNumber(row.tax),
     executors: row.executors.map(({ userId, percent }) => ({ userId, percent })),
   }))
 }

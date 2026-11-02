@@ -9,7 +9,8 @@
     "openMenu": "Open menu",
     "createOption": "Create \"{{name}}\"",
     "areYouSure": "Are you sure?",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "ok": "OK"
   },
   "nav": {
     "workOrders": "Work orders",
@@ -68,7 +69,19 @@
     "updateError": "Failed to update work order.",
     "printPdf": "Print PDF",
     "printPdfError": "Failed to download the PDF.",
-    "orderNumberConflict": "An order with this number already exists."
+    "orderNumberConflict": "An order with this number already exists.",
+    "closeOrder": "Close order",
+    "closeConfirmTitle": "Close the order?",
+    "closeConfirmMessage": "It will no longer be possible to edit it.",
+    "closeSuccess": "Work order closed.",
+    "closeError": "Failed to close the work order.",
+    "closeNeedsValidData": "Fill in the required fields to close the work order.",
+    "reopenOrder": "Return to work",
+    "reopenSuccess": "Work order returned to work.",
+    "reopenError": "Failed to return the work order to work.",
+    "closedInfoTitle": "Work order closed",
+    "closedInfoBy": "Closed by {{name}} on {{date}}.",
+    "closedInfoAt": "Closed on {{date}}."
   },
   "customerInformation": {
     "title": "Customer Information",
@@ -244,7 +257,11 @@
       "priceIncludesTax": "Price includes tax",
       "rateAria": "Tax rate, percent",
       "rateRange": "Enter a rate from {{min}} to {{max}}.",
-      "hint": "Applies to items added to work orders from now on. Items already in work orders keep their tax.",
+      "hint": "Applies to every work order that isn't closed. Closed work orders keep the rate they were closed with.",
+      "confirmTitle": "Change the tax rate?",
+      "confirmMessage": "A tax rate of {{percent}}% will be applied to every work order that isn't closed. Closed work orders keep their previous rate.",
+      "confirmMessageOff": "Tax will be removed from every work order that isn't closed. Closed work orders keep their previous rate.",
+      "confirmLabel": "Change",
       "saveSuccess": "Tax settings saved.",
       "saveError": "Failed to save tax settings."
     },

@@ -20,11 +20,11 @@ import { CellField } from '../../../../components/form/CellField'
 import { CellNumberStepper } from '../../../../components/form/CellNumberStepper'
 import { useConfirm } from '../../../../app/confirm/useConfirm'
 import type { DiscountType } from '../../../../app/shop/shopApi'
-import { useShopSettingsQuery } from '../../../../app/shop/queries'
 import { formatFixedDecimal } from '../../../../utils/decimalInput'
 import type { EstimateStatus } from '../../types'
 import {
   calculateDiscountAmount,
+  calculateTax,
   createEstimateFormState,
   createEstimateItemRow,
   resolveItemPatch,
@@ -43,6 +43,8 @@ interface EstimateTabProps {
   onEstimatesChange: (estimates: EstimateFormState[]) => void
   /** How every row's discount is read, fixed on the order when it is created. */
   discountType: DiscountType
+  /** The order's tax rate in percent, null for none: every row's tax is worked out from its total at this rate. */
+  taxPercent: number | null
 }
 
 // Column widths in px. Cost holds the type toggle plus hours x rate. Discount holds "-100%" plus its money equivalent, and total (with the tax under it) can reach hundreds of billions.
@@ -60,12 +62,9 @@ const COLUMN_WIDTH = {
 const NUMERIC_HEAD_SX = { textAlign: 'right', pr: '30px' } as const
 const TABLE_MIN_WIDTH = Object.values(COLUMN_WIDTH).reduce((sum, width) => sum + width, 0)
 
-export function EstimateTab({ estimates, onEstimatesChange, discountType }: EstimateTabProps) {
+export function EstimateTab({ estimates, onEstimatesChange, discountType, taxPercent }: EstimateTabProps) {
   const { t } = useTranslation()
   const confirm = useConfirm()
-  // Set when the shop has "price includes tax" on; new items then get their tax calculated from their total.
-  const { data: shopSettings } = useShopSettingsQuery()
-  const taxPercent = shopSettings?.priceIncludesTax ? (shopSettings.taxPercent ?? null) : null
 
   // Removing a row throws away its amounts and executors, so it is confirmed first.
   function confirmRemove(name: string, subItemCount = 0): Promise<boolean> {
@@ -129,6 +128,7 @@ export function EstimateTab({ estimates, onEstimatesChange, discountType }: Esti
                   <EstimateItemRowView
                     row={estimate.root}
                     discountType={discountType}
+                    taxPercent={taxPercent}
                     status={estimate.status}
                     onStatusChange={(status) => updateEstimate(estimate.key, { status })}
                     onChange={(patch) => updateEstimate(estimate.key, { root: { ...estimate.root, ...patch } })}
@@ -139,7 +139,7 @@ export function EstimateTab({ estimates, onEstimatesChange, discountType }: Esti
                     }}
                     onAddSubItem={() =>
                       updateEstimate(estimate.key, {
-                        subItems: [...estimate.subItems, createEstimateItemRow(true, '', undefined, taxPercent)],
+                        subItems: [...estimate.subItems, createEstimateItemRow(true)],
                       })
                     }
                   />
@@ -148,6 +148,7 @@ export function EstimateTab({ estimates, onEstimatesChange, discountType }: Esti
                       key={sub.key}
                       row={sub}
                       discountType={discountType}
+                      taxPercent={taxPercent}
                       onChange={(patch) => updateSubItem(estimate.key, sub.key, patch)}
                       onRemove={async () => {
                         // A sub-item nobody has named yet has nothing worth a warning.
@@ -172,10 +173,10 @@ export function EstimateTab({ estimates, onEstimatesChange, discountType }: Esti
         <Box>
           <SearchInputDropdown
             excludedNames={estimates.map((estimate) => estimate.root.name)}
-            onSelect={(item) => onEstimatesChange([...estimates, createEstimateFormState(item.name, item, taxPercent)])}
+            onSelect={(item) => onEstimatesChange([...estimates, createEstimateFormState(item.name, item)])}
           />
         </Box>
-        {estimates.length > 0 && <EstimateSummary estimates={estimates} />}
+        {estimates.length > 0 && <EstimateSummary estimates={estimates} taxPercent={taxPercent} />}
       </Stack>
     </Stack>
   )
@@ -184,6 +185,7 @@ export function EstimateTab({ estimates, onEstimatesChange, discountType }: Esti
 interface EstimateItemRowViewProps {
   row: EstimateItemRow
   discountType: DiscountType
+  taxPercent: number | null
   onChange: (patch: Partial<EstimateItemRow>) => void
   onRemove: () => void | Promise<void>
   onAddSubItem?: () => void
@@ -194,6 +196,7 @@ interface EstimateItemRowViewProps {
 function EstimateItemRowView({
   row,
   discountType,
+  taxPercent,
   onChange,
   onRemove,
   onAddSubItem,
@@ -201,7 +204,7 @@ function EstimateItemRowView({
   onStatusChange,
 }: EstimateItemRowViewProps) {
   const { t, i18n } = useTranslation()
-  const formattedTax = formatFixedDecimal(row.tax, i18n.language, 2)
+  const formattedTax = formatFixedDecimal(calculateTax(row.total, taxPercent), i18n.language, 2)
   const taxText = formattedTax !== null ? `${t('estimate.tax')} ${formattedTax} ${t('estimate.currencyShort')}` : null
 
   // Routes every amount edit through the shared rule that keeps price, quantity, discount and total in step.

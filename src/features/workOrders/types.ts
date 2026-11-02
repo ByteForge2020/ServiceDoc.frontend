@@ -41,8 +41,6 @@ export interface EstimateItemPayload {
   quantity: number
   /** A percent or a money amount, depending on the work order's discountType. */
   discount: number | null
-  /** Tax amount at the item's own rate, kept in step with its total as it is edited; null when there is none. */
-  tax: number | null
   /** Who does the item. Empty, or whole-percent shares that add up to 100. */
   executors: EstimateItemExecutor[]
 }
@@ -97,7 +95,6 @@ export interface UpdateWorkOrderRequest {
   orderNumber: string
   phaseId: string | null
   notes: string | null
-  closedAt: string | null
   customer: CustomerPayload | null
   vehicle: VehiclePayload | null
   estimates: EstimatePayload[]
@@ -137,9 +134,18 @@ export interface WorkOrder {
   notes: string | null
   openedAt: string
   closedAt: string | null
+  /** Who closed the order; null for an open one, and for one closed before this was recorded. */
+  closedByName: string | null
+  /** In the "Closed Order" phase: the order accepts no changes until it is returned to work. */
+  isClosed: boolean
   createdAt: string
   /** The shop's discount type when the order was created; applies to every item's discount. */
   discountType: DiscountType
+  /**
+   * The order's tax rate in percent, null for none. Item taxes are worked out from it, never stored: an open order
+   * follows the shop's rate, a closed one keeps the rate it was closed with.
+   */
+  taxPercent: number | null
   estimates: Estimate[]
   spareParts: SparePart[]
   jobs: JobSummary[]
