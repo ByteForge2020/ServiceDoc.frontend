@@ -26,6 +26,38 @@ export interface Appointment {
   convertedWorkOrderId: string | null
   convertedOrderNumber: string | null
   createdAt: string
+  /** Employee time booked for the appointment; becomes the work order's jobs when it is converted. */
+  jobs: AppointmentJobSummary[]
+  /** Service bays booked for the appointment; become the work order's bookings when it is converted. */
+  serviceBayBookings: AppointmentServiceBayBookingSummary[]
+}
+
+export interface AppointmentJobSummary {
+  id: string
+  descriptions: string[]
+  assignedUserName: string
+  scheduledTime: string
+  scheduledDurationMinutes: number
+}
+
+export interface AppointmentServiceBayBookingSummary {
+  id: string
+  serviceBayName: string
+  isServiceBayDeleted: boolean
+  descriptions: string[]
+  scheduledTime: string
+  scheduledDurationMinutes: number
+}
+
+/** An appointment as offered when choosing which one to book time for (the picker, or the fixed appointment of a calendar). */
+export interface AppointmentSummary {
+  id: string
+  number: string
+  customerName: string | null
+  vehicleDescription: string | null
+  scheduledTime: string
+  durationMinutes: number
+  reasons: AppointmentReason[]
 }
 
 export interface CreateAppointmentRequest {

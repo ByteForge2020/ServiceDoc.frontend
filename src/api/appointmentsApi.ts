@@ -1,11 +1,24 @@
 import { apiClient } from './apiClient'
-import type { Appointment, CreateAppointmentRequest, UpdateAppointmentRequest } from '../features/appointments/types'
+import type {
+  Appointment,
+  AppointmentSummary,
+  CreateAppointmentRequest,
+  UpdateAppointmentRequest,
+} from '../features/appointments/types'
 
 const BASE_PATH = '/api/v1/general/appointments'
 
 export const appointmentsApi = {
   getAll(from: string, to: string) {
     return apiClient.get<Appointment[]>(BASE_PATH, { params: { from, to } }).then((res) => res.data)
+  },
+
+  getUpcoming(take: number) {
+    return apiClient.get<AppointmentSummary[]>(`${BASE_PATH}/upcoming`, { params: { take } }).then((res) => res.data)
+  },
+
+  search(query: string) {
+    return apiClient.get<AppointmentSummary[]>(`${BASE_PATH}/search`, { params: { query } }).then((res) => res.data)
   },
 
   getById(id: string) {

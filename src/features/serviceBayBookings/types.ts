@@ -35,8 +35,9 @@ export interface RescheduleServiceBayBookingPayload {
 export function bookingToCalendarEntry(booking: ServiceBayBooking): CalendarEntry {
   return {
     id: booking.id,
-    orderId: booking.orderId,
-    orderNumber: booking.orderNumber,
+    kind: 'order',
+    parentId: booking.orderId,
+    parentNumber: booking.orderNumber,
     rowId: booking.serviceBayId,
     scheduledTime: booking.scheduledTime,
     scheduledDurationMinutes: booking.scheduledDurationMinutes,

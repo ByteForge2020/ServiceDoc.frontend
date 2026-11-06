@@ -41,6 +41,8 @@ interface JobDescriptionsFieldProps {
   descriptions: JobDescriptionDraft[]
   disabled?: boolean
   placeholder?: string
+  /** Shown when there is nothing left to pick; defaults to the work order wording. */
+  noServicesText?: string
   onChange: (descriptions: JobDescriptionDraft[]) => void
 }
 
@@ -48,7 +50,14 @@ function normalize(text: string): string {
   return text.trim().toLowerCase()
 }
 
-export function JobDescriptionsField({ services, descriptions, disabled, placeholder, onChange }: JobDescriptionsFieldProps) {
+export function JobDescriptionsField({
+  services,
+  descriptions,
+  disabled,
+  placeholder,
+  noServicesText,
+  onChange,
+}: JobDescriptionsFieldProps) {
   const { t } = useTranslation()
   const [inputValue, setInputValue] = useState('')
 
@@ -103,7 +112,7 @@ export function JobDescriptionsField({ services, descriptions, disabled, placeho
         filterOptions={(opts) => opts}
         getOptionLabel={(option) => option.label}
         isOptionEqualToValue={(option, value) => option.label === value.label}
-        noOptionsText={isAlreadyAdded ? t('jobs.addJobModal.alreadyAdded') : t('jobs.addJobModal.noServicesLeft')}
+        noOptionsText={isAlreadyAdded ? t('jobs.addJobModal.alreadyAdded') : (noServicesText ?? t('jobs.addJobModal.noServicesLeft'))}
         openOnFocus
         autoHighlight
         disabled={disabled}

@@ -10,19 +10,38 @@ import { DateTime } from 'luxon'
 import { useTranslation } from 'react-i18next'
 import { useShopTimeZone } from '../../../app/shop/useShopTimeZone'
 import { useToasters } from '../../../app/toasters/useToasters'
+import type { AppointmentSummary } from '../../appointments/types'
 import type { WorkOrderSummary } from '../../workOrders/types'
 import type { CalendarMode } from '../types'
 import { JobsCalendar, type CalendarTabKey } from './JobsCalendar'
 
 /**
- * What the dialog is opened for: scheduling a new job or booking a service bay for an order, or editing one existing
- * job or booking.
+ * What the dialog is opened for: scheduling a new job or booking a service bay for an order or an appointment, or
+ * editing one existing job or booking.
  */
 export type JobsCalendarDialogTarget =
   | { kind: 'addJob'; order: WorkOrderSummary }
   | { kind: 'editJob'; jobId: string; scheduledTime: string }
   | { kind: 'addBooking'; order: WorkOrderSummary }
   | { kind: 'editBooking'; bookingId: string; scheduledTime: string }
+  | { kind: 'addAppointmentJob'; appointment: AppointmentSummary }
+  | { kind: 'editAppointmentJob'; jobId: string; scheduledTime: string }
+  | { kind: 'addAppointmentBooking'; appointment: AppointmentSummary }
+  | { kind: 'editAppointmentBooking'; bookingId: string; scheduledTime: string }
+
+type EditTarget = Extract<
+  JobsCalendarDialogTarget,
+  { kind: 'editJob' | 'editBooking' | 'editAppointmentJob' | 'editAppointmentBooking' }
+>
+
+function isEditTarget(target: JobsCalendarDialogTarget): target is EditTarget {
+  return (
+    target.kind === 'editJob' ||
+    target.kind === 'editBooking' ||
+    target.kind === 'editAppointmentJob' ||
+    target.kind === 'editAppointmentBooking'
+  )
+}
 
 interface JobsCalendarDialogProps {
   target: JobsCalendarDialogTarget
@@ -33,7 +52,15 @@ interface JobsCalendarDialogProps {
 const CHROME_HEIGHT = '270px'
 
 function targetTab(target: JobsCalendarDialogTarget): CalendarTabKey {
-  return target.kind === 'addBooking' || target.kind === 'editBooking' ? 'serviceBays' : 'technicians'
+  switch (target.kind) {
+    case 'addBooking':
+    case 'editBooking':
+    case 'addAppointmentBooking':
+    case 'editAppointmentBooking':
+      return 'serviceBays'
+    default:
+      return 'technicians'
+  }
 }
 
 function targetMode(target: JobsCalendarDialogTarget): CalendarMode {
@@ -41,15 +68,20 @@ function targetMode(target: JobsCalendarDialogTarget): CalendarMode {
     case 'addJob':
     case 'addBooking':
       return { kind: 'addToOrder', order: target.order }
+    case 'addAppointmentJob':
+    case 'addAppointmentBooking':
+      return { kind: 'addToAppointment', appointment: target.appointment }
     case 'editJob':
+    case 'editAppointmentJob':
       return { kind: 'editEntry', entryId: target.jobId }
     case 'editBooking':
+    case 'editAppointmentBooking':
       return { kind: 'editEntry', entryId: target.bookingId }
   }
 }
 
 /**
- * The calendar in a large dialog, opened from a work order. It keeps its own date, so browsing it never moves
+ * The calendar in a large dialog, opened from a work order or an appointment. It keeps its own date, so browsing it never moves
  * the date of the Jobs screen. Saving or deleting an entry closes it.
  */
 export function JobsCalendarDialog({ target, onClose }: JobsCalendarDialogProps) {
@@ -60,7 +92,7 @@ export function JobsCalendarDialog({ target, onClose }: JobsCalendarDialogProps)
   const isNarrow = useMediaQuery(theme.breakpoints.down('md'))
 
   const [selectedDate, setSelectedDate] = useState(() =>
-    target.kind === 'editJob' || target.kind === 'editBooking'
+    isEditTarget(target)
       ? DateTime.fromISO(target.scheduledTime, { zone: 'utc' }).setZone(zone).toISODate()!
       : DateTime.now().setZone(zone).toISODate()!,
   )

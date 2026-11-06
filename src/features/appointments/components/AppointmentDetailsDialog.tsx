@@ -18,6 +18,7 @@ import { formatScheduledRange } from '../../../utils/timeGrid'
 import { APPOINTMENT_STATUS_COLOR, APPOINTMENT_STATUS_LABEL_KEY } from '../appointmentStatus'
 import { useConvertAppointmentMutation } from '../queries'
 import type { Appointment } from '../types'
+import { AppointmentPlannedWork } from './AppointmentPlannedWork'
 
 interface AppointmentDetailsDialogProps {
   appointment: Appointment
@@ -61,7 +62,7 @@ export function AppointmentDetailsDialog({ appointment, onClose }: AppointmentDe
   }
 
   return (
-    <Dialog open onClose={onClose} fullWidth maxWidth="xs" slotProps={{ paper: { sx: { borderRadius: '12px' } } }}>
+    <Dialog open onClose={onClose} fullWidth maxWidth="sm" slotProps={{ paper: { sx: { borderRadius: '12px' } } }}>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         {t('appointmentsPage.details.title', { number: appointment.number })}
         <IconButton onClick={onClose} size="small">
@@ -113,6 +114,8 @@ export function AppointmentDetailsDialog({ appointment, onClose }: AppointmentDe
               ))}
             </Stack>
           </Stack>
+
+          <AppointmentPlannedWork appointment={appointment} />
         </Stack>
       </DialogContent>
 

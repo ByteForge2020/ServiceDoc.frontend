@@ -32,7 +32,9 @@ export function AppointmentsPage() {
   const deleteMutation = useDeleteAppointmentMutation()
 
   const [weekStart, setWeekStart] = useState(() => mondayOfWeek(DateTime.local()).toISODate()!)
-  const [detailsAppointment, setDetailsAppointment] = useState<Appointment | null>(null)
+  // Only the id is kept: the dialog shows the appointment as the list currently has it, so that work scheduled from
+  // the dialog appears in it without reopening.
+  const [detailsAppointmentId, setDetailsAppointmentId] = useState<string | null>(null)
 
   const { from, to } = useMemo(
     () => ({
@@ -44,6 +46,7 @@ export function AppointmentsPage() {
 
   const { data: settings, isPending: isSettingsPending } = useAppointmentSettingsQuery()
   const { data: appointments, isPending: isAppointmentsPending } = useAppointmentsQuery(from, to)
+  const detailsAppointment = appointments?.find((appointment) => appointment.id === detailsAppointmentId) ?? null
 
   function handlePrevWeek() {
     setWeekStart(DateTime.fromISO(weekStart).minus({ weeks: 1 }).toISODate()!)
@@ -124,14 +127,14 @@ export function AppointmentsPage() {
           settings={settings}
           appointments={appointments ?? []}
           onScheduleSlot={handleScheduleSlot}
-          onOpenDetails={setDetailsAppointment}
+          onOpenDetails={(appointment) => setDetailsAppointmentId(appointment.id)}
           onEditAppointment={handleEditAppointment}
           onDeleteAppointment={handleDeleteAppointment}
         />
       )}
 
       {detailsAppointment && (
-        <AppointmentDetailsDialog appointment={detailsAppointment} onClose={() => setDetailsAppointment(null)} />
+        <AppointmentDetailsDialog appointment={detailsAppointment} onClose={() => setDetailsAppointmentId(null)} />
       )}
     </Stack>
   )

@@ -3,6 +3,7 @@ import { useDndContext, useDroppable } from '@dnd-kit/core'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Popover from '@mui/material/Popover'
+import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import { alpha } from '@mui/material/styles'
 import {
@@ -40,6 +41,20 @@ export interface DropPlaceholder {
   durationMinutes: number
 }
 
+/** Where an empty slot was clicked. */
+export interface AddParams {
+  rowId: string
+  rowName: string
+  minutes: number
+}
+
+/** One thing that can be added at a clicked empty slot (e.g. a job for a work order, or for an appointment). */
+export interface CalendarAddAction {
+  key: string
+  label: string
+  onSelect: (params: AddParams) => void
+}
+
 interface ResourceGridProps {
   rows: CalendarRow[]
   entries: CalendarEntry[]
@@ -55,10 +70,9 @@ interface ResourceGridProps {
   maxHeight?: string
   /** Shown instead of rows when there are none. */
   emptyRowsText: ReactNode
-  /** Label of the button offered when an empty slot is clicked. */
-  addLabel: string
+  /** The buttons offered when an empty slot is clicked, one per kind of thing that can be added. */
+  addActions: CalendarAddAction[]
   entryLabels: EntryLabels
-  onAdd: (params: { rowId: string; rowName: string; minutes: number }) => void
   onEdit: (entry: CalendarEntry) => void
   onDelete: (entry: CalendarEntry) => void
 }
@@ -110,9 +124,8 @@ export function ResourceGrid({
   focusEntryId,
   maxHeight = 'calc(100vh - 260px)',
   emptyRowsText,
-  addLabel,
+  addActions,
   entryLabels,
-  onAdd,
   onEdit,
   onDelete,
 }: ResourceGridProps) {
@@ -181,11 +194,11 @@ export function ResourceGrid({
     setPopover(null)
   }
 
-  function handleAddClick() {
+  function handleAddClick(action: CalendarAddAction) {
     if (!popover) {
       return
     }
-    onAdd({ rowId: popover.rowId, rowName: popover.rowName, minutes: popover.minutes })
+    action.onSelect({ rowId: popover.rowId, rowName: popover.rowName, minutes: popover.minutes })
     setPopover(null)
   }
 
@@ -381,9 +394,13 @@ export function ResourceGrid({
         anchorReference="anchorPosition"
         anchorPosition={popover ? { top: popover.top, left: popover.left } : undefined}
       >
-        <Button variant="text" onClick={handleAddClick} sx={{ m: 1 }}>
-          {addLabel}
-        </Button>
+        <Stack sx={{ p: 1, alignItems: 'stretch' }}>
+          {addActions.map((action) => (
+            <Button key={action.key} variant="text" onClick={() => handleAddClick(action)} sx={{ justifyContent: 'flex-start' }}>
+              {action.label}
+            </Button>
+          ))}
+        </Stack>
       </Popover>
     </Box>
   )

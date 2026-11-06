@@ -18,7 +18,23 @@ const blue = {
   400: '#60a5fa',
 }
 
+// Marks appointment entries (work that is only planned until the appointment becomes a work order).
+const violet = {
+  600: '#7c3aed',
+  500: '#8b5cf6',
+  400: '#a78bfa',
+}
+
 const secondaryButtonHover = '#e9edf3'
+
+declare module '@mui/material/styles' {
+  interface Palette {
+    appointment: Palette['primary']
+  }
+  interface PaletteOptions {
+    appointment?: PaletteOptions['primary']
+  }
+}
 
 export const drawerWidth = 240
 
@@ -44,6 +60,12 @@ export const theme = createTheme({
     success: { main: '#22c55e' },
     error: { main: '#ef4444' },
     warning: { main: '#f59e0b' },
+    appointment: {
+      main: violet[500],
+      light: violet[400],
+      dark: violet[600],
+      contrastText: '#ffffff',
+    },
   },
   typography: {
     fontFamily: 'Inter, system-ui, sans-serif',

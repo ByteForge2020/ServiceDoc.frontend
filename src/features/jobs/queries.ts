@@ -4,6 +4,7 @@ import { workOrderKeys } from '../workOrders/queries'
 import type { CreateJobPayload, Job, RescheduleJobPayload, UpdateJobPayload } from './types'
 
 export const jobsKeys = {
+  all: ['jobs'] as const,
   range: (from: string, to: string) => ['jobs', from, to] as const,
 }
 

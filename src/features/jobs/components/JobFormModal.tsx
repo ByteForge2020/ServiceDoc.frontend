@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
@@ -10,13 +9,12 @@ import CloseIcon from '@mui/icons-material/Close'
 import { DateTime } from 'luxon'
 import { useTranslation } from 'react-i18next'
 import { useShopTimeZone } from '../../../app/shop/useShopTimeZone'
-import { AppDatePicker } from '../../../components/form/AppDatePicker'
-import { AppTimeField } from '../../../components/form/AppTimeField'
 import { useWorkOrderQuery } from '../../workOrders/queries'
 import type { WorkOrderSummary } from '../../workOrders/types'
 import type { JobDescription, JobDescriptionPayload } from '../types'
 import { JobDescriptionsField, type JobDescriptionDraft } from './JobDescriptionsField'
 import { OrderPicker } from './OrderPicker'
+import { SlotScheduleFields } from './SlotScheduleFields'
 
 export interface JobFormValues {
   orderId: string
@@ -130,26 +128,14 @@ export function JobFormModal({
             onChangeOrder={handleChangeOrder}
           />
 
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
-            <AppDatePicker label={t('jobs.addJobModal.startDate')} value={startDate} onChange={(value) => value && setStartDate(value)} required />
-            <AppTimeField
-              label={t('jobs.addJobModal.startHour')}
-              value={startMinutes}
-              onChange={setStartMinutes}
-              stepMinutes={5}
-              required
-            />
-          </Box>
-
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
-            <AppTimeField
-              label={t('jobs.addJobModal.scheduledDuration')}
-              value={durationMinutes}
-              onChange={setDurationMinutes}
-              stepMinutes={15}
-              required
-            />
-          </Box>
+          <SlotScheduleFields
+            startDate={startDate}
+            startMinutes={startMinutes}
+            durationMinutes={durationMinutes}
+            onStartDateChange={setStartDate}
+            onStartMinutesChange={setStartMinutes}
+            onDurationMinutesChange={setDurationMinutes}
+          />
 
           <JobDescriptionsField
             services={serviceOptions}

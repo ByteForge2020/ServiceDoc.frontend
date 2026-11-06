@@ -350,10 +350,12 @@
     "noTechnicians": "No technicians found.",
     "noServiceBays": "No service bays yet. Add them in Settings → Service bays.",
     "addJobPopup": {
-      "addJobToOrder": "Add job to Order"
+      "addJobToOrder": "Add job to Order",
+      "addJobToAppointment": "Add job to appointment"
     },
     "addBookingPopup": {
-      "bookServiceBay": "Book service bay for Order"
+      "bookServiceBay": "Book service bay for Order",
+      "bookServiceBayForAppointment": "Book service bay for appointment"
     },
     "addJobModal": {
       "title": "Add job to an Order for {{technician}}",
@@ -399,6 +401,13 @@
     "calendarDialog": {
       "closeAria": "Close",
       "entryNotFound": "This can no longer be shown in the calendar. It may have been deleted, or its technician or service bay is no longer listed."
+    },
+    "entry": {
+      "appointmentTitle": "Appointment {{number}}"
+    },
+    "legend": {
+      "order": "Work order",
+      "appointment": "Appointment (tentative)"
     }
   },
   "serviceBayBookings": {
@@ -458,7 +467,13 @@
       "convertedBadge": "Converted to order #{{number}}",
       "convertSuccess": "Appointment converted to a work order.",
       "convertError": "Failed to convert appointment to a work order.",
-      "convertConflict": "An order with this number already exists."
+      "convertConflict": "An order with this number already exists.",
+      "plannedWork": {
+        "title": "Planned work",
+        "addJob": "Add job",
+        "bookServiceBay": "Book service bay",
+        "empty": "Nothing planned yet. Jobs and bays booked here become the work order’s jobs and bookings when the appointment is converted."
+      }
     }
   },
   "appointmentForm": {
@@ -490,5 +505,38 @@
   },
   "errors": {
     "somethingWentWrong": "Something went wrong."
+  },
+  "appointmentSlots": {
+    "picker": {
+      "selectAppointment": "Select appointment",
+      "searchPlaceholder": "Search by number, customer or license plate",
+      "keepTyping": "Keep typing to search…",
+      "noResults": "No appointments found",
+      "appointmentLabel": "Appointment {{number}}",
+      "changeAppointment": "change appointment"
+    },
+    "form": {
+      "addDescriptionPlaceholder": "Pick a reason for the visit or type your own",
+      "selectAppointmentFirst": "Select an appointment first",
+      "noReasonsLeft": "The appointment has no more reasons. Type your own description."
+    },
+    "jobs": {
+      "addTitle": "Add job to appointment for {{technician}}",
+      "editTitle": "Edit appointment job for {{technician}}",
+      "createSuccess": "Appointment job created.",
+      "createError": "Failed to create the appointment job.",
+      "updateSuccess": "Appointment job updated.",
+      "updateError": "Failed to update the appointment job.",
+      "deleteConfirmMessage": "Are you sure you want to delete the job for appointment {{number}}? This action cannot be undone."
+    },
+    "bookings": {
+      "addTitle": "Book “{{serviceBay}}” for an appointment",
+      "editTitle": "Edit appointment booking of “{{serviceBay}}”",
+      "createSuccess": "Service bay booked for the appointment.",
+      "createError": "Failed to book the service bay.",
+      "updateSuccess": "Booking updated.",
+      "updateError": "Failed to update the booking.",
+      "deleteConfirmMessage": "Are you sure you want to delete the service bay booking for appointment {{number}}? This action cannot be undone."
+    }
   }
 }

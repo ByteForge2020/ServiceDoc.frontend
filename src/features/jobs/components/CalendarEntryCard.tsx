@@ -5,8 +5,10 @@ import IconButton from '@mui/material/IconButton'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
 import Typography from '@mui/material/Typography'
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import { alpha, keyframes } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import { useShopTimeZone } from '../../../app/shop/useShopTimeZone'
 import type { CalendarEntry } from '../types'
 import { ENTRY_CARD_ATTRIBUTE, ENTRY_ID_ATTRIBUTE } from '../technicianUtils'
@@ -38,6 +40,29 @@ interface CalendarEntryCardProps {
   highlighted?: boolean
 }
 
+/**
+ * Appointment entries are drawn in their own colour with a dashed border: they are only planned until the appointment
+ * becomes a work order, and must not be mistaken for work orders' entries.
+ */
+function entryPalette(entry: CalendarEntry): 'primary' | 'appointment' {
+  return entry.kind === 'appointment' ? 'appointment' : 'primary'
+}
+
+/** "#123" for a work order's entry, "Appointment 45" (with an icon) for an appointment's. */
+function EntryTitle({ entry }: { entry: CalendarEntry }) {
+  const { t } = useTranslation()
+  const palette = entryPalette(entry)
+
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
+      {entry.kind === 'appointment' && <CalendarMonthIcon sx={{ fontSize: 14, color: `${palette}.dark`, flexShrink: 0 }} />}
+      <Typography variant="body2" noWrap sx={{ fontWeight: 600, color: `${palette}.dark` }}>
+        {entry.kind === 'appointment' ? t('jobs.entry.appointmentTitle', { number: entry.parentNumber }) : `#${entry.parentNumber}`}
+      </Typography>
+    </Box>
+  )
+}
+
 /** The entry's descriptions on one line, or null when it has none. */
 function descriptionsText(entry: CalendarEntry): string | null {
   return entry.descriptions.length > 0 ? entry.descriptions.map((description) => description.name).join(', ') : null
@@ -64,6 +89,7 @@ export function CalendarEntryCard({
   })
 
   const text = descriptionsText(entry)
+  const palette = entryPalette(entry)
   const startMinutes = utcIsoToMinutesOfDay(entry.scheduledTime, zone)
   const left = startMinutes * PX_PER_MINUTE
   const width = Math.max(entry.scheduledDurationMinutes * PX_PER_MINUTE, 8)
@@ -109,9 +135,10 @@ export function CalendarEntryCard({
         left,
         width,
         borderRadius: '6px',
-        bgcolor: (theme) => alpha(theme.palette.primary.main, 0.12),
-        border: '1px solid',
-        borderColor: 'primary.light',
+        bgcolor: (theme) => alpha(theme.palette[palette].main, entry.kind === 'appointment' ? 0.08 : 0.12),
+        borderWidth: '1px',
+        borderStyle: entry.kind === 'appointment' ? 'dashed' : 'solid',
+        borderColor: `${palette}.light`,
         overflow: 'hidden',
         px: 1,
         py: '2px',
@@ -119,14 +146,12 @@ export function CalendarEntryCard({
         touchAction: disabled ? 'auto' : 'none',
         // The DragOverlay shows the moving copy; the original stays in place, faded, until the drop.
         opacity: isDragging ? 0.35 : disabled ? 0.5 : 1,
-        '--pulse-color': (theme) => alpha(theme.palette.primary.main, 0.6),
+        '--pulse-color': (theme) => alpha(theme.palette[palette].main, 0.6),
         animation: highlighted ? `${pulse} 900ms ease-out 3` : 'none',
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '2px' }}>
-        <Typography variant="body2" noWrap sx={{ fontWeight: 600, color: 'primary.dark' }}>
-          #{entry.orderNumber}
-        </Typography>
+        <EntryTitle entry={entry} />
         {!disabled && (
           <IconButton
             size="small"
@@ -157,15 +182,17 @@ export function CalendarEntryCard({
 export function CalendarEntryCardPreview({ entry }: { entry: CalendarEntry }) {
   const zone = useShopTimeZone()
   const text = descriptionsText(entry)
+  const palette = entryPalette(entry)
 
   return (
     <Box
       sx={{
         height: '100%',
         borderRadius: '6px',
-        bgcolor: (theme) => alpha(theme.palette.primary.main, 0.3),
-        border: '1px solid',
-        borderColor: 'primary.main',
+        bgcolor: (theme) => alpha(theme.palette[palette].main, 0.3),
+        borderWidth: '1px',
+        borderStyle: entry.kind === 'appointment' ? 'dashed' : 'solid',
+        borderColor: `${palette}.main`,
         boxShadow: 4,
         overflow: 'hidden',
         px: 1,
@@ -173,9 +200,7 @@ export function CalendarEntryCardPreview({ entry }: { entry: CalendarEntry }) {
         cursor: 'grabbing',
       }}
     >
-      <Typography variant="body2" noWrap sx={{ fontWeight: 600, color: 'primary.dark' }}>
-        #{entry.orderNumber}
-      </Typography>
+      <EntryTitle entry={entry} />
       <Typography variant="caption" noWrap component="div">
         {text ?? formatTimeRange(entry.scheduledTime, entry.scheduledDurationMinutes, zone)}
       </Typography>

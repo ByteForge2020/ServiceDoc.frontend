@@ -22,7 +22,7 @@ import { localDateAndMinutesToUtcIso, offsetXToMinutes, snapMinutes } from '../.
 import type { CalendarEntry, CalendarMode, CalendarRow } from '../types'
 import { CalendarEntryCardPreview, type EntryLabels } from './CalendarEntryCard'
 import { EdgeIndicator } from './EdgeIndicator'
-import { ResourceGrid } from './ResourceGrid'
+import { ResourceGrid, type CalendarAddAction } from './ResourceGrid'
 
 interface DropTarget {
   rowId: string
@@ -39,9 +39,9 @@ export interface ResourceCalendarProps {
   /** Height the grid may grow to before it scrolls; defaults to a full page. */
   maxHeight?: string
   emptyRowsText: ReactNode
-  addLabel: string
+  /** The buttons offered when an empty slot is clicked, one per kind of thing that can be added. */
+  addActions: CalendarAddAction[]
   entryLabels: EntryLabels
-  onAdd: (params: { rowId: string; rowName: string; minutes: number }) => void
   onEdit: (entry: CalendarEntry) => void
   onDelete: (entry: CalendarEntry) => void
   /** An entry was dropped on another time and/or row. */
@@ -61,9 +61,8 @@ export function ResourceCalendar({
   mode,
   maxHeight,
   emptyRowsText,
-  addLabel,
+  addActions,
   entryLabels,
-  onAdd,
   onEdit,
   onDelete,
   onMove,
@@ -85,6 +84,7 @@ export function ResourceCalendar({
       case 'free':
         return true
       case 'addToOrder':
+      case 'addToAppointment':
         return false
       case 'editEntry':
         return entry.id === mode.entryId
@@ -193,9 +193,8 @@ export function ResourceCalendar({
           focusEntryId={mode.kind === 'editEntry' ? mode.entryId : undefined}
           maxHeight={maxHeight}
           emptyRowsText={emptyRowsText}
-          addLabel={addLabel}
+          addActions={addActions}
           entryLabels={entryLabels}
-          onAdd={onAdd}
           onEdit={onEdit}
           onDelete={onDelete}
         />
