@@ -10,15 +10,18 @@ import { useTranslation } from 'react-i18next'
 import { useShopTimeZone } from '../../../app/shop/useShopTimeZone'
 import { utcIsoToMinutesOfDay } from '../../../utils/timeGrid'
 import { APPOINTMENT_STATUS_COLOR } from '../appointmentStatus'
+import { CARD_GAP, MIN_CARD_HEIGHT, SLOT_GUTTER_WIDTH } from '../gridConstants'
 import type { Appointment } from '../types'
 
 const STATUS_BAR_HEIGHT = 4
-const MIN_CARD_HEIGHT = 32
 
 interface AppointmentCardProps {
   appointment: Appointment
   pxPerMinute: number
   scaleStartMinutes: number
+  /** The card's column among the appointments that overlap it in time, and how many columns they share. */
+  column: number
+  columnCount: number
   onOpenDetails: (appointment: Appointment) => void
   onEdit: (appointment: Appointment) => void
   onDelete: (appointment: Appointment) => void
@@ -28,6 +31,8 @@ export function AppointmentCard({
   appointment,
   pxPerMinute,
   scaleStartMinutes,
+  column,
+  columnCount,
   onOpenDetails,
   onEdit,
   onDelete,
@@ -42,6 +47,9 @@ export function AppointmentCard({
   const startMinutes = utcIsoToMinutesOfDay(appointment.scheduledTime, zone)
   const top = (startMinutes - scaleStartMinutes) * pxPerMinute
   const height = Math.max(appointment.durationMinutes * pxPerMinute, MIN_CARD_HEIGHT)
+
+  // The day's width minus the free gutter is shared equally by the overlapping cards.
+  const columnWidth = `((100% - ${CARD_GAP}px - ${SLOT_GUTTER_WIDTH}px) / ${columnCount})`
 
   function handleMenuOpen(event: ReactMouseEvent<HTMLElement>) {
     event.stopPropagation()
@@ -79,8 +87,8 @@ export function AppointmentCard({
       sx={{
         position: 'absolute',
         top,
-        left: 4,
-        right: 4,
+        left: `calc(${CARD_GAP}px + ${columnWidth} * ${column})`,
+        width: `calc(${columnWidth} - ${CARD_GAP}px)`,
         height,
         zIndex: 1,
         display: 'flex',

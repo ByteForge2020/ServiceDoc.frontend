@@ -6,8 +6,18 @@ import { DateTime } from 'luxon'
 import { useTranslation } from 'react-i18next'
 import type { AppointmentSettings } from '../../../api/appointmentSettingsApi'
 import { useShopTimeZone } from '../../../app/shop/useShopTimeZone'
-import { minutesToLabel } from '../../../utils/timeGrid'
-import { DAY_COLUMN_MIN_WIDTH, HEADER_HEIGHT, SLOT_HEIGHT_PX, TIME_COLUMN_WIDTH, WEEKDAY_ORDER } from '../gridConstants'
+import AddIcon from '@mui/icons-material/Add'
+import { minutesToLabel, utcIsoToMinutesOfDay } from '../../../utils/timeGrid'
+import { layoutOverlappingItems } from '../appointmentLayout'
+import {
+  DAY_COLUMN_MIN_WIDTH,
+  HEADER_HEIGHT,
+  MIN_CARD_HEIGHT,
+  SLOT_GUTTER_WIDTH,
+  SLOT_HEIGHT_PX,
+  TIME_COLUMN_WIDTH,
+  WEEKDAY_ORDER,
+} from '../gridConstants'
 import type { Appointment } from '../types'
 import { weekDates } from '../weekUtils'
 import { AppointmentCard } from './AppointmentCard'
@@ -88,6 +98,31 @@ export function AppointmentsWeekGrid({
     }
     return map
   }, [appointments, zone])
+
+  // Appointments that overlap in time share the day's width side by side instead of lying on top of each other.
+  const placementsByDate = useMemo(() => {
+    const minDurationMinutes = MIN_CARD_HEIGHT / pxPerMinute
+    const map = new Map<string, ReturnType<typeof layoutOverlappingItems>>()
+
+    for (const [dateIso, dayItems] of appointmentsByDate) {
+      map.set(
+        dateIso,
+        layoutOverlappingItems(
+          dayItems.map((appointment) => {
+            const startMinutes = utcIsoToMinutesOfDay(appointment.scheduledTime, zone)
+            // A card is never drawn shorter than its minimum height, so it takes that much room when checking overlaps.
+            return {
+              id: appointment.id,
+              startMinutes,
+              endMinutes: startMinutes + Math.max(appointment.durationMinutes, minDurationMinutes),
+            }
+          }),
+        ),
+      )
+    }
+
+    return map
+  }, [appointmentsByDate, pxPerMinute, zone])
 
   return (
     <Box
@@ -173,6 +208,7 @@ export function AppointmentsWeekGrid({
           const dateIso = dates[columnIndex]
           const daySchedule = scheduleByDay.get(dayOfWeek)
           const dayAppointments = appointmentsByDate.get(dateIso) ?? []
+          const dayPlacements = placementsByDate.get(dateIso)
 
           return (
             <Box
@@ -205,7 +241,7 @@ export function AppointmentsWeekGrid({
                       borderColor: 'divider',
                       bgcolor: isActive ? 'transparent' : 'action.hover',
                       cursor: isActive ? 'pointer' : 'default',
-                      '&:hover .schedule-slot-button': isActive ? { opacity: 1 } : undefined,
+                      '&:hover .schedule-slot-button, &:hover .schedule-slot-gutter': isActive ? { opacity: 1 } : undefined,
                     }}
                     onClick={isActive ? () => onScheduleSlot(dateIso, minutes) : undefined}
                   >
@@ -228,6 +264,28 @@ export function AppointmentsWeekGrid({
                         {t('appointmentsPage.scheduleAppointment')}
                       </Button>
                     )}
+                    {isActive && (
+                      // The strip cards never cover: a "+" there shows that this slot can take one more appointment.
+                      <Box
+                        className="schedule-slot-gutter"
+                        aria-hidden
+                        sx={{
+                          position: 'absolute',
+                          top: 0,
+                          right: 0,
+                          bottom: 0,
+                          width: SLOT_GUTTER_WIDTH,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'primary.main',
+                          opacity: 0,
+                          pointerEvents: 'none',
+                        }}
+                      >
+                        <AddIcon fontSize="small" />
+                      </Box>
+                    )}
                   </Box>
                 )
               })}
@@ -238,6 +296,8 @@ export function AppointmentsWeekGrid({
                   appointment={appointment}
                   pxPerMinute={pxPerMinute}
                   scaleStartMinutes={scaleStartMinutes}
+                  column={dayPlacements?.get(appointment.id)?.column ?? 0}
+                  columnCount={dayPlacements?.get(appointment.id)?.columnCount ?? 1}
                   onOpenDetails={onOpenDetails}
                   onEdit={onEditAppointment}
                   onDelete={onDeleteAppointment}
