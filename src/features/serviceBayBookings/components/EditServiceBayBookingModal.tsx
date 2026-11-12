@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useShopTimeZone } from '../../../app/shop/useShopTimeZone'
 import { useToasters } from '../../../app/toasters/useToasters'
 import { JobFormModal, type JobFormValues } from '../../jobs/components/JobFormModal'
+import { useServiceBayField } from '../../jobs/useResourceField'
 import { utcIsoToMinutesOfDay } from '../../../utils/timeGrid'
 import { bookingErrorMessage } from '../bookingErrorMessage'
 import { useUpdateServiceBayBookingMutation } from '../queries'
@@ -20,9 +21,10 @@ export function EditServiceBayBookingModal({ open, booking, onUpdated, onClose }
   const toasters = useToasters()
   const zone = useShopTimeZone()
   const updateMutation = useUpdateServiceBayBookingMutation(booking.id)
+  const serviceBayField = useServiceBayField()
 
-  function handleSave(values: JobFormValues) {
-    updateMutation.mutate(values, {
+  function handleSave({ resourceId, ...values }: JobFormValues) {
+    updateMutation.mutate({ ...values, serviceBayId: resourceId }, {
       onSuccess: () => {
         toasters.success(t('serviceBayBookings.editModal.updateSuccess'))
         onClose()
@@ -37,8 +39,10 @@ export function EditServiceBayBookingModal({ open, booking, onUpdated, onClose }
   return (
     <JobFormModal
       open={open}
-      title={t('serviceBayBookings.editModal.title', { serviceBay: booking.serviceBayName })}
+      title={t('serviceBayBookings.editModal.title')}
       initialOrder={{ id: booking.orderId, orderNumber: booking.orderNumber }}
+      resource={serviceBayField}
+      initialResourceId={booking.serviceBayId}
       initialDateIso={DateTime.fromISO(booking.scheduledTime, { zone: 'utc' }).setZone(zone).toISODate()!}
       initialMinutes={utcIsoToMinutesOfDay(booking.scheduledTime, zone)}
       initialDurationMinutes={booking.scheduledDurationMinutes}

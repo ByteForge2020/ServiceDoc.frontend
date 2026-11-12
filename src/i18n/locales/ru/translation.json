@@ -14,7 +14,7 @@
   },
   "nav": {
     "workOrders": "Заказ-наряды",
-    "jobs": "Работы",
+    "occupancyCalendar": "Календарь занятости",
     "appointments": "Записи",
     "settings": "Настройки"
   },
@@ -282,15 +282,32 @@
     "updateError": "Не удалось сохранить работу.",
     "deleteError": "Не удалось удалить работу."
   },
+  "locationInfo": {
+    "tabLabel": "Информация о локации",
+    "detailsTitle": "Данные локации",
+    "address": "Адрес",
+    "addressPlaceholder": "Введите адрес",
+    "phone": "Телефон",
+    "phonePlaceholder": "Введите телефон",
+    "legalName": "Юридическое лицо",
+    "legalNamePlaceholder": "Введите название юридического лица",
+    "taxId": "ИНН",
+    "taxIdPlaceholder": "Введите ИНН",
+    "scheduleTitle": "График работы",
+    "scheduleHint": "По этому графику строятся все календари: записи и календарь занятости.",
+    "weekdaysLabel": "Дни недели",
+    "openingTimeLabel": "Время открытия",
+    "closingTimeLabel": "Время закрытия",
+    "invalidRange": "Время закрытия должно быть позже времени открытия.",
+    "saveLabel": "Сохранить",
+    "saveSuccess": "Информация о локации сохранена.",
+    "saveError": "Не удалось сохранить информацию о локации."
+  },
   "appointments": {
     "tabLabel": "Записи",
     "defaultDurationTitle": "Длительность приёма по умолчанию",
     "defaultDurationLabel": "Длительность",
     "durationOptionLabel": "{{minutes}} мин",
-    "scheduleTitle": "График работы",
-    "weekdaysLabel": "Дни недели",
-    "openingTimeLabel": "Время открытия",
-    "closingTimeLabel": "Время закрытия",
     "saveLabel": "Сохранить",
     "saveSuccess": "Настройки записи сохранены.",
     "saveError": "Не удалось сохранить настройки записи.",
@@ -342,7 +359,26 @@
     }
   },
   "jobs": {
-    "title": "Работы",
+    "title": "Календарь занятости",
+    "view": {
+      "label": "Вид",
+      "day": "День",
+      "week": "Неделя",
+      "prevDayAria": "Предыдущий день",
+      "nextDayAria": "Следующий день",
+      "prevWeekAria": "Предыдущая неделя",
+      "nextWeekAria": "Следующая неделя"
+    },
+    "filter": {
+      "technicians": "Выберите техников",
+      "serviceBays": "Выберите посты обслуживания"
+    },
+    "resource": {
+      "technician": "Сотрудник",
+      "technicianPlaceholder": "Выберите сотрудника",
+      "serviceBay": "Пост",
+      "serviceBayPlaceholder": "Выберите пост"
+    },
     "tabs": {
       "technicians": "Техники",
       "serviceBays": "Посты обслуживания"
@@ -358,7 +394,7 @@
       "bookServiceBayForAppointment": "Забронировать пост под запись"
     },
     "addJobModal": {
-      "title": "Добавить работу в заказ для {{technician}}",
+      "title": "Добавить работу в заказ",
       "selectOrder": "Выберите заказ",
       "searchOrderPlaceholder": "Поиск по номеру заказа",
       "keepTyping": "Продолжайте вводить для поиска…",
@@ -390,7 +426,7 @@
       "deleteError": "Не удалось удалить работу."
     },
     "editJobModal": {
-      "title": "Редактировать работу для {{technician}}",
+      "title": "Редактировать работу",
       "updateSuccess": "Работа обновлена.",
       "updateError": "Не удалось обновить работу."
     },
@@ -403,7 +439,8 @@
       "entryNotFound": "Это больше нельзя показать в календаре. Возможно, запись удалена или её техника либо пост больше не в списке."
     },
     "entry": {
-      "appointmentTitle": "Запись №{{number}}"
+      "appointmentTitle": "Запись №{{number}}",
+      "multiDayHint": "Работа занимает несколько дней: время меняется в окне правки."
     },
     "legend": {
       "order": "Заказ-наряд",
@@ -424,12 +461,12 @@
       "rescheduleError": "Не удалось переместить бронирование."
     },
     "addModal": {
-      "title": "Забронировать «{{serviceBay}}» под заказ",
+      "title": "Забронировать пост под заказ",
       "createSuccess": "Пост обслуживания забронирован.",
       "createError": "Не удалось забронировать пост обслуживания."
     },
     "editModal": {
-      "title": "Редактировать бронирование поста «{{serviceBay}}»",
+      "title": "Редактировать бронирование поста",
       "updateSuccess": "Бронирование обновлено.",
       "updateError": "Не удалось обновить бронирование."
     }
@@ -489,6 +526,11 @@
     "timeTitle": "Выберите время и дату записи",
     "selectDate": "Выберите дату",
     "selectTime": "Выберите время",
+    "customTime": "Своё время",
+    "customStart": "Начало",
+    "customEnd": "Окончание",
+    "customDuration": "Длительность: {{minutes}} мин",
+    "customEndError": "Окончание должно быть позже начала",
     "selectDateFirst": "Сначала выберите дату",
     "noSlots": "На эту дату нет доступных слотов",
     "numberTitle": "Номер записи",
@@ -521,8 +563,8 @@
       "noReasonsLeft": "В записи больше нет причин визита. Введите своё описание."
     },
     "jobs": {
-      "addTitle": "Добавить работу в запись для {{technician}}",
-      "editTitle": "Редактировать работу по записи для {{technician}}",
+      "addTitle": "Добавить работу в запись",
+      "editTitle": "Редактировать работу по записи",
       "createSuccess": "Работа по записи создана.",
       "createError": "Не удалось создать работу по записи.",
       "updateSuccess": "Работа по записи обновлена.",
@@ -530,8 +572,8 @@
       "deleteConfirmMessage": "Вы уверены, что хотите удалить работу по записи №{{number}}? Это действие нельзя отменить."
     },
     "bookings": {
-      "addTitle": "Забронировать «{{serviceBay}}» под запись",
-      "editTitle": "Редактировать бронирование поста «{{serviceBay}}» под запись",
+      "addTitle": "Забронировать пост под запись",
+      "editTitle": "Редактировать бронирование поста под запись",
       "createSuccess": "Пост обслуживания забронирован под запись.",
       "createError": "Не удалось забронировать пост обслуживания.",
       "updateSuccess": "Бронирование обновлено.",

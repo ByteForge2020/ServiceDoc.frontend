@@ -36,6 +36,7 @@ export interface CreateAppointmentJobPayload {
 
 export interface UpdateAppointmentJobPayload {
   appointmentId: string
+  assignedUserId: string
   scheduledTime: string
   scheduledDurationMinutes: number
   descriptions: AppointmentSlotDescriptionPayload[]
@@ -68,6 +69,7 @@ export interface CreateAppointmentServiceBayBookingPayload {
 
 export interface UpdateAppointmentServiceBayBookingPayload {
   appointmentId: string
+  serviceBayId: string
   scheduledTime: string
   scheduledDurationMinutes: number
   descriptions: AppointmentSlotDescriptionPayload[]
@@ -85,6 +87,7 @@ export function appointmentJobToCalendarEntry(job: AppointmentJob): CalendarEntr
     parentId: job.appointmentId,
     parentNumber: job.appointmentNumber,
     rowId: job.assignedUserId,
+    rowName: job.assignedUserName,
     scheduledTime: job.scheduledTime,
     scheduledDurationMinutes: job.scheduledDurationMinutes,
     descriptions: job.descriptions,
@@ -98,6 +101,7 @@ export function appointmentBookingToCalendarEntry(booking: AppointmentServiceBay
     parentId: booking.appointmentId,
     parentNumber: booking.appointmentNumber,
     rowId: booking.serviceBayId,
+    rowName: booking.serviceBayName,
     scheduledTime: booking.scheduledTime,
     scheduledDurationMinutes: booking.scheduledDurationMinutes,
     descriptions: booking.descriptions,

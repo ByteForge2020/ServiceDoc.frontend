@@ -6,6 +6,11 @@ export function minutesToLabel(minutes: number): string {
   return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`
 }
 
+/** A start (minutes from midnight) and a length that stay within one day and are longer than zero. */
+export function isValidTimeRange(startMinutes: number, durationMinutes: number): boolean {
+  return durationMinutes > 0 && startMinutes + durationMinutes <= 24 * 60
+}
+
 export function snapMinutes(rawMinutes: number, snapToMinutes: number, maxMinutes: number): number {
   const snapped = Math.round(rawMinutes / snapToMinutes) * snapToMinutes
   return Math.min(Math.max(snapped, 0), maxMinutes - snapToMinutes)
@@ -27,7 +32,9 @@ export function utcIsoToMinutesOfDay(iso: string, zone: string): number {
 export function formatTimeRange(scheduledTimeIso: string, durationMinutes: number, zone: string): string {
   const start = DateTime.fromISO(scheduledTimeIso, { zone: 'utc' }).setZone(zone)
   const end = start.plus({ minutes: durationMinutes })
-  return `${start.toFormat('HH:mm')} – ${end.toFormat('HH:mm')}`
+  // Running into another day, the end says which.
+  const endFormat = end.hasSame(start, 'day') ? 'HH:mm' : 'd LLL, HH:mm'
+  return `${start.toFormat('HH:mm')} – ${end.toFormat(endFormat)}`
 }
 
 export function formatScheduledRange(scheduledTimeIso: string, durationMinutes: number, zone: string): string {

@@ -4,6 +4,7 @@ import { extractErrorMessage } from '../../../api/errorMessage'
 import { useShopTimeZone } from '../../../app/shop/useShopTimeZone'
 import { useToasters } from '../../../app/toasters/useToasters'
 import { useUpdateJobMutation } from '../queries'
+import { useTechnicianField } from '../useResourceField'
 import { utcIsoToMinutesOfDay } from '../../../utils/timeGrid'
 import type { Job } from '../types'
 import { JobFormModal, type JobFormValues } from './JobFormModal'
@@ -20,9 +21,10 @@ export function EditJobModal({ open, job, onUpdated, onClose }: EditJobModalProp
   const toasters = useToasters()
   const zone = useShopTimeZone()
   const updateJobMutation = useUpdateJobMutation(job.id)
+  const technicianField = useTechnicianField()
 
-  function handleSave(values: JobFormValues) {
-    updateJobMutation.mutate(values, {
+  function handleSave({ resourceId, ...values }: JobFormValues) {
+    updateJobMutation.mutate({ ...values, assignedUserId: resourceId }, {
       onSuccess: () => {
         toasters.success(t('jobs.editJobModal.updateSuccess'))
         onClose()
@@ -37,8 +39,10 @@ export function EditJobModal({ open, job, onUpdated, onClose }: EditJobModalProp
   return (
     <JobFormModal
       open={open}
-      title={t('jobs.editJobModal.title', { technician: job.assignedUserName })}
+      title={t('jobs.editJobModal.title')}
       initialOrder={{ id: job.orderId, orderNumber: job.orderNumber }}
+      resource={technicianField}
+      initialResourceId={job.assignedUserId}
       initialDateIso={DateTime.fromISO(job.scheduledTime, { zone: 'utc' }).setZone(zone).toISODate()!}
       initialMinutes={utcIsoToMinutesOfDay(job.scheduledTime, zone)}
       initialDurationMinutes={job.scheduledDurationMinutes}

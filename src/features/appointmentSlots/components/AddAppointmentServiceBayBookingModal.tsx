@@ -1,14 +1,15 @@
 import { useTranslation } from 'react-i18next'
 import { useToasters } from '../../../app/toasters/useToasters'
 import type { AppointmentSummary } from '../../appointments/types'
+import { useServiceBayField } from '../../jobs/useResourceField'
 import { bookingErrorMessage } from '../../serviceBayBookings/bookingErrorMessage'
 import { useCreateAppointmentServiceBayBookingMutation } from '../queries'
 import { AppointmentSlotFormModal, type AppointmentSlotFormValues } from './AppointmentSlotFormModal'
 
 interface AddAppointmentServiceBayBookingModalProps {
   open: boolean
-  serviceBayId: string
-  serviceBayName: string
+  /** The bay preselected (the row that was clicked); null leaves the choice to the user. */
+  serviceBayId: string | null
   dateIso: string
   minutes: number
   /** The appointment the booking is for, when it is already known: shown as fixed text instead of a picker. */
@@ -20,7 +21,6 @@ interface AddAppointmentServiceBayBookingModalProps {
 export function AddAppointmentServiceBayBookingModal({
   open,
   serviceBayId,
-  serviceBayName,
   dateIso,
   minutes,
   lockedAppointment,
@@ -30,10 +30,11 @@ export function AddAppointmentServiceBayBookingModal({
   const { t } = useTranslation()
   const toasters = useToasters()
   const createMutation = useCreateAppointmentServiceBayBookingMutation()
+  const serviceBayField = useServiceBayField()
 
-  function handleSave(values: AppointmentSlotFormValues) {
+  function handleSave({ resourceId, ...values }: AppointmentSlotFormValues) {
     createMutation.mutate(
-      { ...values, serviceBayId },
+      { ...values, serviceBayId: resourceId },
       {
         onSuccess: () => {
           toasters.success(t('appointmentSlots.bookings.createSuccess'))
@@ -50,9 +51,11 @@ export function AddAppointmentServiceBayBookingModal({
   return (
     <AppointmentSlotFormModal
       open={open}
-      title={t('appointmentSlots.bookings.addTitle', { serviceBay: serviceBayName })}
+      title={t('appointmentSlots.bookings.addTitle')}
       initialAppointment={lockedAppointment ?? null}
       lockAppointment={lockedAppointment !== undefined}
+      resource={serviceBayField}
+      initialResourceId={serviceBayId}
       initialDateIso={dateIso}
       initialMinutes={minutes}
       initialDurationMinutes={30}

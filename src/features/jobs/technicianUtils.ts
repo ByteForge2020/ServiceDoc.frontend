@@ -1,4 +1,13 @@
 import type { TeamMember } from '../settings/teamMembers/types'
+import type { CalendarEntry } from './types'
+
+/**
+ * Appointment entries are drawn in their own colour with a dashed border: they are only planned until the appointment
+ * becomes a work order, and must not be mistaken for work orders' entries.
+ */
+export function entryPalette(entry: CalendarEntry): 'primary' | 'appointment' {
+  return entry.kind === 'appointment' ? 'appointment' : 'primary'
+}
 
 /** Attribute used to find a row's timeline in the DOM at drop time. */
 export const TIMELINE_ATTRIBUTE = 'data-calendar-timeline'

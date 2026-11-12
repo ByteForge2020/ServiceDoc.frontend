@@ -28,7 +28,8 @@ interface AppointmentFormLayoutProps {
   date: DateTime | null
   onDateChange: (value: DateTime | null) => void
   minutes: number | null
-  onMinutesChange: (value: number) => void
+  durationMinutes: number
+  onTimeChange: (minutes: number, durationMinutes: number) => void
   settings: AppointmentSettings
   number: string
   onNumberChange: (value: string) => void
@@ -52,7 +53,8 @@ export function AppointmentFormLayout({
   date,
   onDateChange,
   minutes,
-  onMinutesChange,
+  durationMinutes,
+  onTimeChange,
   settings,
   number,
   onNumberChange,
@@ -108,7 +110,8 @@ export function AppointmentFormLayout({
                   date={date}
                   onDateChange={onDateChange}
                   minutes={minutes}
-                  onMinutesChange={onMinutesChange}
+                  durationMinutes={durationMinutes}
+                  onTimeChange={onTimeChange}
                   settings={settings}
                 />
               </Paper>

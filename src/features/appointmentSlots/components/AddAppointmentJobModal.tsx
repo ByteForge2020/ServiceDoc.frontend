@@ -2,13 +2,14 @@ import { useTranslation } from 'react-i18next'
 import { extractErrorMessage } from '../../../api/errorMessage'
 import { useToasters } from '../../../app/toasters/useToasters'
 import type { AppointmentSummary } from '../../appointments/types'
+import { useTechnicianField } from '../../jobs/useResourceField'
 import { useCreateAppointmentJobMutation } from '../queries'
 import { AppointmentSlotFormModal, type AppointmentSlotFormValues } from './AppointmentSlotFormModal'
 
 interface AddAppointmentJobModalProps {
   open: boolean
-  technicianId: string
-  technicianName: string
+  /** The employee preselected (the row that was clicked); null leaves the choice to the user. */
+  technicianId: string | null
   dateIso: string
   minutes: number
   /** The appointment the job is for, when it is already known: shown as fixed text instead of a picker. */
@@ -20,7 +21,6 @@ interface AddAppointmentJobModalProps {
 export function AddAppointmentJobModal({
   open,
   technicianId,
-  technicianName,
   dateIso,
   minutes,
   lockedAppointment,
@@ -30,10 +30,11 @@ export function AddAppointmentJobModal({
   const { t } = useTranslation()
   const toasters = useToasters()
   const createMutation = useCreateAppointmentJobMutation()
+  const technicianField = useTechnicianField()
 
-  function handleSave(values: AppointmentSlotFormValues) {
+  function handleSave({ resourceId, ...values }: AppointmentSlotFormValues) {
     createMutation.mutate(
-      { ...values, assignedUserId: technicianId },
+      { ...values, assignedUserId: resourceId },
       {
         onSuccess: () => {
           toasters.success(t('appointmentSlots.jobs.createSuccess'))
@@ -50,9 +51,11 @@ export function AddAppointmentJobModal({
   return (
     <AppointmentSlotFormModal
       open={open}
-      title={t('appointmentSlots.jobs.addTitle', { technician: technicianName })}
+      title={t('appointmentSlots.jobs.addTitle')}
       initialAppointment={lockedAppointment ?? null}
       lockAppointment={lockedAppointment !== undefined}
+      resource={technicianField}
+      initialResourceId={technicianId}
       initialDateIso={dateIso}
       initialMinutes={minutes}
       initialDurationMinutes={30}

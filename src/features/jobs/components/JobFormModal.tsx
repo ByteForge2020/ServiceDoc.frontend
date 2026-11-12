@@ -9,8 +9,10 @@ import CloseIcon from '@mui/icons-material/Close'
 import { DateTime } from 'luxon'
 import { useTranslation } from 'react-i18next'
 import { useShopTimeZone } from '../../../app/shop/useShopTimeZone'
+import { FormSelect } from '../../../components/form/FormSelect'
 import { useWorkOrderQuery } from '../../workOrders/queries'
 import type { WorkOrderSummary } from '../../workOrders/types'
+import type { ResourceField } from '../useResourceField'
 import type { JobDescription, JobDescriptionPayload } from '../types'
 import { JobDescriptionsField, type JobDescriptionDraft } from './JobDescriptionsField'
 import { OrderPicker } from './OrderPicker'
@@ -18,6 +20,8 @@ import { SlotScheduleFields } from './SlotScheduleFields'
 
 export interface JobFormValues {
   orderId: string
+  /** The employee (jobs) or the service bay (bookings) the time is booked for. */
+  resourceId: string
   scheduledTime: string
   scheduledDurationMinutes: number
   descriptions: JobDescriptionPayload[]
@@ -29,6 +33,10 @@ interface JobFormModalProps {
   initialOrder: WorkOrderSummary | null
   /** The order can't be changed (it is shown as fixed text). */
   lockOrder?: boolean
+  /** What the time is booked for (an employee, or a service bay) and the choices; it is picked in the form. */
+  resource: ResourceField
+  /** Preselected, e.g. the row that was clicked; null leaves the choice to the user. */
+  initialResourceId: string | null
   initialDateIso: string
   initialMinutes: number
   initialDurationMinutes: number
@@ -43,6 +51,8 @@ export function JobFormModal({
   title,
   initialOrder,
   lockOrder = false,
+  resource,
+  initialResourceId,
   initialDateIso,
   initialMinutes,
   initialDurationMinutes,
@@ -55,6 +65,7 @@ export function JobFormModal({
   const zone = useShopTimeZone()
 
   const [selectedOrder, setSelectedOrder] = useState<WorkOrderSummary | null>(initialOrder)
+  const [resourceId, setResourceId] = useState<string>(initialResourceId ?? '')
   const [startDate, setStartDate] = useState<DateTime>(DateTime.fromISO(initialDateIso, { zone }))
   const [startMinutes, setStartMinutes] = useState<number>(initialMinutes)
   const [durationMinutes, setDurationMinutes] = useState<number>(initialDurationMinutes)
@@ -75,7 +86,7 @@ export function JobFormModal({
   )
 
   // An empty list of descriptions is valid.
-  const canSave = !!selectedOrder && startDate.isValid && durationMinutes > 0
+  const canSave = !!selectedOrder && resourceId !== '' && startDate.isValid && durationMinutes > 0
 
   // Services belong to one order, so they are dropped when the order changes; custom descriptions stay.
   function dropServiceDescriptions() {
@@ -104,6 +115,7 @@ export function JobFormModal({
 
     onSave({
       orderId: selectedOrder.id,
+      resourceId,
       scheduledTime,
       scheduledDurationMinutes: durationMinutes,
       descriptions: descriptions.map(({ id, estimateItemId, name }) => ({ id, estimateItemId, name })),
@@ -126,6 +138,16 @@ export function JobFormModal({
             locked={lockOrder}
             onSelect={handleSelectOrder}
             onChangeOrder={handleChangeOrder}
+          />
+
+          <FormSelect
+            label={resource.label}
+            placeholder={resource.placeholder}
+            // The options may still be loading; the chosen id is kept meanwhile.
+            value={resource.options.some((option) => option.value === resourceId) ? resourceId : ''}
+            onChange={setResourceId}
+            options={resource.options}
+            required
           />
 
           <SlotScheduleFields

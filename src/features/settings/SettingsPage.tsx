@@ -5,6 +5,7 @@ import Tabs from '@mui/material/Tabs'
 import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
 import { AppointmentsTab } from './appointments/AppointmentsTab'
+import { LocationTab } from './location/LocationTab'
 import { PhasesTab } from './phases/PhasesTab'
 import { ServiceBaysTab } from './serviceBays/ServiceBaysTab'
 import { TeamMembersTab } from './teamMembers/TeamMembersTab'
@@ -23,19 +24,21 @@ export function SettingsPage() {
 
       <Tabs value={tab} onChange={(_event, newValue: number) => setTab(newValue)}>
         <Tab label={t('teamMembers.tabLabel')} value={0} />
-        <Tab label={t('appointments.tabLabel')} value={1} />
-        <Tab label={t('phases.tabLabel')} value={2} />
-        <Tab label={t('workCatalog.tabLabel')} value={3} />
-        <Tab label={t('workOrderSettings.tabLabel')} value={4} />
-        <Tab label={t('serviceBays.tabLabel')} value={5} />
+        <Tab label={t('locationInfo.tabLabel')} value={1} />
+        <Tab label={t('appointments.tabLabel')} value={2} />
+        <Tab label={t('phases.tabLabel')} value={3} />
+        <Tab label={t('workCatalog.tabLabel')} value={4} />
+        <Tab label={t('workOrderSettings.tabLabel')} value={5} />
+        <Tab label={t('serviceBays.tabLabel')} value={6} />
       </Tabs>
 
       {tab === 0 && <TeamMembersTab />}
-      {tab === 1 && <AppointmentsTab />}
-      {tab === 2 && <PhasesTab />}
-      {tab === 3 && <WorkCatalogTab />}
-      {tab === 4 && <WorkOrdersTab />}
-      {tab === 5 && <ServiceBaysTab />}
+      {tab === 1 && <LocationTab />}
+      {tab === 2 && <AppointmentsTab />}
+      {tab === 3 && <PhasesTab />}
+      {tab === 4 && <WorkCatalogTab />}
+      {tab === 5 && <WorkOrdersTab />}
+      {tab === 6 && <ServiceBaysTab />}
     </Stack>
   )
 }

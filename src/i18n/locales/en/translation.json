@@ -14,7 +14,7 @@
   },
   "nav": {
     "workOrders": "Work orders",
-    "jobs": "Jobs",
+    "occupancyCalendar": "Occupancy calendar",
     "appointments": "Appointments",
     "settings": "Settings"
   },
@@ -282,15 +282,32 @@
     "updateError": "Failed to save work item.",
     "deleteError": "Failed to delete work item."
   },
+  "locationInfo": {
+    "tabLabel": "Location info",
+    "detailsTitle": "Location details",
+    "address": "Address",
+    "addressPlaceholder": "Enter the address",
+    "phone": "Phone",
+    "phonePlaceholder": "Enter the phone number",
+    "legalName": "Legal entity",
+    "legalNamePlaceholder": "Enter the legal entity's name",
+    "taxId": "Tax ID (INN)",
+    "taxIdPlaceholder": "Enter the tax ID",
+    "scheduleTitle": "Working hours",
+    "scheduleHint": "Every calendar is drawn from these hours: appointments and the occupancy calendar.",
+    "weekdaysLabel": "Weekdays",
+    "openingTimeLabel": "Opening time",
+    "closingTimeLabel": "Closing time",
+    "invalidRange": "The closing time must be after the opening time.",
+    "saveLabel": "Save",
+    "saveSuccess": "Location info saved.",
+    "saveError": "Failed to save the location info."
+  },
   "appointments": {
     "tabLabel": "Appointments",
     "defaultDurationTitle": "Default appointment duration",
     "defaultDurationLabel": "Duration",
     "durationOptionLabel": "{{minutes}} min",
-    "scheduleTitle": "Opening and closing schedule",
-    "weekdaysLabel": "Weekdays",
-    "openingTimeLabel": "Opening time",
-    "closingTimeLabel": "Closing time",
     "saveLabel": "Save",
     "saveSuccess": "Appointment settings saved.",
     "saveError": "Failed to save appointment settings.",
@@ -342,7 +359,26 @@
     }
   },
   "jobs": {
-    "title": "Jobs",
+    "title": "Occupancy calendar",
+    "view": {
+      "label": "View",
+      "day": "Day",
+      "week": "Week",
+      "prevDayAria": "Previous day",
+      "nextDayAria": "Next day",
+      "prevWeekAria": "Previous week",
+      "nextWeekAria": "Next week"
+    },
+    "filter": {
+      "technicians": "Select technicians",
+      "serviceBays": "Select service bays"
+    },
+    "resource": {
+      "technician": "Employee",
+      "technicianPlaceholder": "Select an employee",
+      "serviceBay": "Service bay",
+      "serviceBayPlaceholder": "Select a service bay"
+    },
     "tabs": {
       "technicians": "Technicians",
       "serviceBays": "Service bays"
@@ -358,7 +394,7 @@
       "bookServiceBayForAppointment": "Book service bay for appointment"
     },
     "addJobModal": {
-      "title": "Add job to an Order for {{technician}}",
+      "title": "Add job to an Order",
       "selectOrder": "Select Order",
       "searchOrderPlaceholder": "Search for Order number",
       "keepTyping": "Keep typing to search…",
@@ -390,7 +426,7 @@
       "deleteError": "Failed to delete job."
     },
     "editJobModal": {
-      "title": "Edit job for {{technician}}",
+      "title": "Edit job",
       "updateSuccess": "Job updated.",
       "updateError": "Failed to update job."
     },
@@ -403,7 +439,8 @@
       "entryNotFound": "This can no longer be shown in the calendar. It may have been deleted, or its technician or service bay is no longer listed."
     },
     "entry": {
-      "appointmentTitle": "Appointment {{number}}"
+      "appointmentTitle": "Appointment {{number}}",
+      "multiDayHint": "This work spans several days: change its time in the edit window."
     },
     "legend": {
       "order": "Work order",
@@ -424,12 +461,12 @@
       "rescheduleError": "Failed to move booking."
     },
     "addModal": {
-      "title": "Book {{serviceBay}} for an Order",
+      "title": "Book a service bay for an Order",
       "createSuccess": "Service bay booked.",
       "createError": "Failed to book service bay."
     },
     "editModal": {
-      "title": "Edit booking of {{serviceBay}}",
+      "title": "Edit service bay booking",
       "updateSuccess": "Booking updated.",
       "updateError": "Failed to update booking."
     }
@@ -489,6 +526,11 @@
     "timeTitle": "Select the time and date of the appointment",
     "selectDate": "Select the date",
     "selectTime": "Select time",
+    "customTime": "Custom time",
+    "customStart": "Start",
+    "customEnd": "End",
+    "customDuration": "Duration: {{minutes}} min",
+    "customEndError": "The end must be after the start",
     "selectDateFirst": "Select a date first",
     "noSlots": "No available time slots for this date",
     "numberTitle": "Appointment number",
@@ -521,8 +563,8 @@
       "noReasonsLeft": "The appointment has no more reasons. Type your own description."
     },
     "jobs": {
-      "addTitle": "Add job to appointment for {{technician}}",
-      "editTitle": "Edit appointment job for {{technician}}",
+      "addTitle": "Add job to appointment",
+      "editTitle": "Edit appointment job",
       "createSuccess": "Appointment job created.",
       "createError": "Failed to create the appointment job.",
       "updateSuccess": "Appointment job updated.",
@@ -530,8 +572,8 @@
       "deleteConfirmMessage": "Are you sure you want to delete the job for appointment {{number}}? This action cannot be undone."
     },
     "bookings": {
-      "addTitle": "Book “{{serviceBay}}” for an appointment",
-      "editTitle": "Edit appointment booking of “{{serviceBay}}”",
+      "addTitle": "Book a service bay for an appointment",
+      "editTitle": "Edit appointment service bay booking",
       "createSuccess": "Service bay booked for the appointment.",
       "createError": "Failed to book the service bay.",
       "updateSuccess": "Booking updated.",

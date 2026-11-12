@@ -6,14 +6,16 @@ import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
 import Typography from '@mui/material/Typography'
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
+import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import { alpha, keyframes } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
-import { useShopTimeZone } from '../../../app/shop/useShopTimeZone'
 import type { CalendarEntry } from '../types'
-import { ENTRY_CARD_ATTRIBUTE, ENTRY_ID_ATTRIBUTE } from '../technicianUtils'
+import { ENTRY_CARD_ATTRIBUTE, ENTRY_ID_ATTRIBUTE, entryPalette } from '../technicianUtils'
+import { isMultiPiece, visiblePart, type EntrySegment } from '../entrySegments'
 import { PX_PER_MINUTE } from '../gridConstants'
-import { formatTimeRange, utcIsoToMinutesOfDay } from '../../../utils/timeGrid'
+import type { TimeRange } from '../workingHours'
 
 // A short ring pulse that draws the eye to the entry being edited when the calendar opens.
 const pulse = keyframes`
@@ -30,6 +32,12 @@ export interface EntryLabels {
 
 interface CalendarEntryCardProps {
   entry: CalendarEntry
+  /** The part of the entry on the day shown. */
+  segment: EntrySegment
+  /** The stretch of the day the timeline draws; the card is positioned in it and cut at its edges. */
+  range: TimeRange
+  /** The working hours the part is cut to (null: not cut, e.g. a day off). */
+  openHours: TimeRange | null
   labels: EntryLabels
   onEdit: (entry: CalendarEntry) => void
   onDelete: (entry: CalendarEntry) => void
@@ -40,16 +48,8 @@ interface CalendarEntryCardProps {
   highlighted?: boolean
 }
 
-/**
- * Appointment entries are drawn in their own colour with a dashed border: they are only planned until the appointment
- * becomes a work order, and must not be mistaken for work orders' entries.
- */
-function entryPalette(entry: CalendarEntry): 'primary' | 'appointment' {
-  return entry.kind === 'appointment' ? 'appointment' : 'primary'
-}
-
 /** "#123" for a work order's entry, "Appointment 45" (with an icon) for an appointment's. */
-function EntryTitle({ entry }: { entry: CalendarEntry }) {
+export function EntryTitle({ entry }: { entry: CalendarEntry }) {
   const { t } = useTranslation()
   const palette = entryPalette(entry)
 
@@ -63,6 +63,26 @@ function EntryTitle({ entry }: { entry: CalendarEntry }) {
   )
 }
 
+/** An arrow at a card's edge: the entry goes on past it (into the next or from the previous day, or the cut-off time). */
+function ContinuationArrow({ side, palette }: { side: 'left' | 'right'; palette: 'primary' | 'appointment' }) {
+  const Icon = side === 'left' ? ChevronLeftIcon : ChevronRightIcon
+
+  return (
+    <Icon
+      aria-hidden
+      sx={{
+        position: 'absolute',
+        top: '50%',
+        [side]: 2,
+        transform: 'translateY(-50%)',
+        fontSize: 18,
+        color: `${palette}.dark`,
+        pointerEvents: 'none',
+      }}
+    />
+  )
+}
+
 /** The entry's descriptions on one line, or null when it has none. */
 function descriptionsText(entry: CalendarEntry): string | null {
   return entry.descriptions.length > 0 ? entry.descriptions.map((description) => description.name).join(', ') : null
@@ -70,6 +90,9 @@ function descriptionsText(entry: CalendarEntry): string | null {
 
 export function CalendarEntryCard({
   entry,
+  segment,
+  range,
+  openHours,
   labels,
   onEdit,
   onDelete,
@@ -77,22 +100,29 @@ export function CalendarEntryCard({
   disabled = false,
   highlighted = false,
 }: CalendarEntryCardProps) {
-  const zone = useShopTimeZone()
+  const { t } = useTranslation()
   const [hovered, setHovered] = useState(false)
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null)
   const menuOpen = !!menuAnchor
 
+  // An entry drawn in several pieces can't be dragged: its time is changed in its form.
+  const dragLocked = isMultiPiece(segment)
+
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: entry.id,
-    data: { entry },
-    disabled,
+    data: { entry, segment },
+    disabled: disabled || dragLocked,
   })
+
+  const part = visiblePart(segment, range, openHours)
+  if (!part) {
+    return null
+  }
 
   const text = descriptionsText(entry)
   const palette = entryPalette(entry)
-  const startMinutes = utcIsoToMinutesOfDay(entry.scheduledTime, zone)
-  const left = startMinutes * PX_PER_MINUTE
-  const width = Math.max(entry.scheduledDurationMinutes * PX_PER_MINUTE, 8)
+  const left = (part.startMinutes - range.startMinutes) * PX_PER_MINUTE
+  const width = Math.max((part.endMinutes - part.startMinutes) * PX_PER_MINUTE, 8)
 
   function handleMenuOpen(event: ReactMouseEvent<HTMLElement>) {
     event.stopPropagation()
@@ -128,6 +158,7 @@ export function CalendarEntryCard({
       onMouseLeave={() => setHovered(false)}
       onMouseMove={(event) => event.stopPropagation()}
       onClick={(event) => event.stopPropagation()}
+      title={dragLocked ? t('jobs.entry.multiDayHint') : undefined}
       sx={{
         position: 'absolute',
         top: 0,
@@ -135,6 +166,8 @@ export function CalendarEntryCard({
         left,
         width,
         borderRadius: '6px',
+        ...(part.cutBefore && { borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }),
+        ...(part.cutAfter && { borderTopRightRadius: 0, borderBottomRightRadius: 0 }),
         bgcolor: (theme) => alpha(theme.palette[palette].main, entry.kind === 'appointment' ? 0.08 : 0.12),
         borderWidth: '1px',
         borderStyle: entry.kind === 'appointment' ? 'dashed' : 'solid',
@@ -142,8 +175,11 @@ export function CalendarEntryCard({
         overflow: 'hidden',
         px: 1,
         py: '2px',
-        cursor: disabled ? 'default' : 'grab',
-        touchAction: disabled ? 'auto' : 'none',
+        // Room for the arrows that show the entry goes on.
+        ...(part.cutBefore && { pl: '20px' }),
+        ...(part.cutAfter && { pr: '20px' }),
+        cursor: disabled || dragLocked ? 'default' : 'grab',
+        touchAction: disabled || dragLocked ? 'auto' : 'none',
         // The DragOverlay shows the moving copy; the original stays in place, faded, until the drop.
         opacity: isDragging ? 0.35 : disabled ? 0.5 : 1,
         '--pulse-color': (theme) => alpha(theme.palette[palette].main, 0.6),
@@ -164,8 +200,11 @@ export function CalendarEntryCard({
         )}
       </Box>
       <Typography variant="caption" noWrap component="div" title={text ?? undefined}>
-        {text ?? formatTimeRange(entry.scheduledTime, entry.scheduledDurationMinutes, zone)}
+        {text ?? segment.rangeLabel}
       </Typography>
+
+      {part.cutBefore && <ContinuationArrow side="left" palette={palette} />}
+      {part.cutAfter && <ContinuationArrow side="right" palette={palette} />}
 
       {/* The menu is portaled, but React still bubbles its pointer events up to the draggable card. */}
       <Menu anchorEl={menuAnchor} open={menuOpen} onClose={handleMenuClose} onPointerDown={(event) => event.stopPropagation()}>
@@ -179,8 +218,7 @@ export function CalendarEntryCard({
 }
 
 /** The copy of an entry card that follows the pointer while dragging; sized by DragOverlay to match the original. */
-export function CalendarEntryCardPreview({ entry }: { entry: CalendarEntry }) {
-  const zone = useShopTimeZone()
+export function CalendarEntryCardPreview({ entry, rangeLabel }: { entry: CalendarEntry; rangeLabel: string }) {
   const text = descriptionsText(entry)
   const palette = entryPalette(entry)
 
@@ -202,7 +240,7 @@ export function CalendarEntryCardPreview({ entry }: { entry: CalendarEntry }) {
     >
       <EntryTitle entry={entry} />
       <Typography variant="caption" noWrap component="div">
-        {text ?? formatTimeRange(entry.scheduledTime, entry.scheduledDurationMinutes, zone)}
+        {text ?? rangeLabel}
       </Typography>
     </Box>
   )

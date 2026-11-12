@@ -13,7 +13,8 @@ import { useToasters } from '../../../app/toasters/useToasters'
 import type { AppointmentSummary } from '../../appointments/types'
 import type { WorkOrderSummary } from '../../workOrders/types'
 import type { CalendarMode } from '../types'
-import { JobsCalendar, type CalendarTabKey } from './JobsCalendar'
+import type { CalendarTabKey } from '../types'
+import { JobsCalendar } from './JobsCalendar'
 
 /**
  * What the dialog is opened for: scheduling a new job or booking a service bay for an order or an appointment, or

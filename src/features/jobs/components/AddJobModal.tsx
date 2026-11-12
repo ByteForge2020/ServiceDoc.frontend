@@ -3,12 +3,13 @@ import { extractErrorMessage } from '../../../api/errorMessage'
 import { useToasters } from '../../../app/toasters/useToasters'
 import type { WorkOrderSummary } from '../../workOrders/types'
 import { useCreateJobMutation } from '../queries'
+import { useTechnicianField } from '../useResourceField'
 import { JobFormModal, type JobFormValues } from './JobFormModal'
 
 interface AddJobModalProps {
   open: boolean
-  technicianId: string
-  technicianName: string
+  /** The employee preselected (the row that was clicked); null leaves the choice to the user. */
+  technicianId: string | null
   dateIso: string
   minutes: number
   /** The order the job is for, when it is already known: shown as fixed text instead of an order picker. */
@@ -20,7 +21,6 @@ interface AddJobModalProps {
 export function AddJobModal({
   open,
   technicianId,
-  technicianName,
   dateIso,
   minutes,
   lockedOrder,
@@ -30,10 +30,11 @@ export function AddJobModal({
   const { t } = useTranslation()
   const toasters = useToasters()
   const createJobMutation = useCreateJobMutation()
+  const technicianField = useTechnicianField()
 
-  function handleSave(values: JobFormValues) {
+  function handleSave({ resourceId, ...values }: JobFormValues) {
     createJobMutation.mutate(
-      { ...values, assignedUserId: technicianId },
+      { ...values, assignedUserId: resourceId },
       {
         onSuccess: () => {
           toasters.success(t('jobs.addJobModal.createSuccess'))
@@ -50,9 +51,11 @@ export function AddJobModal({
   return (
     <JobFormModal
       open={open}
-      title={t('jobs.addJobModal.title', { technician: technicianName })}
+      title={t('jobs.addJobModal.title')}
       initialOrder={lockedOrder ?? null}
       lockOrder={lockedOrder !== undefined}
+      resource={technicianField}
+      initialResourceId={technicianId}
       initialDateIso={dateIso}
       initialMinutes={minutes}
       initialDurationMinutes={30}

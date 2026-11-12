@@ -22,6 +22,7 @@ export interface CreateServiceBayBookingPayload {
 
 export interface UpdateServiceBayBookingPayload {
   orderId: string
+  serviceBayId: string
   scheduledTime: string
   scheduledDurationMinutes: number
   descriptions: JobDescriptionPayload[]
@@ -39,6 +40,7 @@ export function bookingToCalendarEntry(booking: ServiceBayBooking): CalendarEntr
     parentId: booking.orderId,
     parentNumber: booking.orderNumber,
     rowId: booking.serviceBayId,
+    rowName: booking.serviceBayName,
     scheduledTime: booking.scheduledTime,
     scheduledDurationMinutes: booking.scheduledDurationMinutes,
     descriptions: booking.descriptions,

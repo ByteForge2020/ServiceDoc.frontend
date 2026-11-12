@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { appointmentSettingsApi, type AppointmentSettings } from '../../../api/appointmentSettingsApi'
+import { appointmentSettingsApi, type DaySchedule } from '../../../api/appointmentSettingsApi'
 
 const appointmentSettingsKey = ['appointmentSettings'] as const
 
@@ -14,7 +14,20 @@ export function useUpdateAppointmentSettingsMutation() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (payload: AppointmentSettings) => appointmentSettingsApi.updateSettings(payload),
+    mutationFn: (defaultAppointmentDurationMinutes: number) =>
+      appointmentSettingsApi.updateSettings(defaultAppointmentDurationMinutes),
+    onSuccess: (data) => {
+      queryClient.setQueryData(appointmentSettingsKey, data)
+    },
+  })
+}
+
+/** The shop's working hours; the calendars read them from the same settings, so they follow the change at once. */
+export function useUpdateWorkScheduleMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (schedule: DaySchedule[]) => appointmentSettingsApi.updateWorkSchedule(schedule),
     onSuccess: (data) => {
       queryClient.setQueryData(appointmentSettingsKey, data)
     },

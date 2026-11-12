@@ -15,9 +15,18 @@ export type CalendarMode =
 
 export const FREE_MODE: CalendarMode = { kind: 'free' }
 
+/** How much time the calendar spans: one day (rows are resources, the time runs along it) or a whole week. */
+export type CalendarView = 'day' | 'week'
+
+/** The calendar's tabs: employee time, or service bays. */
+export type CalendarTabKey = 'technicians' | 'serviceBays'
+
 /** What every calendar tab (technicians, service bays) takes. */
 export interface CalendarTabProps {
+  /** The day shown; in the week view, any day of the week shown. */
   selectedDate: string
+  /** Only the Jobs screen can show a week; calendars opened for a work order or an appointment are always one day. */
+  view?: CalendarView
   /** Called when a dragged entry rests at a screen edge: moves the calendar one day back (-1) or forward (1). */
   onShiftDate: (direction: -1 | 1) => void
   mode?: CalendarMode
@@ -50,6 +59,8 @@ export interface CalendarEntry {
   /** The work order's or appointment's number. */
   parentNumber: string
   rowId: string
+  /** The technician's or the service bay's name. */
+  rowName: string
   scheduledTime: string
   scheduledDurationMinutes: number
   descriptions: { id: string; name: string }[]
@@ -88,6 +99,7 @@ export function jobToCalendarEntry(job: Job): CalendarEntry {
     parentId: job.orderId,
     parentNumber: job.orderNumber,
     rowId: job.assignedUserId,
+    rowName: job.assignedUserName,
     scheduledTime: job.scheduledTime,
     scheduledDurationMinutes: job.scheduledDurationMinutes,
     descriptions: job.descriptions,
@@ -109,6 +121,7 @@ export interface RescheduleJobPayload {
 
 export interface UpdateJobPayload {
   orderId: string
+  assignedUserId: string
   scheduledTime: string
   scheduledDurationMinutes: number
   descriptions: JobDescriptionPayload[]

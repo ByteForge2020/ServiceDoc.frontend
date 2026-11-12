@@ -8,7 +8,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { extractErrorMessage } from '../../api/errorMessage'
 import { useShopTimeZone } from '../../app/shop/useShopTimeZone'
 import { useToasters } from '../../app/toasters/useToasters'
-import { localDateAndMinutesToUtcIso, utcIsoToMinutesOfDay } from '../../utils/timeGrid'
+import { isValidTimeRange, localDateAndMinutesToUtcIso, utcIsoToMinutesOfDay } from '../../utils/timeGrid'
 import { useAppointmentSettingsQuery } from '../settings/appointments/queries'
 import {
   EMPTY_CUSTOMER,
@@ -39,6 +39,7 @@ export function EditAppointmentPage() {
   const [reasons, setReasons] = useState<AppointmentReason[]>([])
   const [date, setDate] = useState<DateTime | null>(null)
   const [minutes, setMinutes] = useState<number | null>(null)
+  const [durationMinutes, setDurationMinutes] = useState(0)
   const [initializedId, setInitializedId] = useState<string | undefined>(undefined)
   const initialized = initializedId === appointment?.id
 
@@ -52,6 +53,7 @@ export function EditAppointmentPage() {
     setReasons(appointment.reasons)
     setDate(DateTime.fromISO(appointment.scheduledTime, { zone: 'utc' }).setZone(zone).startOf('day'))
     setMinutes(utcIsoToMinutesOfDay(appointment.scheduledTime, zone))
+    setDurationMinutes(appointment.durationMinutes)
   }
 
   if (isLoadingAppointment || isSettingsPending || !settings || !initialized) {
@@ -73,6 +75,7 @@ export function EditAppointmentPage() {
     !!date &&
     date.isValid &&
     minutes !== null &&
+    isValidTimeRange(minutes, durationMinutes) &&
     !mutation.isPending
 
   function handleSubmit(event: FormEvent) {
@@ -92,7 +95,7 @@ export function EditAppointmentPage() {
         vehicle: vehiclePayload,
         estimateMasterListIds: reasons.map((reason) => reason.id),
         scheduledTime: localDateAndMinutesToUtcIso(date.toISODate()!, minutes, zone),
-        durationMinutes: appointment.durationMinutes,
+        durationMinutes,
       },
       {
         onSuccess: () => {
@@ -125,7 +128,11 @@ export function EditAppointmentPage() {
       date={date}
       onDateChange={setDate}
       minutes={minutes}
-      onMinutesChange={setMinutes}
+      durationMinutes={durationMinutes}
+      onTimeChange={(startMinutes, length) => {
+        setMinutes(startMinutes)
+        setDurationMinutes(length)
+      }}
       settings={settings}
       number={number}
       onNumberChange={(value) => {

@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from 'react'
+import { useMemo, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import {
   DndContext,
@@ -17,7 +17,11 @@ import { useTranslation } from 'react-i18next'
 import { useShopTimeZone } from '../../../app/shop/useShopTimeZone'
 import { MINUTES_PER_DAY, PX_PER_MINUTE, SNAP_MINUTES } from '../gridConstants'
 import { ENTRY_CARD_ATTRIBUTE, TIMELINE_ATTRIBUTE } from '../technicianUtils'
+import { placeEntriesOnDay } from '../entrySegments'
+import { useDayTimeRange } from '../useDayTimeRange'
 import { useDragEdgeNavigation } from '../useDragEdgeNavigation'
+import { useEntryPlans } from '../useEntryPlans'
+import { isOpenAt } from '../workingHours'
 import { localDateAndMinutesToUtcIso, offsetXToMinutes, snapMinutes } from '../../../utils/timeGrid'
 import type { CalendarEntry, CalendarMode, CalendarRow } from '../types'
 import { CalendarEntryCardPreview, type EntryLabels } from './CalendarEntryCard'
@@ -75,6 +79,12 @@ export function ResourceCalendar({
   const grabOffsetXRef = useRef(0)
   const overIdRef = useRef<string | null>(null)
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
+  // The duration counts working hours only, so an entry longer than what is left of its day goes on in the next
+  // working day(s): each day draws its own part of it. Only the working hours (plus a few closed columns around) are
+  // drawn, and only they take entries.
+  const plans = useEntryPlans(entries)
+  const placed = useMemo(() => placeEntriesOnDay(entries, selectedDate, plans), [entries, selectedDate, plans])
+  const { range: timeRange, open: openHours } = useDayTimeRange(selectedDate, placed)
   const { pointerXRef, edge } = useDragEdgeNavigation(draggedEntry !== null, onShiftDate, (pointerX) =>
     updateDropTarget(overIdRef.current, pointerX),
   )
@@ -101,11 +111,13 @@ export function ResourceCalendar({
 
     const cardLeft = pointerX - grabOffsetXRef.current
     const minutes = snapMinutes(
-      offsetXToMinutes(cardLeft - timeline.getBoundingClientRect().left, PX_PER_MINUTE),
+      timeRange.startMinutes + offsetXToMinutes(cardLeft - timeline.getBoundingClientRect().left, PX_PER_MINUTE),
       SNAP_MINUTES,
       MINUTES_PER_DAY,
     )
-    return { rowId: overId, minutes }
+
+    // Closed time takes no entries: dropping an entry's start there does nothing.
+    return isOpenAt(openHours, minutes) ? { rowId: overId, minutes } : null
   }
 
   function updateDropTarget(overId: string | null, pointerX: number) {
@@ -148,14 +160,15 @@ export function ResourceCalendar({
 
   function handleDragEnd({ over }: DragEndEvent) {
     const entry = draggedEntry
+    const target = resolveDropTarget(over ? String(over.id) : null, pointerXRef.current)
     finishDrag()
 
-    const target = resolveDropTarget(over ? String(over.id) : null, pointerXRef.current)
     const row = rows.find((item) => item.id === target?.rowId)
     if (!entry || !target || !row) {
       return
     }
 
+    // Only an entry drawn in one piece can be dragged, and where it is dropped is where it starts.
     const scheduledTime = localDateAndMinutesToUtcIso(selectedDate, target.minutes, zone)
 
     const isUnchanged =
@@ -182,10 +195,19 @@ export function ResourceCalendar({
       >
         <ResourceGrid
           rows={rows}
-          entries={entries}
+          placed={placed}
+          timeRange={timeRange}
+          openHours={openHours}
           dropPlaceholder={
-            draggedEntry && dropTarget
-              ? { ...dropTarget, durationMinutes: draggedEntry.scheduledDurationMinutes }
+            // Dropped where it doesn't fit before closing, it goes on the next working day: only what fits is shown.
+            draggedEntry && dropTarget && openHours
+              ? {
+                  ...dropTarget,
+                  durationMinutes: Math.min(
+                    draggedEntry.scheduledDurationMinutes,
+                    Math.max(openHours.endMinutes - dropTarget.minutes, SNAP_MINUTES),
+                  ),
+                }
               : null
           }
           isEntryEditable={isEntryEditable}
@@ -202,7 +224,9 @@ export function ResourceCalendar({
         {/* Portaled and raised so it also shows above a dialog when the calendar is opened in one. */}
         {createPortal(
           <DragOverlay dropAnimation={null} zIndex={theme.zIndex.modal + 100}>
-            {draggedEntry && <CalendarEntryCardPreview entry={draggedEntry} />}
+            {draggedEntry && (
+              <CalendarEntryCardPreview entry={draggedEntry} rangeLabel={plans.get(draggedEntry.id)?.rangeLabel ?? ''} />
+            )}
           </DragOverlay>,
           document.body,
         )}

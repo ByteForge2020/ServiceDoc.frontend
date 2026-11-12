@@ -11,8 +11,10 @@ import { minutesToLabel, utcIsoToMinutesOfDay } from '../../../utils/timeGrid'
 import { layoutOverlappingItems } from '../appointmentLayout'
 import {
   DAY_COLUMN_MIN_WIDTH,
+  DAY_LABEL_KEYS,
   HEADER_HEIGHT,
   MIN_CARD_HEIGHT,
+  PADDING_ROWS,
   SLOT_GUTTER_WIDTH,
   SLOT_HEIGHT_PX,
   TIME_COLUMN_WIDTH,
@@ -22,18 +24,9 @@ import type { Appointment } from '../types'
 import { weekDates } from '../weekUtils'
 import { AppointmentCard } from './AppointmentCard'
 
-const DAY_LABEL_KEYS: Record<number, string> = {
-  0: 'appointments.days.sunday',
-  1: 'appointments.days.monday',
-  2: 'appointments.days.tuesday',
-  3: 'appointments.days.wednesday',
-  4: 'appointments.days.thursday',
-  5: 'appointments.days.friday',
-  6: 'appointments.days.saturday',
-}
-
 const FALLBACK_OPENING_MINUTES = 8 * 60
 const FALLBACK_CLOSING_MINUTES = 18 * 60
+const MINUTES_PER_DAY = 24 * 60
 
 interface AppointmentsWeekGridProps {
   weekStart: string
@@ -73,11 +66,16 @@ export function AppointmentsWeekGrid({
     }
   }, [settings.schedule])
 
-  const slotCount = Math.max(Math.ceil((scaleEndMinutes - scaleStartMinutes) / slotMinutes), 1)
+  // A couple of closed rows above and below the working hours (as far as the day allows), for looks only.
+  const gridStartMinutes = scaleStartMinutes - Math.min(PADDING_ROWS, Math.floor(scaleStartMinutes / slotMinutes)) * slotMinutes
+  const gridEndMinutes =
+    scaleEndMinutes + Math.min(PADDING_ROWS, Math.floor((MINUTES_PER_DAY - scaleEndMinutes) / slotMinutes)) * slotMinutes
+
+  const slotCount = Math.max(Math.ceil((gridEndMinutes - gridStartMinutes) / slotMinutes), 1)
   const gridHeight = slotCount * SLOT_HEIGHT_PX
   const slotStarts = useMemo(
-    () => Array.from({ length: slotCount }, (_, i) => scaleStartMinutes + i * slotMinutes),
-    [slotCount, scaleStartMinutes, slotMinutes],
+    () => Array.from({ length: slotCount }, (_, i) => gridStartMinutes + i * slotMinutes),
+    [slotCount, gridStartMinutes, slotMinutes],
   )
 
   const dates = useMemo(() => weekDates(weekStart), [weekStart])
@@ -192,11 +190,12 @@ export function AppointmentsWeekGrid({
             borderColor: 'divider',
           }}
         >
-          {slotStarts.map((minutes) => (
+          {slotStarts.map((minutes, rowIndex) => (
             <Box key={minutes} sx={{ height: SLOT_HEIGHT_PX, position: 'relative' }}>
               <Typography
                 variant="caption"
-                sx={{ position: 'absolute', top: -8, right: 4, color: 'text.secondary' }}
+                // Centred on its line, except the first one, which would be cut off by the header.
+                sx={{ position: 'absolute', top: rowIndex === 0 ? 2 : -8, right: 4, color: 'text.secondary' }}
               >
                 {minutesToLabel(minutes)}
               </Typography>
@@ -295,7 +294,7 @@ export function AppointmentsWeekGrid({
                   key={appointment.id}
                   appointment={appointment}
                   pxPerMinute={pxPerMinute}
-                  scaleStartMinutes={scaleStartMinutes}
+                  scaleStartMinutes={gridStartMinutes}
                   column={dayPlacements?.get(appointment.id)?.column ?? 0}
                   columnCount={dayPlacements?.get(appointment.id)?.columnCount ?? 1}
                   onOpenDetails={onOpenDetails}

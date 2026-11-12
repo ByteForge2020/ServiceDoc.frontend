@@ -16,11 +16,15 @@ const jobsUiSlice = createSlice({
     setSelectedDate(state, action: PayloadAction<string>) {
       state.selectedDate = action.payload
     },
+    /** Back to today: the calendar always opens on the current day (or week). */
+    resetSelectedDate(state) {
+      state.selectedDate = DateTime.local().toISODate()
+    },
     shiftSelectedDate(state, action: PayloadAction<number>) {
       state.selectedDate = DateTime.fromISO(state.selectedDate, { zone: 'utc' }).plus({ days: action.payload }).toISODate()!
     },
   },
 })
 
-export const { setSelectedDate, shiftSelectedDate } = jobsUiSlice.actions
+export const { setSelectedDate, resetSelectedDate, shiftSelectedDate } = jobsUiSlice.actions
 export default jobsUiSlice.reducer

@@ -1,7 +1,7 @@
 import AssignmentIcon from '@mui/icons-material/Assignment'
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
 import SettingsIcon from '@mui/icons-material/Settings'
-import WorkIcon from '@mui/icons-material/Work'
+import ViewTimelineIcon from '@mui/icons-material/ViewTimeline'
 import Drawer from '@mui/material/Drawer'
 import List from '@mui/material/List'
 import ListItemButton from '@mui/material/ListItemButton'
@@ -24,7 +24,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
   const navItems = [
     { label: t('nav.workOrders'), path: '/orders', icon: <AssignmentIcon />, disabled: false },
-    { label: t('nav.jobs'), path: '/jobs', icon: <WorkIcon />, disabled: false },
+    { label: t('nav.occupancyCalendar'), path: '/calendar', icon: <ViewTimelineIcon />, disabled: false },
     { label: t('nav.appointments'), path: '/appointments', icon: <CalendarMonthIcon />, disabled: false },
     { label: t('nav.settings'), path: '/settings', icon: <SettingsIcon />, disabled: false },
   ]

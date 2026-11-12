@@ -4,6 +4,9 @@ export const HEADER_HEIGHT = 56
 export const DAY_COLUMN_MIN_WIDTH = 150
 export const MIN_CARD_HEIGHT = 32
 
+// Shaded rows added above and below the working hours, only so that the grid doesn't look cut off there.
+export const PADDING_ROWS = 2
+
 // Right edge of every day column that cards never cover, so an empty part of an occupied slot can still be clicked
 // to book another appointment there.
 export const SLOT_GUTTER_WIDTH = 24
@@ -12,3 +15,13 @@ export const CARD_GAP = 4
 
 // Monday-first column order, using .NET's DayOfWeek numeric values (Sunday = 0).
 export const WEEKDAY_ORDER = [1, 2, 3, 4, 5, 6, 0]
+
+export const DAY_LABEL_KEYS: Record<number, string> = {
+  0: 'appointments.days.sunday',
+  1: 'appointments.days.monday',
+  2: 'appointments.days.tuesday',
+  3: 'appointments.days.wednesday',
+  4: 'appointments.days.thursday',
+  5: 'appointments.days.friday',
+  6: 'appointments.days.saturday',
+}

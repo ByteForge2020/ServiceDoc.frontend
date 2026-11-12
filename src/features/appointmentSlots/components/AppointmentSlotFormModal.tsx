@@ -9,14 +9,18 @@ import CloseIcon from '@mui/icons-material/Close'
 import { DateTime } from 'luxon'
 import { useTranslation } from 'react-i18next'
 import { useShopTimeZone } from '../../../app/shop/useShopTimeZone'
+import { FormSelect } from '../../../components/form/FormSelect'
 import { useAppointmentQuery } from '../../appointments/queries'
 import { JobDescriptionsField, type JobDescriptionDraft } from '../../jobs/components/JobDescriptionsField'
 import { SlotScheduleFields } from '../../jobs/components/SlotScheduleFields'
+import type { ResourceField } from '../../jobs/useResourceField'
 import type { AppointmentSlotDescription, AppointmentSlotDescriptionPayload } from '../types'
 import { AppointmentPicker, type AppointmentRef } from './AppointmentPicker'
 
 export interface AppointmentSlotFormValues {
   appointmentId: string
+  /** The employee (jobs) or the service bay (bookings) the time is booked for. */
+  resourceId: string
   scheduledTime: string
   scheduledDurationMinutes: number
   descriptions: AppointmentSlotDescriptionPayload[]
@@ -28,6 +32,10 @@ interface AppointmentSlotFormModalProps {
   initialAppointment: AppointmentRef | null
   /** The appointment can't be changed (it is shown as fixed text). */
   lockAppointment?: boolean
+  /** What the time is booked for (an employee, or a service bay) and the choices; it is picked in the form. */
+  resource: ResourceField
+  /** Preselected, e.g. the row that was clicked; null leaves the choice to the user. */
+  initialResourceId: string | null
   initialDateIso: string
   initialMinutes: number
   initialDurationMinutes: number
@@ -46,6 +54,8 @@ export function AppointmentSlotFormModal({
   title,
   initialAppointment,
   lockAppointment = false,
+  resource,
+  initialResourceId,
   initialDateIso,
   initialMinutes,
   initialDurationMinutes,
@@ -58,6 +68,7 @@ export function AppointmentSlotFormModal({
   const zone = useShopTimeZone()
 
   const [selectedAppointment, setSelectedAppointment] = useState<AppointmentRef | null>(initialAppointment)
+  const [resourceId, setResourceId] = useState<string>(initialResourceId ?? '')
   const [startDate, setStartDate] = useState<DateTime>(DateTime.fromISO(initialDateIso, { zone }))
   const [startMinutes, setStartMinutes] = useState<number>(initialMinutes)
   const [durationMinutes, setDurationMinutes] = useState<number>(initialDurationMinutes)
@@ -80,7 +91,7 @@ export function AppointmentSlotFormModal({
   )
 
   // An empty list of descriptions is valid.
-  const canSave = !!selectedAppointment && startDate.isValid && durationMinutes > 0
+  const canSave = !!selectedAppointment && resourceId !== '' && startDate.isValid && durationMinutes > 0
 
   // Reasons belong to one appointment, so they are dropped when the appointment changes; custom descriptions stay.
   function dropReasonDescriptions() {
@@ -109,6 +120,7 @@ export function AppointmentSlotFormModal({
 
     onSave({
       appointmentId: selectedAppointment.id,
+      resourceId,
       scheduledTime,
       scheduledDurationMinutes: durationMinutes,
       descriptions: descriptions.map(({ id, estimateItemId, name }) => ({
@@ -135,6 +147,16 @@ export function AppointmentSlotFormModal({
             locked={lockAppointment}
             onSelect={handleSelectAppointment}
             onChangeAppointment={handleChangeAppointment}
+          />
+
+          <FormSelect
+            label={resource.label}
+            placeholder={resource.placeholder}
+            // The options may still be loading; the chosen id is kept meanwhile.
+            value={resource.options.some((option) => option.value === resourceId) ? resourceId : ''}
+            onChange={setResourceId}
+            options={resource.options}
+            required
           />
 
           <SlotScheduleFields
