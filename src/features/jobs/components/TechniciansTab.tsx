@@ -6,7 +6,6 @@ import { useTranslation } from 'react-i18next'
 import { extractErrorMessage } from '../../../api/errorMessage'
 import { useConfirm } from '../../../app/confirm/useConfirm'
 import { useToasters } from '../../../app/toasters/useToasters'
-import { AddAppointmentJobModal } from '../../appointmentSlots/components/AddAppointmentJobModal'
 import { EditAppointmentJobModal } from '../../appointmentSlots/components/EditAppointmentJobModal'
 import {
   useAppointmentJobsQuery,
@@ -17,6 +16,7 @@ import { appointmentJobToCalendarEntry, type AppointmentJob } from '../../appoin
 import { useTeamMembersQuery } from '../../settings/teamMembers/queries'
 import { useDeleteJobMutation, useJobsQuery, useRescheduleJobMutation } from '../queries'
 import { useCalendarPreferencesStore } from '../calendarPreferencesStore'
+import { appointmentParent, orderParent } from '../slotParent'
 import { technicianDisplayName } from '../technicianUtils'
 import { useCalendarRange } from '../useCalendarRange'
 import { useFocusedEntryCheck } from '../useFocusedEntryCheck'
@@ -24,7 +24,6 @@ import {
   FREE_MODE,
   jobToCalendarEntry,
   type CalendarEntry,
-  type CalendarEntryKind,
   type CalendarTabProps,
   type Job,
 } from '../types'
@@ -36,7 +35,6 @@ import { ResourceFilter } from './ResourceFilter'
 import { ResourceWeekGrid } from './ResourceWeekGrid'
 
 interface AddJobRequest {
-  kind: CalendarEntryKind
   /** Null when the click wasn't on a technician's row (the week view): it is chosen in the form. */
   technicianId: string | null
   dateIso: string
@@ -107,30 +105,26 @@ export function TechniciansTab({
     onFocusMissing,
   )
 
-  // Opened from a work order or an appointment, only that kind of work can be added; on the Jobs screen both can.
-  const addActions = useMemo<CalendarAddAction[]>(() => {
-    const addToOrder: CalendarAddAction = {
-      key: 'order',
-      label: t('jobs.addJobPopup.addJobToOrder'),
-      onSelect: ({ rowId, minutes, dateIso }) =>
-        setAddJobRequest({ kind: 'order', technicianId: rowId, dateIso: dateIso ?? selectedDate, minutes }),
-    }
-    const addToAppointment: CalendarAddAction = {
-      key: 'appointment',
-      label: t('jobs.addJobPopup.addJobToAppointment'),
-      onSelect: ({ rowId, minutes, dateIso }) =>
-        setAddJobRequest({ kind: 'appointment', technicianId: rowId, dateIso: dateIso ?? selectedDate, minutes }),
-    }
+  // One way to add: a click on an empty place opens the form, where a work order or an appointment is picked
+  // (or it is already known, when the calendar was opened from one).
+  const addActions = useMemo<CalendarAddAction[]>(
+    () => [
+      {
+        key: 'add',
+        label: t('jobs.addJobPopup.addJob'),
+        onSelect: ({ rowId, minutes, dateIso }) =>
+          setAddJobRequest({ technicianId: rowId, dateIso: dateIso ?? selectedDate, minutes }),
+      },
+    ],
+    [selectedDate, t],
+  )
 
-    switch (mode.kind) {
-      case 'addToOrder':
-        return [addToOrder]
-      case 'addToAppointment':
-        return [addToAppointment]
-      default:
-        return [addToOrder, addToAppointment]
-    }
-  }, [mode.kind, selectedDate, t])
+  const lockedParent =
+    mode.kind === 'addToOrder'
+      ? orderParent(mode.order)
+      : mode.kind === 'addToAppointment'
+        ? appointmentParent(mode.appointment)
+        : undefined
 
   async function handleDelete(entry: CalendarEntry) {
     const isAppointment = entry.kind === 'appointment'
@@ -245,25 +239,13 @@ export function TechniciansTab({
         />
       )}
 
-      {addJobRequest?.kind === 'order' && (
+      {addJobRequest && (
         <AddJobModal
           open
           technicianId={addJobRequest.technicianId}
           dateIso={addJobRequest.dateIso}
           minutes={addJobRequest.minutes}
-          lockedOrder={mode.kind === 'addToOrder' ? mode.order : undefined}
-          onCreated={onCreated}
-          onClose={() => setAddJobRequest(null)}
-        />
-      )}
-
-      {addJobRequest?.kind === 'appointment' && (
-        <AddAppointmentJobModal
-          open
-          technicianId={addJobRequest.technicianId}
-          dateIso={addJobRequest.dateIso}
-          minutes={addJobRequest.minutes}
-          lockedAppointment={mode.kind === 'addToAppointment' ? mode.appointment : undefined}
+          lockedParent={lockedParent}
           onCreated={onCreated}
           onClose={() => setAddJobRequest(null)}
         />

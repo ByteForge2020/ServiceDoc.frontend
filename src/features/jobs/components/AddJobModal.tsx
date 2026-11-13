@@ -1,10 +1,11 @@
 import { useTranslation } from 'react-i18next'
 import { extractErrorMessage } from '../../../api/errorMessage'
 import { useToasters } from '../../../app/toasters/useToasters'
-import type { WorkOrderSummary } from '../../workOrders/types'
+import { useCreateAppointmentJobMutation } from '../../appointmentSlots/queries'
 import { useCreateJobMutation } from '../queries'
+import type { SlotParent } from '../slotParent'
 import { useTechnicianField } from '../useResourceField'
-import { JobFormModal, type JobFormValues } from './JobFormModal'
+import { SlotFormModal, type SlotFormValues } from './SlotFormModal'
 
 interface AddJobModalProps {
   open: boolean
@@ -12,55 +13,72 @@ interface AddJobModalProps {
   technicianId: string | null
   dateIso: string
   minutes: number
-  /** The order the job is for, when it is already known: shown as fixed text instead of an order picker. */
-  lockedOrder?: WorkOrderSummary
+  /** The work order or appointment the job is for, when it is already known: shown as fixed text instead of a picker. */
+  lockedParent?: SlotParent
   onCreated?: () => void
   onClose: () => void
 }
 
-export function AddJobModal({
-  open,
-  technicianId,
-  dateIso,
-  minutes,
-  lockedOrder,
-  onCreated,
-  onClose,
-}: AddJobModalProps) {
+/** Adds an employee's time for a work order or for an appointment, whichever is picked in the form. */
+export function AddJobModal({ open, technicianId, dateIso, minutes, lockedParent, onCreated, onClose }: AddJobModalProps) {
   const { t } = useTranslation()
   const toasters = useToasters()
   const createJobMutation = useCreateJobMutation()
+  const createAppointmentJobMutation = useCreateAppointmentJobMutation()
   const technicianField = useTechnicianField()
 
-  function handleSave({ resourceId, ...values }: JobFormValues) {
-    createJobMutation.mutate(
-      { ...values, assignedUserId: resourceId },
-      {
-        onSuccess: () => {
-          toasters.success(t('jobs.addJobModal.createSuccess'))
-          onClose()
-          onCreated?.()
-        },
-        onError: (error) => {
-          toasters.error(extractErrorMessage(error, t('jobs.addJobModal.createError')))
-        },
+  function handleSave({ parent, resourceId, scheduledTime, scheduledDurationMinutes, descriptions }: SlotFormValues) {
+    const isOrder = parent.kind === 'order'
+    const callbacks = {
+      onSuccess: () => {
+        toasters.success(t(isOrder ? 'jobs.addJobModal.createSuccess' : 'appointmentSlots.jobs.createSuccess'))
+        onClose()
+        onCreated?.()
       },
-    )
+      onError: (error: unknown) => {
+        toasters.error(
+          extractErrorMessage(error, t(isOrder ? 'jobs.addJobModal.createError' : 'appointmentSlots.jobs.createError')),
+        )
+      },
+    }
+
+    if (isOrder) {
+      createJobMutation.mutate(
+        {
+          orderId: parent.id,
+          assignedUserId: resourceId,
+          scheduledTime,
+          scheduledDurationMinutes,
+          descriptions: descriptions.map(({ id, sourceId, name }) => ({ id, estimateItemId: sourceId, name })),
+        },
+        callbacks,
+      )
+    } else {
+      createAppointmentJobMutation.mutate(
+        {
+          appointmentId: parent.id,
+          assignedUserId: resourceId,
+          scheduledTime,
+          scheduledDurationMinutes,
+          descriptions: descriptions.map(({ id, sourceId, name }) => ({ id, estimateMasterListId: sourceId, name })),
+        },
+        callbacks,
+      )
+    }
   }
 
   return (
-    <JobFormModal
+    <SlotFormModal
       open={open}
-      title={t('jobs.addJobModal.title')}
-      initialOrder={lockedOrder ?? null}
-      lockOrder={lockedOrder !== undefined}
+      title={t('slotForm.addJobTitle')}
+      initialParent={lockedParent ?? null}
+      lockParent={lockedParent !== undefined}
       resource={technicianField}
       initialResourceId={technicianId}
       initialDateIso={dateIso}
       initialMinutes={minutes}
       initialDurationMinutes={30}
-      initialDescriptions={[]}
-      isSaving={createJobMutation.isPending}
+      isSaving={createJobMutation.isPending || createAppointmentJobMutation.isPending}
       onClose={onClose}
       onSave={handleSave}
     />

@@ -282,6 +282,22 @@
     "updateError": "Failed to save work item.",
     "deleteError": "Failed to delete work item."
   },
+  "slotForm": {
+    "addJobTitle": "Add job",
+    "bookBayTitle": "Book service bay",
+    "parentLabel": "Work order or appointment",
+    "searchPlaceholder": "Search: number, customer or plate",
+    "keepTyping": "Keep typing to search…",
+    "noResults": "Nothing found",
+    "recentOrders": "Recent work orders",
+    "recentAppointments": "Recent appointments",
+    "groupOrders": "Work orders",
+    "groupAppointments": "Appointments",
+    "orderBadge": "Work order",
+    "appointmentBadge": "Appointment",
+    "change": "change",
+    "selectParentFirst": "Select a work order or an appointment first"
+  },
   "locationInfo": {
     "tabLabel": "Location info",
     "detailsTitle": "Location details",
@@ -386,15 +402,12 @@
     "noTechnicians": "No technicians found.",
     "noServiceBays": "No service bays yet. Add them in Settings → Service bays.",
     "addJobPopup": {
-      "addJobToOrder": "Add job to Order",
-      "addJobToAppointment": "Add job to appointment"
+      "addJob": "Add job"
     },
     "addBookingPopup": {
-      "bookServiceBay": "Book service bay for Order",
-      "bookServiceBayForAppointment": "Book service bay for appointment"
+      "bookServiceBay": "Book service bay"
     },
     "addJobModal": {
-      "title": "Add job to an Order",
       "selectOrder": "Select Order",
       "searchOrderPlaceholder": "Search for Order number",
       "keepTyping": "Keep typing to search…",
@@ -461,7 +474,6 @@
       "rescheduleError": "Failed to move booking."
     },
     "addModal": {
-      "title": "Book a service bay for an Order",
       "createSuccess": "Service bay booked.",
       "createError": "Failed to book service bay."
     },
@@ -526,11 +538,6 @@
     "timeTitle": "Select the time and date of the appointment",
     "selectDate": "Select the date",
     "selectTime": "Select time",
-    "customTime": "Custom time",
-    "customStart": "Start",
-    "customEnd": "End",
-    "customDuration": "Duration: {{minutes}} min",
-    "customEndError": "The end must be after the start",
     "selectDateFirst": "Select a date first",
     "noSlots": "No available time slots for this date",
     "numberTitle": "Appointment number",
@@ -563,7 +570,6 @@
       "noReasonsLeft": "The appointment has no more reasons. Type your own description."
     },
     "jobs": {
-      "addTitle": "Add job to appointment",
       "editTitle": "Edit appointment job",
       "createSuccess": "Appointment job created.",
       "createError": "Failed to create the appointment job.",
@@ -572,7 +578,6 @@
       "deleteConfirmMessage": "Are you sure you want to delete the job for appointment {{number}}? This action cannot be undone."
     },
     "bookings": {
-      "addTitle": "Book a service bay for an appointment",
       "editTitle": "Edit appointment service bay booking",
       "createSuccess": "Service bay booked for the appointment.",
       "createError": "Failed to book the service bay.",

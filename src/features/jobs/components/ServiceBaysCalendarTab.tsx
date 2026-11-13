@@ -5,7 +5,6 @@ import Stack from '@mui/material/Stack'
 import { useTranslation } from 'react-i18next'
 import { useConfirm } from '../../../app/confirm/useConfirm'
 import { useToasters } from '../../../app/toasters/useToasters'
-import { AddAppointmentServiceBayBookingModal } from '../../appointmentSlots/components/AddAppointmentServiceBayBookingModal'
 import { EditAppointmentServiceBayBookingModal } from '../../appointmentSlots/components/EditAppointmentServiceBayBookingModal'
 import {
   useAppointmentServiceBayBookingsQuery,
@@ -27,16 +26,16 @@ import {
 } from '../../serviceBayBookings/queries'
 import { bookingToCalendarEntry, type ServiceBayBooking } from '../../serviceBayBookings/types'
 import { useCalendarPreferencesStore } from '../calendarPreferencesStore'
+import { appointmentParent, orderParent } from '../slotParent'
 import { useCalendarRange } from '../useCalendarRange'
 import { useFocusedEntryCheck } from '../useFocusedEntryCheck'
-import { FREE_MODE, type CalendarEntry, type CalendarEntryKind, type CalendarTabProps } from '../types'
+import { FREE_MODE, type CalendarEntry, type CalendarTabProps } from '../types'
 import { ResourceCalendar } from './ResourceCalendar'
 import type { CalendarAddAction } from './ResourceGrid'
 import { ResourceFilter } from './ResourceFilter'
 import { ResourceWeekGrid } from './ResourceWeekGrid'
 
 interface AddBookingRequest {
-  kind: CalendarEntryKind
   /** Null when the click wasn't on a bay's row (the week view): it is chosen in the form. */
   serviceBayId: string | null
   dateIso: string
@@ -111,30 +110,26 @@ export function ServiceBaysCalendarTab({
     onFocusMissing,
   )
 
-  // Opened from a work order or an appointment, only that kind of booking can be added; on the Jobs screen both can.
-  const addActions = useMemo<CalendarAddAction[]>(() => {
-    const bookForOrder: CalendarAddAction = {
-      key: 'order',
-      label: t('jobs.addBookingPopup.bookServiceBay'),
-      onSelect: ({ rowId, minutes, dateIso }) =>
-        setAddRequest({ kind: 'order', serviceBayId: rowId, dateIso: dateIso ?? selectedDate, minutes }),
-    }
-    const bookForAppointment: CalendarAddAction = {
-      key: 'appointment',
-      label: t('jobs.addBookingPopup.bookServiceBayForAppointment'),
-      onSelect: ({ rowId, minutes, dateIso }) =>
-        setAddRequest({ kind: 'appointment', serviceBayId: rowId, dateIso: dateIso ?? selectedDate, minutes }),
-    }
+  // One way to book: a click on an empty place opens the form, where a work order or an appointment is picked
+  // (or it is already known, when the calendar was opened from one).
+  const addActions = useMemo<CalendarAddAction[]>(
+    () => [
+      {
+        key: 'book',
+        label: t('jobs.addBookingPopup.bookServiceBay'),
+        onSelect: ({ rowId, minutes, dateIso }) =>
+          setAddRequest({ serviceBayId: rowId, dateIso: dateIso ?? selectedDate, minutes }),
+      },
+    ],
+    [selectedDate, t],
+  )
 
-    switch (mode.kind) {
-      case 'addToOrder':
-        return [bookForOrder]
-      case 'addToAppointment':
-        return [bookForAppointment]
-      default:
-        return [bookForOrder, bookForAppointment]
-    }
-  }, [mode.kind, selectedDate, t])
+  const lockedParent =
+    mode.kind === 'addToOrder'
+      ? orderParent(mode.order)
+      : mode.kind === 'addToAppointment'
+        ? appointmentParent(mode.appointment)
+        : undefined
 
   async function handleDelete(entry: CalendarEntry) {
     const isAppointment = entry.kind === 'appointment'
@@ -249,25 +244,13 @@ export function ServiceBaysCalendarTab({
         />
       )}
 
-      {addRequest?.kind === 'order' && (
+      {addRequest && (
         <AddServiceBayBookingModal
           open
           serviceBayId={addRequest.serviceBayId}
           dateIso={addRequest.dateIso}
           minutes={addRequest.minutes}
-          lockedOrder={mode.kind === 'addToOrder' ? mode.order : undefined}
-          onCreated={onCreated}
-          onClose={() => setAddRequest(null)}
-        />
-      )}
-
-      {addRequest?.kind === 'appointment' && (
-        <AddAppointmentServiceBayBookingModal
-          open
-          serviceBayId={addRequest.serviceBayId}
-          dateIso={addRequest.dateIso}
-          minutes={addRequest.minutes}
-          lockedAppointment={mode.kind === 'addToAppointment' ? mode.appointment : undefined}
+          lockedParent={lockedParent}
           onCreated={onCreated}
           onClose={() => setAddRequest(null)}
         />

@@ -8,7 +8,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { extractErrorMessage } from '../../api/errorMessage'
 import { useShopTimeZone } from '../../app/shop/useShopTimeZone'
 import { useToasters } from '../../app/toasters/useToasters'
-import { isValidTimeRange, localDateAndMinutesToUtcIso } from '../../utils/timeGrid'
+import { localDateAndMinutesToUtcIso } from '../../utils/timeGrid'
 import { useAppointmentSettingsQuery } from '../settings/appointments/queries'
 import { EMPTY_CUSTOMER, EMPTY_VEHICLE, buildCustomerPayload, buildVehiclePayload } from '../workOrders/workOrderForm'
 import { AppointmentFormLayout } from './components/AppointmentFormLayout'
@@ -40,8 +40,6 @@ export function CreateAppointmentPage() {
     prefill ? DateTime.fromISO(prefill.dateIso, { zone }) : DateTime.local().setZone(zone).startOf('day'),
   )
   const [minutes, setMinutes] = useState<number | null>(prefill?.minutes ?? null)
-  // Null until a custom length is set: a time slot (or a prefilled one) takes the shop's default.
-  const [customDuration, setCustomDuration] = useState<number | null>(null)
 
   if (isSettingsPending || !settings) {
     return (
@@ -53,7 +51,7 @@ export function CreateAppointmentPage() {
 
   const customerPayload = buildCustomerPayload(customer)
   const vehiclePayload = buildVehiclePayload(vehicle)
-  const durationMinutes = customDuration ?? settings.defaultAppointmentDurationMinutes
+  const defaultDurationMinutes = settings.defaultAppointmentDurationMinutes
 
   const canSave =
     number.trim().length > 0 &&
@@ -63,7 +61,6 @@ export function CreateAppointmentPage() {
     !!date &&
     date.isValid &&
     minutes !== null &&
-    isValidTimeRange(minutes, durationMinutes) &&
     !mutation.isPending
 
   function handleSubmit(event: FormEvent) {
@@ -82,7 +79,7 @@ export function CreateAppointmentPage() {
         vehicle: vehiclePayload,
         estimateMasterListIds: reasons.map((reason) => reason.id),
         scheduledTime: localDateAndMinutesToUtcIso(date.toISODate()!, minutes, zone),
-        durationMinutes,
+        durationMinutes: defaultDurationMinutes,
       },
       {
         onSuccess: () => {
@@ -115,11 +112,7 @@ export function CreateAppointmentPage() {
       date={date}
       onDateChange={setDate}
       minutes={minutes}
-      durationMinutes={durationMinutes}
-      onTimeChange={(startMinutes, length) => {
-        setMinutes(startMinutes)
-        setCustomDuration(length)
-      }}
+      onMinutesChange={setMinutes}
       settings={settings}
       number={number}
       onNumberChange={(value) => {

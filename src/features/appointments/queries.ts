@@ -11,6 +11,7 @@ export const appointmentKeys = {
   range: (from: string, to: string) => ['appointments', from, to] as const,
   detail: (id: string) => ['appointments', id] as const,
   upcoming: (take: number) => ['appointments', 'upcoming', take] as const,
+  recent: (take: number) => ['appointments', 'recent', take] as const,
   search: (query: string) => ['appointments', 'search', query] as const,
 }
 
@@ -31,6 +32,15 @@ export function useUpcomingAppointmentsQuery(take = 6) {
   return useQuery({
     queryKey: appointmentKeys.upcoming(take),
     queryFn: () => appointmentsApi.getUpcoming(take),
+    staleTime: 30_000,
+  })
+}
+
+/** The appointments made most recently that are still to be converted, whatever their date. */
+export function useRecentAppointmentsQuery(take = 6) {
+  return useQuery({
+    queryKey: appointmentKeys.recent(take),
+    queryFn: () => appointmentsApi.getRecent(take),
     staleTime: 30_000,
   })
 }

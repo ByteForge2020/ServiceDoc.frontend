@@ -7,11 +7,10 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-import { DateTime } from 'luxon'
 import { useTranslation } from 'react-i18next'
-import { useShopTimeZone } from '../../../app/shop/useShopTimeZone'
 import { useDebouncedValue } from '../../workOrders/components/useDebouncedValue'
 import { useAppointmentsSearchQuery, useUpcomingAppointmentsQuery } from '../../appointments/queries'
+import { useAppointmentDetails } from '../useAppointmentDetails'
 import type { AppointmentSummary } from '../../appointments/types'
 
 /** What the picker needs to know about the chosen appointment; the rest is looked up when it is needed. */
@@ -23,25 +22,6 @@ interface AppointmentPickerProps {
   locked?: boolean
   onSelect: (appointment: AppointmentSummary) => void
   onChangeAppointment: () => void
-}
-
-/** "Mon, 9 Nov, 14:30" in the shop's zone: enough to tell apart appointments with similar numbers. */
-function useAppointmentWhen() {
-  const zone = useShopTimeZone()
-  const { i18n } = useTranslation()
-
-  return (scheduledTime: string) =>
-    DateTime.fromISO(scheduledTime, { zone: 'utc' }).setZone(zone).setLocale(i18n.language).toFormat('ccc, d LLL, HH:mm')
-}
-
-/** The second line under an appointment's number: who it is for, and when. */
-function useAppointmentDetails() {
-  const when = useAppointmentWhen()
-
-  return (appointment: AppointmentSummary) =>
-    [appointment.customerName, appointment.vehicleDescription, when(appointment.scheduledTime)]
-      .filter((part): part is string => !!part)
-      .join(' · ')
 }
 
 /**

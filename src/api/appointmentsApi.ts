@@ -17,6 +17,10 @@ export const appointmentsApi = {
     return apiClient.get<AppointmentSummary[]>(`${BASE_PATH}/upcoming`, { params: { take } }).then((res) => res.data)
   },
 
+  getRecent(take: number) {
+    return apiClient.get<AppointmentSummary[]>(`${BASE_PATH}/recent`, { params: { take } }).then((res) => res.data)
+  },
+
   search(query: string) {
     return apiClient.get<AppointmentSummary[]>(`${BASE_PATH}/search`, { params: { query } }).then((res) => res.data)
   },

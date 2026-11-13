@@ -6,11 +6,6 @@ export function minutesToLabel(minutes: number): string {
   return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`
 }
 
-/** A start (minutes from midnight) and a length that stay within one day and are longer than zero. */
-export function isValidTimeRange(startMinutes: number, durationMinutes: number): boolean {
-  return durationMinutes > 0 && startMinutes + durationMinutes <= 24 * 60
-}
-
 export function snapMinutes(rawMinutes: number, snapToMinutes: number, maxMinutes: number): number {
   const snapped = Math.round(rawMinutes / snapToMinutes) * snapToMinutes
   return Math.min(Math.max(snapped, 0), maxMinutes - snapToMinutes)

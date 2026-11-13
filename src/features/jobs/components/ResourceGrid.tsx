@@ -206,6 +206,12 @@ export function ResourceGrid({
       return
     }
 
+    // With one thing to add there is nothing to choose from: no menu, straight to the form.
+    if (addActions.length === 1) {
+      addActions[0].onSelect({ rowId: row.id, minutes })
+      return
+    }
+
     setPopover({
       rowId: row.id,
       minutes,
