@@ -48,7 +48,7 @@ export function CostCell({ row, onChange }: CostCellProps) {
             onChange({ type })
           }
         }}
-        aria-label={t('estimate.type')}
+        aria-label={t('estimate.costType')}
       >
         {typeOptions.map((option) => (
           <ToggleButton key={option.value} value={option.value} title={option.label} aria-label={option.label} sx={{ flex: 1, height: 40, px: 0 }}>

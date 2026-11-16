@@ -27,7 +27,8 @@ export function EstimateSummary({ items, taxPercent }: EstimateSummaryProps) {
   const tax = sumRows(items, (value) => calculateTax(value, taxPercent))
 
   return (
-    <Stack spacing={0.75} sx={{ minWidth: { sm: 280 }, width: { xs: '100%', sm: 'auto' }, px: 1 }}>
+    // Two lines (18 + 2 + 20px) are exactly as tall as the "Add item" button (40px) beside it, so the tax line appearing never moves the footer.
+    <Stack spacing="2px" sx={{ minWidth: { sm: 280 }, width: { xs: '100%', sm: 'auto' }, px: 1 }}>
       {tax > 0 && (
         <Stack direction="row" spacing={3} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
           <Typography variant="body2" color="text.secondary">

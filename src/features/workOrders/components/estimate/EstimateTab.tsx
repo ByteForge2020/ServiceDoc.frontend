@@ -94,7 +94,7 @@ export function EstimateTab({ items, onItemsChange, discountType, taxPercent }: 
                 <TableCell sx={{ width: COLUMN_WIDTH.cost }}>
                   {/* "Type" over the toggle at the left, "Cost" over the amount at the right (its text ends where the input's does). */}
                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>{t('estimate.type')}</span>
+                    <span>{t('estimate.costType')}</span>
                     <Box component="span" sx={{ pr: '14px' }}>
                       {t('estimate.cost')}
                     </Box>
@@ -239,8 +239,8 @@ function EstimateItemRowView({
             flexDirection: 'column',
             alignItems: 'flex-end',
             justifyContent: 'center',
-            // The row is as tall as its inputs: the amount and its tax line fit inside that.
-            minHeight: 40,
+            // Exactly as tall as the row's inputs: the amount and its tax line (36px) fit inside, so a tax never stretches the row.
+            height: 40,
             fontVariantNumeric: 'tabular-nums',
             whiteSpace: 'nowrap',
           }}

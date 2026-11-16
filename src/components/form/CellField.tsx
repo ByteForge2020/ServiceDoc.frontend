@@ -59,7 +59,11 @@ export function CellField({
       ? formatFixedDecimal(value, i18n.language, displayDecimals)
       : null
   const shown = formatted ?? value
-  const showUnit = unit !== undefined && shown !== ''
+  const isEmpty = shown === ''
+  // With a unit, an empty field shows a zero hint ("0,00 р.") so it reads the same as a filled one.
+  const hint =
+    placeholder ?? (unit !== undefined && displayDecimals !== undefined ? formatFixedDecimal('0', i18n.language, displayDecimals) : null) ?? undefined
+  const showUnit = unit !== undefined
 
   return (
     <TextField
@@ -77,7 +81,7 @@ export function CellField({
         onBlur?.()
       }}
       error={error}
-      placeholder={placeholder}
+      placeholder={hint}
       autoFocus={autoFocus}
       disabled={disabled}
       sx={{
@@ -95,11 +99,11 @@ export function CellField({
           inputMode: numeric ? 'decimal' : 'text',
           readOnly,
           // Sized to the value so the unit hugs it: "50 р." rather than "50        р.".
-          style: showUnit ? { width: `${shown.length}ch`, paddingRight: 0 } : undefined,
+          style: showUnit ? { width: `${(isEmpty ? (hint ?? '') : shown).length}ch`, paddingRight: 0 } : undefined,
         },
         input: {
           endAdornment: showUnit ? (
-            <InputAdornment position="end" disablePointerEvents sx={{ ml: 1 }}>
+            <InputAdornment position="end" disablePointerEvents sx={{ ml: 1, ...(isEmpty && { '& .MuiTypography-root': { color: 'text.disabled' } }) }}>
               {unit}
             </InputAdornment>
           ) : undefined,
