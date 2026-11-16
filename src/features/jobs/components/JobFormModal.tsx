@@ -81,7 +81,7 @@ export function JobFormModal({
   const { data: order } = useWorkOrderQuery(selectedOrder?.id)
 
   const serviceOptions = useMemo(
-    () => (order?.estimates ?? []).flatMap((estimate) => estimate.items.map((item) => ({ id: item.id, name: item.name }))),
+    () => (order?.estimateItems ?? []).map((item) => ({ id: item.id, name: item.name })),
     [order],
   )
 

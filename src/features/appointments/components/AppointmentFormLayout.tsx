@@ -1,14 +1,12 @@
 import type { FormEvent } from 'react'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
-import IconButton from '@mui/material/IconButton'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import type { DateTime } from 'luxon'
 import { useTranslation } from 'react-i18next'
 import type { AppointmentSettings } from '../../../api/appointmentSettingsApi'
+import { FormCancelButton, FormPageActions, FormPageHeader, FormSaveButton } from '../../../components/form/FormPageHeader'
 import { FormTextField } from '../../../components/form/FormTextField'
 import { CustomerInformationCard, type CustomerFormState } from '../../workOrders/components/CustomerInformationCard'
 import { VehicleInformationCard, type VehicleFormState } from '../../workOrders/components/VehicleInformationCard'
@@ -66,17 +64,25 @@ export function AppointmentFormLayout({
   const { t } = useTranslation()
 
   return (
-    <Stack spacing={3}>
-      <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-        <IconButton onClick={onBack} aria-label={t('appointmentForm.backAria')}>
-          <ArrowBackIcon />
-        </IconButton>
-        <Typography variant="h2" component="h1">
-          {title}
-        </Typography>
-      </Stack>
+    // The form wraps the header too, so the Save button up there submits it.
+    <Box component="form" onSubmit={onSubmit} noValidate>
+      <Stack>
+        <FormPageHeader
+          title={title}
+          onBack={onBack}
+          backAriaLabel={t('appointmentForm.backAria')}
+          actions={
+            <FormPageActions>
+              <FormCancelButton onClick={onCancel} disabled={saving}>
+                {t('common.cancel')}
+              </FormCancelButton>
+              <FormSaveButton loading={saving} disabled={!canSave}>
+                {saveLabel}
+              </FormSaveButton>
+            </FormPageActions>
+          }
+        />
 
-      <Box component="form" onSubmit={onSubmit} noValidate>
         <Stack spacing={3}>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '3fr 1fr' }, gap: 3, alignItems: 'start' }}>
             <Stack spacing={3}>
@@ -131,17 +137,8 @@ export function AppointmentFormLayout({
               </Stack>
             </Paper>
           </Box>
-
-          <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
-            <Button variant="text" onClick={onCancel} disabled={saving}>
-              {t('common.cancel')}
-            </Button>
-            <Button type="submit" variant="contained" loading={saving} disabled={!canSave}>
-              {saveLabel}
-            </Button>
-          </Stack>
         </Stack>
-      </Box>
-    </Stack>
+      </Stack>
+    </Box>
   )
 }

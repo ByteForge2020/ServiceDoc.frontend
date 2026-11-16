@@ -22,15 +22,15 @@ import {
   EMPTY_CUSTOMER,
   EMPTY_VEHICLE,
   buildCustomerPayload,
-  buildEstimatesPayload,
+  buildEstimateItemsPayload,
   buildSparePartsPayload,
   buildVehiclePayload,
   customerToFormState,
-  estimatesToFormState,
+  estimateItemsToFormState,
   isSparePartRowMissingName,
   sparePartsToFormState,
   vehicleToFormState,
-  type EstimateFormState,
+  type EstimateItemRow,
   type SparePartRow,
 } from './workOrderForm'
 
@@ -55,7 +55,7 @@ export function EditWorkOrderPage() {
   const [phaseId, setPhaseId] = useState('')
   const [customer, setCustomer] = useState(EMPTY_CUSTOMER)
   const [vehicle, setVehicle] = useState(EMPTY_VEHICLE)
-  const [estimates, setEstimates] = useState<EstimateFormState[]>([])
+  const [estimateItems, setEstimateItems] = useState<EstimateItemRow[]>([])
   const [spareParts, setSpareParts] = useState<SparePartRow[]>([])
   const [initializedKey, setInitializedKey] = useState<string | undefined>(undefined)
   // The phase is part of the key: returning a closed order to work changes it, which refills the form from the reopened order.
@@ -71,7 +71,7 @@ export function EditWorkOrderPage() {
     setPhaseId(workOrder.phaseId)
     setCustomer(customerToFormState(workOrder.customer))
     setVehicle(vehicleToFormState(workOrder.vehicle))
-    setEstimates(estimatesToFormState(workOrder.estimates))
+    setEstimateItems(estimateItemsToFormState(workOrder.estimateItems))
     setSpareParts(sparePartsToFormState(workOrder.spareParts))
   }
 
@@ -109,7 +109,7 @@ export function EditWorkOrderPage() {
         notes: notes.trim() ? notes.trim() : null,
         customer: buildCustomerPayload(customer),
         vehicle: buildVehiclePayload(vehicle),
-        estimates: buildEstimatesPayload(estimates),
+        estimateItems: buildEstimateItemsPayload(estimateItems),
         spareParts: buildSparePartsPayload(spareParts),
       },
       {
@@ -210,8 +210,8 @@ export function EditWorkOrderPage() {
       savedPhase={{ id: workOrder.phaseId, name: workOrder.phaseName }}
       notes={notes}
       onNotesChange={setNotes}
-      estimates={estimates}
-      onEstimatesChange={setEstimates}
+      estimateItems={estimateItems}
+      onEstimateItemsChange={setEstimateItems}
       discountType={workOrder.discountType}
       taxPercent={workOrder.taxPercent}
       spareParts={spareParts}

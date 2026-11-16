@@ -30,7 +30,7 @@ export interface EstimateItemExecutor {
 
 export interface EstimateItemPayload {
   id: string | null
-  subItem: boolean
+  status: EstimateStatus
   name: string
   type: EstimateType
   hours: number | null
@@ -50,19 +50,6 @@ export interface EstimateItem extends EstimateItemPayload {
   sortOrder: number
   /** Calculated by the server: price x quantity minus the discount. Never sent back. */
   total: number | null
-}
-
-export interface Estimate {
-  id: string
-  status: EstimateStatus
-  sortOrder: number
-  items: EstimateItem[]
-}
-
-export interface EstimatePayload {
-  id: string | null
-  status: EstimateStatus
-  items: EstimateItemPayload[]
 }
 
 export interface SparePartPayload {
@@ -87,7 +74,7 @@ export interface CreateWorkOrderRequest {
   notes: string | null
   customer: CustomerPayload | null
   vehicle: VehiclePayload | null
-  estimates: EstimatePayload[]
+  estimateItems: EstimateItemPayload[]
   spareParts: SparePartPayload[]
 }
 
@@ -97,7 +84,7 @@ export interface UpdateWorkOrderRequest {
   notes: string | null
   customer: CustomerPayload | null
   vehicle: VehiclePayload | null
-  estimates: EstimatePayload[]
+  estimateItems: EstimateItemPayload[]
   spareParts: SparePartPayload[]
 }
 
@@ -146,7 +133,7 @@ export interface WorkOrder {
    * follows the shop's rate, a closed one keeps the rate it was closed with.
    */
   taxPercent: number | null
-  estimates: Estimate[]
+  estimateItems: EstimateItem[]
   spareParts: SparePart[]
   jobs: JobSummary[]
   serviceBayBookings: ServiceBayBookingSummary[]

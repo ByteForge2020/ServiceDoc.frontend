@@ -1,23 +1,23 @@
 import type { FormEvent } from 'react'
 import { useState } from 'react'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import LockOpenOutlinedIcon from '@mui/icons-material/LockOpenOutlined'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import PrintIcon from '@mui/icons-material/Print'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
+import Divider from '@mui/material/Divider'
 import IconButton from '@mui/material/IconButton'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
 import Tooltip from '@mui/material/Tooltip'
-import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
 import type { DiscountType } from '../../../app/shop/shopApi'
+import { FormCancelButton, FormPageActions, FormPageHeader, FormSaveButton } from '../../../components/form/FormPageHeader'
 import { ReadOnlyScope } from '../../../components/ReadOnlyScope'
-import type { EstimateFormState, SparePartRow } from '../workOrderForm'
+import type { EstimateItemRow, SparePartRow } from '../workOrderForm'
 import { CustomerInformationCard, type CustomerFormState } from './CustomerInformationCard'
 import { EstimateTab } from './estimate/EstimateTab'
 import { OrderInformationCard } from './OrderInformationCard'
@@ -39,8 +39,8 @@ interface WorkOrderFormLayoutProps {
   savedPhase?: { id: string; name: string }
   notes: string
   onNotesChange: (value: string) => void
-  estimates: EstimateFormState[]
-  onEstimatesChange: (value: EstimateFormState[]) => void
+  estimateItems: EstimateItemRow[]
+  onEstimateItemsChange: (value: EstimateItemRow[]) => void
   /** How the estimate's discounts are read: the order's own type when editing, the shop's current one when creating. */
   discountType: DiscountType
   /** The tax rate the estimate's taxes are worked out at: the order's own when editing, the shop's current one when creating. */
@@ -77,8 +77,8 @@ export function WorkOrderFormLayout({
   savedPhase,
   notes,
   onNotesChange,
-  estimates,
-  onEstimatesChange,
+  estimateItems,
+  onEstimateItemsChange,
   discountType,
   taxPercent,
   spareParts,
@@ -99,18 +99,46 @@ export function WorkOrderFormLayout({
   const [tab, setTab] = useState(0)
 
   return (
-    <Stack spacing={3}>
-      <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-        <IconButton onClick={onBack} aria-label={t('workOrderForm.backAria')}>
-          <ArrowBackIcon />
-        </IconButton>
-        <Typography variant="h2" component="h1">
-          {title}
-        </Typography>
-      </Stack>
+    // The form wraps the header too, so the Save button up there submits it.
+    <Box component="form" onSubmit={onSubmit} noValidate>
+      <Stack>
+        <FormPageHeader
+          title={title}
+          onBack={onBack}
+          backAriaLabel={t('workOrderForm.backAria')}
+          actions={
+            <FormPageActions>
+              {readOnly ? (
+                <Button variant="outlined" startIcon={<LockOpenOutlinedIcon />} onClick={onReopen} loading={reopening}>
+                  {t('workOrderForm.reopenOrder')}
+                </Button>
+              ) : (
+                <Button
+                  variant="outlined"
+                  color="inherit"
+                  startIcon={<LockOutlinedIcon />}
+                  onClick={onCloseOrder}
+                  disabled={!canSave || saving}
+                >
+                  {t('workOrderForm.closeOrder')}
+                </Button>
+              )}
 
-      <Box component="form" onSubmit={onSubmit} noValidate>
-        <Stack spacing={3}>
+              {/* A thin rule keeps "close the order" apart from the plain save / leave pair. */}
+              <Divider orientation="vertical" flexItem sx={{ my: 0.5 }} />
+
+              <FormCancelButton onClick={onCancel} disabled={saving}>
+                {readOnly ? t('common.back') : t('common.cancel')}
+              </FormCancelButton>
+              {!readOnly && (
+                <FormSaveButton loading={saving} disabled={!canSave}>
+                  {saveLabel}
+                </FormSaveButton>
+              )}
+            </FormPageActions>
+          }
+        >
+          {/* The tabs ride along with the header, so the section being edited is always in view. */}
           <Stack direction="row" sx={{ alignItems: 'center', borderBottom: 1, borderColor: 'divider' }}>
             <Tabs value={tab} onChange={(_event, newValue: number) => setTab(newValue)} sx={{ flexGrow: 1, borderBottom: 'none' }}>
               <Tab label={t('workOrderForm.generalInformation')} value={0} />
@@ -127,7 +155,9 @@ export function WorkOrderFormLayout({
               </Tooltip>
             )}
           </Stack>
+        </FormPageHeader>
 
+        <Stack spacing={3}>
           {/* The tabs stay clickable on a closed order; only what is inside them is locked. */}
           <ReadOnlyScope active={readOnly}>
             {tab === 0 && (
@@ -160,8 +190,8 @@ export function WorkOrderFormLayout({
             {tab === 1 && (
               <Paper variant="outlined" sx={{ p: 4, borderRadius: '12px' }}>
                 <EstimateTab
-                  estimates={estimates}
-                  onEstimatesChange={onEstimatesChange}
+                  items={estimateItems}
+                  onItemsChange={onEstimateItemsChange}
                   discountType={discountType}
                   taxPercent={taxPercent}
                 />
@@ -174,37 +204,8 @@ export function WorkOrderFormLayout({
               </Paper>
             )}
           </ReadOnlyScope>
-
-          <Stack direction="row" spacing={2} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-            {readOnly ? (
-              <Button variant="outlined" startIcon={<LockOpenOutlinedIcon />} onClick={onReopen} loading={reopening}>
-                {t('workOrderForm.reopenOrder')}
-              </Button>
-            ) : (
-              <Button
-                variant="outlined"
-                color="inherit"
-                startIcon={<LockOutlinedIcon />}
-                onClick={onCloseOrder}
-                disabled={!canSave || saving}
-              >
-                {t('workOrderForm.closeOrder')}
-              </Button>
-            )}
-
-            <Stack direction="row" spacing={2}>
-              <Button variant="text" onClick={onCancel} disabled={saving}>
-                {readOnly ? t('common.back') : t('common.cancel')}
-              </Button>
-              {!readOnly && (
-                <Button type="submit" variant="contained" loading={saving} disabled={!canSave}>
-                  {saveLabel}
-                </Button>
-              )}
-            </Stack>
-          </Stack>
         </Stack>
-      </Box>
-    </Stack>
+      </Stack>
+    </Box>
   )
 }

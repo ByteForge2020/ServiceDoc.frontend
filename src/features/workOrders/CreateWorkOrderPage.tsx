@@ -13,11 +13,11 @@ import {
   EMPTY_CUSTOMER,
   EMPTY_VEHICLE,
   buildCustomerPayload,
-  buildEstimatesPayload,
+  buildEstimateItemsPayload,
   buildSparePartsPayload,
   buildVehiclePayload,
   isSparePartRowMissingName,
-  type EstimateFormState,
+  type EstimateItemRow,
   type SparePartRow,
 } from './workOrderForm'
 
@@ -38,7 +38,7 @@ export function CreateWorkOrderPage() {
   const [phaseId, setPhaseId] = useState('')
   const [customer, setCustomer] = useState(EMPTY_CUSTOMER)
   const [vehicle, setVehicle] = useState(EMPTY_VEHICLE)
-  const [estimates, setEstimates] = useState<EstimateFormState[]>([])
+  const [estimateItems, setEstimateItems] = useState<EstimateItemRow[]>([])
   const [spareParts, setSpareParts] = useState<SparePartRow[]>([])
 
   const canSave =
@@ -55,7 +55,7 @@ export function CreateWorkOrderPage() {
         notes: notes.trim() ? notes.trim() : null,
         customer: buildCustomerPayload(customer),
         vehicle: buildVehiclePayload(vehicle),
-        estimates: buildEstimatesPayload(estimates),
+        estimateItems: buildEstimateItemsPayload(estimateItems),
         spareParts: buildSparePartsPayload(spareParts),
       },
       {
@@ -127,8 +127,8 @@ export function CreateWorkOrderPage() {
       onPhaseChange={setPhaseId}
       notes={notes}
       onNotesChange={setNotes}
-      estimates={estimates}
-      onEstimatesChange={setEstimates}
+      estimateItems={estimateItems}
+      onEstimateItemsChange={setEstimateItems}
       discountType={shopSettings?.discountType ?? 'Percent'}
       taxPercent={shopSettings?.priceIncludesTax ? (shopSettings.taxPercent ?? null) : null}
       spareParts={spareParts}

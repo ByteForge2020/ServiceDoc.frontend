@@ -7,9 +7,8 @@ import type { VehicleFormState } from './components/VehicleInformationCard'
 import type { ExecutorShare } from './executorShares'
 import type {
   CustomerPayload,
-  Estimate,
+  EstimateItem,
   EstimateItemPayload,
-  EstimatePayload,
   EstimateStatus,
   SparePart,
   SparePartPayload,
@@ -117,7 +116,8 @@ export function buildVehiclePayload(vehicle: VehicleFormState): VehiclePayload |
 export interface EstimateItemRow {
   key: string
   id: string | null
-  subItem: boolean
+  /** Whether the customer approved or rejected the item; rejected ones don't count in the PDF's total. */
+  status: EstimateStatus
   name: string
   type: EstimateType
   hours: string
@@ -144,7 +144,7 @@ function numberToField(value: number | null | undefined): string {
   return value != null ? String(value) : ''
 }
 
-export function createEstimateItemRow(subItem: boolean, name = '', defaults?: EstimateItemDefaults): EstimateItemRow {
+export function createEstimateItemRow(name = '', defaults?: EstimateItemDefaults): EstimateItemRow {
   // Quantity 1 and no discount: the total is just the price.
   const price = numberToField(defaults?.price)
   const type = defaults?.type ?? 'Fixed'
@@ -152,7 +152,7 @@ export function createEstimateItemRow(subItem: boolean, name = '', defaults?: Es
   return {
     key: crypto.randomUUID(),
     id: null,
-    subItem,
+    status: 'Draft',
     name,
     type,
     hours: numberToField(defaults?.hours),
@@ -166,44 +166,8 @@ export function createEstimateItemRow(subItem: boolean, name = '', defaults?: Es
   }
 }
 
-// An Estimate is exactly one root item (SubItem=false) plus its sub-items (SubItem=true).
-export interface EstimateFormState {
-  key: string
-  id: string | null
-  status: EstimateStatus
-  root: EstimateItemRow
-  subItems: EstimateItemRow[]
-}
-
-export function createEstimateFormState(name: string, defaults?: EstimateItemDefaults): EstimateFormState {
-  return {
-    key: crypto.randomUUID(),
-    id: null,
-    status: 'Draft',
-    root: createEstimateItemRow(false, name, defaults),
-    subItems: [],
-  }
-}
-
-export function estimatesToFormState(estimates: Estimate[]): EstimateFormState[] {
-  return [...estimates]
-    .sort((a, b) => a.sortOrder - b.sortOrder)
-    .map((estimate) => {
-      const rows = estimateItemsToFormState(estimate)
-      const rootIndex = rows.findIndex((row) => !row.subItem)
-
-      return {
-        key: estimate.id,
-        id: estimate.id,
-        status: estimate.status,
-        root: rootIndex >= 0 ? rows[rootIndex] : createEstimateItemRow(false),
-        subItems: rows.filter((_row, index) => index !== rootIndex),
-      }
-    })
-}
-
-function estimateItemsToFormState(estimate: Estimate): EstimateItemRow[] {
-  return [...estimate.items]
+export function estimateItemsToFormState(items: EstimateItem[]): EstimateItemRow[] {
+  return [...items]
     .sort((a, b) => a.sortOrder - b.sortOrder)
     .map((item) => {
       const type = item.type ?? 'Fixed'
@@ -212,7 +176,7 @@ function estimateItemsToFormState(estimate: Estimate): EstimateItemRow[] {
       return {
         key: item.id,
         id: item.id,
-        subItem: item.subItem,
+        status: item.status,
         name: item.name,
         type,
         hours: item.hours != null ? String(item.hours) : '',
@@ -352,21 +316,10 @@ export function resolveItemPatch(
   return { ...amounts, total: calculateLineTotal({ ...row, ...amounts }, discountType) }
 }
 
-export function buildEstimatesPayload(estimates: EstimateFormState[]): EstimatePayload[] {
-  return estimates.map((estimate) => ({
-    id: estimate.id,
-    status: estimate.status,
-    items: buildEstimateItemsPayload([
-      { ...estimate.root, subItem: false },
-      ...estimate.subItems.map((row) => ({ ...row, subItem: true })),
-    ]),
-  }))
-}
-
-function buildEstimateItemsPayload(rows: EstimateItemRow[]): EstimateItemPayload[] {
+export function buildEstimateItemsPayload(rows: EstimateItemRow[]): EstimateItemPayload[] {
   return rows.map((row) => ({
     id: row.id,
-    subItem: row.subItem,
+    status: row.status,
     name: row.name.trim(),
     type: row.type,
     hours: toNullableNumber(row.hours),

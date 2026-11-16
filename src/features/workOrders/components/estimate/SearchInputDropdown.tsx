@@ -4,6 +4,7 @@ import Autocomplete from '@mui/material/Autocomplete'
 import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
 import Stack from '@mui/material/Stack'
+import { alpha } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 import { extractErrorMessage } from '../../../../api/errorMessage'
 import type { EstimateMasterListItem } from '../../../../api/estimateMasterListApi'
@@ -76,7 +77,24 @@ export function SearchInputDropdown({ excludedNames, onSelect }: SearchInputDrop
 
   if (!active) {
     return (
-      <Button variant="outlined" startIcon={<AddIcon />} onClick={() => setActive(true)}>
+      <Button
+        variant="outlined"
+        startIcon={<AddIcon />}
+        onClick={() => setActive(true)}
+        // An outlined button: a thin blue border and no fill, so it reads as a button without competing with "Save".
+        // As tall as the inputs of the rows (40px).
+        sx={(theme) => ({
+          height: 40,
+          borderRadius: '8px',
+          bgcolor: 'transparent',
+          color: 'primary.main',
+          borderColor: alpha(theme.palette.primary.main, 0.5),
+          '&:hover': {
+            bgcolor: alpha(theme.palette.primary.main, 0.06),
+            borderColor: 'primary.main',
+          },
+        })}
+      >
         {t('estimate.addItem')}
       </Button>
     )

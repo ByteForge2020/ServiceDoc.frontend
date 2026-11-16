@@ -92,7 +92,7 @@ export function SlotFormModal({
     () =>
       parent?.kind === 'appointment'
         ? (appointment?.reasons ?? []).map((reason) => ({ id: reason.id, name: reason.name }))
-        : (order?.estimates ?? []).flatMap((estimate) => estimate.items.map((item) => ({ id: item.id, name: item.name }))),
+        : (order?.estimateItems ?? []).map((item) => ({ id: item.id, name: item.name })),
     [parent?.kind, order, appointment],
   )
 
